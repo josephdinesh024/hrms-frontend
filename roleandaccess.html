@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
-    <script src="/hrms-frontend//static/js/theme.js"></script>
+    <script src=".//static/js/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -61,24 +61,24 @@
         </div>
     </div>
 
-    <script src="/hrms-frontend/static/js/global.js"></script>
+    <script src="./static/js/global.js"></script>
     <script>
 
-        $("#contents").load("/hrms-frontend/componnet/roleandaccess/role.html")
+        $("#contents").load("./componnet/roleandaccess/role.html")
         $("button#role").on("click", function () {
             $("#fixedEditPanel #editContent").empty()
             closeFixedEditPanel()
-            $("#contents").load("/hrms-frontend/componnet/roleandaccess/role.html")
+            $("#contents").load("./componnet/roleandaccess/role.html")
         })
         $("button#accessGroup").on("click", function () {
             $("#fixedEditPanel #editContent").empty()
             closeFixedEditPanel()
-            $("#contents").load("/hrms-frontend/componnet/roleandaccess/useraccessgroup.html")
+            $("#contents").load("./componnet/roleandaccess/useraccessgroup.html")
         })
         $("button#permission").on("click", function () {
             $("#fixedEditPanel #editContent").empty()
             closeFixedEditPanel()
-            $("#contents").load("/hrms-frontend/componnet/roleandaccess/permission.html")
+            $("#contents").load("./componnet/roleandaccess/permission.html")
         })
 
 

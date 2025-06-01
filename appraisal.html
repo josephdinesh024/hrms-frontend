@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
-    <script src="/hrms-frontend//static/js/theme.js"></script>
+    <script src=".//static/js/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -65,27 +65,27 @@
         </div>
     </div> -->
 
-    <script src="/hrms-frontend/static/js/global.js"></script>
+    <script src="./static/js/global.js"></script>
     <script>
         
-        $("#contents").load("/hrms-frontend/componnet/appraisal/appraisal.html")
+        $("#contents").load("./componnet/appraisal/appraisal.html")
         $("button#appraisal").on("click",function(){
             $("#editPanel #editContent").empty()
             $("#contents").empty()
             closePanel()
-            $("#contents").load("/hrms-frontend/componnet/appraisal/appraisal.html")
+            $("#contents").load("./componnet/appraisal/appraisal.html")
         })
         $("button#appraisalForm").on("click",function(){
             $("#editPanel #editContent").empty()
             $("#contents").empty()
             closePanel()
-            $("#contents").load("/hrms-frontend/componnet/appraisal/appraisalform.html")
+            $("#contents").load("./componnet/appraisal/appraisalform.html")
         })
         $("button#category").on("click",function(){
             $("#editPanel #editContent").empty()
             $("#contents").empty()
             closePanel()
-            $("#contents").load("/hrms-frontend/componnet/appraisal/category.html")
+            $("#contents").load("./componnet/appraisal/category.html")
         })
 
         $(document).on("click","#action button",function(){
