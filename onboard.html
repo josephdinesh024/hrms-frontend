@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
-    <script src="/frontend//static/js/theme.js"></script>
+    <script src="/hrms-frontend//static/js/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -69,13 +69,13 @@
         </div>
     </div>
 
-    <script src="/frontend/static/js/global.js"></script>
+    <script src="/hrms-frontend/static/js/global.js"></script>
     <script>
-        $("#targetContent").load("/frontend/componnet/onboard/profile.html")
+        $("#targetContent").load("/hrms-frontend/componnet/onboard/profile.html")
         $(document).on("click", "button.tab-link", function () {
             let selected = $(this).attr("data-target")
             $("#targetContent").html(``)
-            $("#targetContent").load("/frontend/componnet/onboard/" + selected + ".html")
+            $("#targetContent").load("/hrms-frontend/componnet/onboard/" + selected + ".html")
 
             $("button.tab-link").each(function () {
                 if (selected == $(this).attr("data-target")) {

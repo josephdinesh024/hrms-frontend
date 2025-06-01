@@ -4,14 +4,14 @@ if (!access_token)
 
 const scripts = [
     
-    "/frontend/static/js/confic.js",
-    "/frontend/static/js/util.js"
+    "/hrms-frontend/static/js/confic.js",
+    "/hrms-frontend/static/js/util.js"
 ];
 
 scripts.forEach(src => loadScript(src));
 
 const styles = [
-    "/frontend/static/css/floatinput.css"
+    "/hrms-frontend/static/css/floatinput.css"
 ];
 
 styles.forEach(href => loadCSS(href));

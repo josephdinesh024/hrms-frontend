@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
-    <script src="/frontend//static/js/theme.js"></script>
+    <script src="/hrms-frontend//static/js/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -80,19 +80,19 @@
         </div>
     </div>
 
-    <script src="/frontend/static/js/global.js"></script>
+    <script src="/hrms-frontend/static/js/global.js"></script>
     <script>
 
-        $("#contents").load("/frontend/componnet/employee/employee.html")
+        $("#contents").load("/hrms-frontend/componnet/employee/employee.html")
         $("button#employee").on("click", function () {
             $("#editPanel #editContent").empty()
             $("#contents").empty()
-            $("#contents").load("/frontend/componnet/employee/employee.html")
+            $("#contents").load("/hrms-frontend/componnet/employee/employee.html")
         })
         $("button#access").on("click", function () {
             $("#editPanel #editContent").empty()
             $("#contents").empty()
-            $("#contents").load("/frontend/componnet/employee/access.html")
+            $("#contents").load("/hrms-frontend/componnet/employee/access.html")
         })
 
 
