@@ -89,7 +89,7 @@
                                 $.cookie("access_token", data.access_token,)  //{ expires: 3600*60, domain:'127.0.0.1' }
                                 $.cookie("user_name", data.user.user_name)
                                 if (data.user.status == "active")
-                                    window.location.href = '/frontend/index.html'
+                                    window.location.href = 'index.html'
                                 if (["pending", "onboard"].includes(data.user.status))
                                     setTimeout(() => { window.location.href = "onboard.html" }, 400)
                                 // console.log(data)

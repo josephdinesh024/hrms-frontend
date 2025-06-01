@@ -1,6 +1,6 @@
 const access_token = $.cookie("access_token");
 if (!access_token)
-        window.location.href = '/frontend/login.html'
+        window.location.href = 'login.html'
 
 const scripts = [
     
