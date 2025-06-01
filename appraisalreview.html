@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Appraisal</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="/frontend//static/js/theme.js"></script>
+</head>
+
+<body class="flex justify-center gap-6 bg-gray-100 p-10">
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+    <div class="w-1/2 mx-auto bg-white p-6 rounded-lg shadow">
+        <div class="grid grid-cols-2 justify-evently gap-3 text-sm text-textPrimary font-bold py-2 relative">
+            <span class="flex justify-between">Employee ID <span>:</span></span>
+            <h3 id="user_name" class="text-black">Employee ID</h3>
+        </div>
+        <div class="grid grid-cols-2 justify-evently gap-3 text-sm text-textPrimary font-bold py-2 relative">
+            <span class="flex justify-between">Full name <span>:</span></span>
+            <h3 id="name" class="text-black">Full name</h3>
+        </div>
+        <div class="grid grid-cols-2 justify-evently gap-3 text-sm text-textPrimary font-bold py-2 relative">
+            <span class="flex justify-between">Email <span>:</span></span>
+            <h3 id="email" class="text-black">Email</h3>
+        </div>
+        <div class="grid grid-cols-2 justify-evently gap-3 text-sm text-textPrimary font-bold py-2 relative">
+            <span class="flex justify-between">Mobile number <span>:</span></span>
+            <h3 id="phone" class="text-black">Mobile number</h3>
+        </div>
+
+        <hr class="my-4">
+        <h1 id="titlePreview" class="text-xl font-semibold">Title</h1>
+        <h6 id="codePreview" class="w-full text-xs text-end font-medium -mt-3">code</h6>
+        <div id="questionPreview" class="space-y-4 p-4 border rounded bg-gray-50"></div>
+        <hr class="mt-4">
+
+        <h1 class="text-textPrimary font-semibold text-xl my-2">Comment Area:</h1>
+        <div>
+            <div class="relative">
+                <label class="block font-medium mb-1">Description</label>
+                <input type="text" id="description" class="border p-2 w-full rounded" placeholder="Answer...">
+            </div>
+            <div class="relative">
+                <label class="block font-medium mb-1">Description</label>
+                <select id="rateing" class="border p-2 w-full rounded">
+                    <option value="bad">Bad</option>
+                    <option value="good">Good</option>
+                    <option value="excellent">Excellent</option>
+                    <option value="excellent +">Excellent +</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex justify-end p-2 mt-4">
+            <button id="saveAnswerBtn" class="bg-blue-400 rounded-lg p-2 text-white font-medium">Sumbit</button>
+        </div>
+    </div>
+
+    <script src="/frontend/static/js/global.js"></script>
+    <script>
+        var access_token = $.cookie("access_token")
+        if (!access_token)
+            window.location.href = '/frontend/login.html'
+
+        let questions = [];
+        let formCode
+        let formTitle
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+        let appraisalId = params.get("appraisal-id")
+        let reviewId = params.get("review-id")
+
+        if (appraisalId && reviewId)
+            try {
+                fetch(`${DomailURL}/appraisal/${appraisalId}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            questions = data.appraisal.answer
+                            $("#codePreview").text(data.appraisal.appraisalform.form.name)
+                            formCode = data.appraisal.appraisalform.name
+                            formTitle = data.appraisal.appraisalform.title
+                            $("#titlePreview").text(capitalizeFirstLetter(data.appraisal.appraisalform.form.title))
+                            renderQuestions()
+                            $("h3#user_name").text(capitalizeFirstLetter(data.appraisal.user.user_name))
+                            $("h3#name").text(capitalizeFirstLetter(data.appraisal.user.profile.first_name + " " + data.appraisal.user.profile.last_name))
+                            $("h3#email").text(data.appraisal.user.email)
+                            $("h3#phone").text(data.appraisal.user.profile.phone)
+                        } else {
+                            showAlertMessage("error","Error",data.message)
+                        }
+                    });
+
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+
+        else
+            window.location.href = "index.html"
+
+        let reviewData = { description: "", status: "bad" }
+        // Add question answer
+        $(document).on("keyup", "input#description", function () {
+            reviewData.description = $(this).val()
+
+        })
+        $(document).on("change", "select#rateing", function () {
+            reviewData.status = $(this).val()
+
+        })
+
+        // Render questions in preview
+        function renderQuestions() {
+            const container = $('#questionPreview');
+            container.html('');
+
+            questions.forEach((q, index) => {
+                let inputHTML = '';
+                if (q.type === 'text') {
+                    inputHTML = `<input type="text" id="${q.id}" class="border p-2 w-full rounded" value="${q.value}"
+                        disabled placeholder="Answer...">`;
+                }
+                else if (q.type === 'select') {
+                    inputHTML = `<select id="${q.id}" class="border p-2 w-full rounded" disabled>
+                    ${`<option>${capitalizeFirstLetter(q.value)}</option>`}
+                        </select>`;
+                }
+
+                container.append(`
+                <div class="relative">
+                    <label class="block font-medium mb-1">${index + 1}. ${capitalizeFirstLetter(q.text)}</label>
+                    ${inputHTML}
+                </div>
+                `);
+
+            });
+        }
+
+
+        $("#saveAnswerBtn").on("click", function () {
+            // console.log(reviewData)
+            if (reviewData.description == "")
+                $("input#description").focus()
+            else
+                try {
+                    fetch(`${DomailURL}/manage/request/${reviewId}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "PUT",
+                        body: JSON.stringify(reviewData)
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success","Success","Review updated")
+                                window.location.href = "request.html"
+                            }
+                            else
+                                showAlertMessage("error","Error",data.message)
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+
+        })
+    </script>
+
+</body>
+
+</html>

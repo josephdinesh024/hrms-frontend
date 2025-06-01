@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+    </style>
+    <script src="/frontend/static/js/theme.js"> </script>
+    <script src="/frontend/static/js/global.js"></script>
+    <script src="/frontend/static/js/confic.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+</head>
+
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+    <div class="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <h2 class="mb-6 text-2xl font-semibold text-center">Login</h2>
+
+        <form id="login">
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">Employee ID</label>
+                <input type="text" id="userId" placeholder="EmployeeId or Email" required
+                    class="w-full px-3 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-pink-400 focus:outline-none">
+            </div>
+
+            <div class="mb-4 relative">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" placeholder="•••••••••••" required
+                    class="w-full px-3 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-pink-400 focus:outline-none">
+                <!-- <a href="#" class="absolute right-3 top-9 text-sm text-pink-500 hover:underline">Forgot Password?</a> -->
+            </div>
+
+            <div class="mb-2 flex items-center">
+                <input type="checkbox" id="remember"
+                    class="w-4 h-4 text-pink-500 border-gray-300 rounded focus:ring-pink-400">
+                <label for="remember" class="ml-2 text-sm text-gray-700">Keep me signed in</label>
+            </div>
+
+            <div class="mb-4">
+                <p id="error" class="text-xs text-red-600"></p>
+            </div>
+            <div class="flex justify-center">
+                <button type="submit" id="login"
+                    class="w-1/2 py-2 text-white bg-gradient-to-r from-primary from-5% to-blue-800 rounded-md hover:bg-pink-600">
+                    Login
+                </button>
+            </div>
+        </form>
+        <div class="flex w-full justify-center mt-3 text-sm text-blue-400"><a href="passwordgen.html">forgot password ?
+            </a></div>
+    </div>
+
+    <script>
+        $(async function (params) {
+            var userId
+            $('#userId').on('keyup', function (e) {
+                userId = e.target.value
+            })
+            var password
+            $('#password').on('keyup', function (e) {
+                password = e.target.value
+            })
+
+            $('form#login').on('submit', function (e) {
+                e.preventDefault()
+                try {
+                    fetch(`${DomainURL}/login`, {
+                        method: "post",
+                        body: JSON.stringify({
+                            userid: userId,
+                            password
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data?.status === 1) {
+                                $('#error').text(data?.message)
+                                $.cookie("access_token", data.access_token,)  //{ expires: 3600*60, domain:'127.0.0.1' }
+                                $.cookie("user_name", data.user.user_name)
+                                if (data.user.status == "active")
+                                    window.location.href = '/frontend/index.html'
+                                if (["pending", "onboard"].includes(data.user.status))
+                                    setTimeout(() => { window.location.href = "onboard.html" }, 400)
+                                // console.log(data)
+                            } else if (data.status === 2) {
+                                $('#error').text(data?.message)
+                                setTimeout(() => {
+                                    window.location.href = "passwordreset.html?token=" + data.token
+                                }, 500)
+                            }
+                            else {
+                                $('#error').text(data?.message)
+                            }
+                            // console.log(data)
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+
+            });
+        })
+    </script>
+</body>
+
+</html>

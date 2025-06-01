@@ -1,0 +1,111 @@
+<!-- Certificate Section -->
+
+<form id="tab-certificate" class="tab-section">
+    
+</form>
+
+
+<script>
+    $(function () {
+        $("#tab-certificate").html(`
+        <h2 class="text-lg font-semibold mb-4">Certificate</h2>
+        <div id="certificate-container" class="space-y-4">
+            <div class="border-b grid grid-cols-1 gap-4 pb-6">
+                <input type="hidden" name="FileID" id="1_FileID" value="0">
+                ${floatingInputTag("text","1_name","name","Certificate Name")}
+                ${floatingFileInputTag('1_file', 'file', 'Upload Certificate')}
+            </div>
+        </div>
+        <button type="button" onclick="addCertificate()" class="mt-4 text-blue-600 hover:underline">+ Add More</button>
+        <div class="flex space-x-2 justify-end">
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+        </div>
+        `)
+
+        let UserCertificate = []
+        function initFun() {
+            try {
+                fetch(`${DomainURL}/my/file`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                }).then(res => res.json())
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            UserCertificate = data.file
+                            if (UserCertificate.length) {
+                                $("#tab-certificate #certificate-container").empty()
+                                UserCertificate.forEach((item, index) => {
+                                    $("#tab-certificate #certificate-container").append(`
+                                    <div class="border-b grid grid-cols-1 gap-4">
+                                        <input type="hidden" name="FileID" id="${index + 1}_FileID" value="${item.id}">
+                                        ${floatingInputTag("text",index+1+"_name","name","Certificate Name",value=item.name)}
+                                        ${floatingFileInputTag(index+1+'_file', 'file', 'Upload Certificate',item?.file_path.split("/").pop())}
+                                        <span onclick="FilePreviewURL('${item.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>
+                                    </div>
+                                `);
+                                });
+                                fileDivID = UserCertificate.length + 1
+                                $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
+                            }
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        initFun()
+
+        $(document).off("submit", "form#tab-certificate");
+        $(document).on("submit", "form#tab-certificate", async function (e) {
+            e.preventDefault();
+            let formData = new FormData(this)
+            let data = []
+            let dataCheck = []
+            let newForm = new FormData()
+            formData.forEach((val, key) => {
+                if (dataCheck.includes(key)) {
+                    newForm.append("module_type", "users")
+                    newForm.append("type", "certificate")
+                    data.push(newForm)
+                    newForm = new FormData()
+                    dataCheck = []
+                }
+                newForm.append(key, val)
+            });
+            newForm.append("module_type", "users")
+            newForm.append("type", "certificate")
+            data.push(newForm)
+            console.log(data)
+
+            data.forEach(async function(item, index){
+                console.log(item)
+                try {
+                    fetch(`${DomainURL}/my/file${item.get("FileID") != "0" ? "/" + item.get("FileID") : ""}`, {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: item.get("FileID") != 0 ? "PUT" : "POST",
+                        body: item
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                $(`#tab-certificate #certificate-container #${index + 1}_FileID`).val(data.file.id)
+                                // console.log(data)
+                                showAlertMessage("success","Employee profile","Certificate details saved")
+                            } else {
+                                showAlertMessage("error","Employee profile",data.message)
+                            }
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+            });
+        })
+    
+    });
+</script>

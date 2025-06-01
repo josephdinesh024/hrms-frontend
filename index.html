@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Employee</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="/frontend//static/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+
+    <div id="sidebar"></div>
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Employee
+            </h2>
+            <div id="action" class="space-x-5 text-textPrimary mt-6 p-2">
+                <button id="employee" class="text-black"><i class="fas fa-user w-6"></i> <span>Employee</span></button>
+                <button id="access" class=""><i class="fa-solid fa-universal-access w-6"></i>
+                    <span>Access</span></button>
+                <!-- <button id="category" class=""><i class="fa-solid fa-calendar-week"></i> <span>Cotegory</span></button> -->
+            </div>
+            <hr>
+            <div id="contents"></div>
+        </main>
+
+    </div>
+
+    <div id="NewEmployeeForm"
+        class="fixed inset-0 z-50 w-full h-full bg-black bg-opacity-50 grid content-center justify-center hidden">
+        <div class="w-96 h-max bg-white text-sm p-6 rounded-lg shadow-md space-y-4">
+            <h3 class="font-bold">New Employee form</h3>
+            <form id="employeeForm">
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="email" name="email"
+                            class="border-b border-gray-300 px-3 py-2 w-full focus:outline-none focus:border-b-2 focus:border-blue-400" />
+                    </div>
+                    <div>
+                        <label>Role</label>
+                        <select type="role" id="role" name="role"
+                            class="border-b border-gray-300 px-3 py-2 w-full focus:outline-none focus:border-b-2 focus:border-blue-400">
+
+                        </select>
+                    </div>
+                    
+                </div>
+                <div class="flex justify-end gap-4 pt-12">
+                    <button type="submit"
+                        class="py-2 px-4 font-medium border border-blue-300 rounded-lg">Save</button>
+                    <button type="button" onclick="CancelNewEmployeeForm()"
+                        class="py-2 px-4 font-medium border hover:border-blue-300 rounded-lg">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/frontend/static/js/global.js"></script>
+    <script>
+
+        $("#contents").load("/frontend/componnet/employee/employee.html")
+        $("button#employee").on("click", function () {
+            $("#editPanel #editContent").empty()
+            $("#contents").empty()
+            $("#contents").load("/frontend/componnet/employee/employee.html")
+        })
+        $("button#access").on("click", function () {
+            $("#editPanel #editContent").empty()
+            $("#contents").empty()
+            $("#contents").load("/frontend/componnet/employee/access.html")
+        })
+
+
+        $(document).on("click", "#action button", function () {
+            let selectedStatus = $(this).attr("id")
+            $("#action button").each(function () {
+                if (selectedStatus != $(this).attr("id")) {
+                    $(this).removeClass("text-black")
+                } else
+                    $(this).addClass("text-black")
+            })
+        })
+
+
+        $(document).ready(function(){
+            const access = JSON.parse($.cookie("my_access"))
+            // console.log(access)
+            // employee
+            if ("user" in access && access["user"].includes("read") && (access["user"].includes("create") || access["user"].includes("edit"))) {
+                $("button#employee").removeClass("hidden")
+            } else {
+                $("button#employee").addClass("hidden")
+                window.location.href = "timesheet.html"
+            }
+            // access
+            if ("access" in access && access["access"].includes("read") && (access["access"].includes("create") || access["access"].includes("edit"))) {
+                $("button#access").removeClass("hidden")
+            } else {
+                $("button#access").addClass("hidden")
+            }
+        });
+
+        function OpenNewEmployeeForm(){
+            $("#NewEmployeeForm").removeClass("hidden")
+            try {
+                fetch(`${DomainURL}/role?page_size=50`,{
+                    method:"GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                }).then(res => res.json())
+                .then(data=>{
+                    if(data.status){
+                        data.roles.forEach(element => {
+                            $("#NewEmployeeForm form#employeeForm #role").append(`
+                                <option value="${element.id}">${element.name}</option>
+                            `)
+                        });
+                    }
+                })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        function CancelNewEmployeeForm(){
+            $("#NewEmployeeForm").addClass("hidden")
+        }
+
+        $(document).on("submit","#NewEmployeeForm form#employeeForm",function(e){
+            e.preventDefault();
+            let formData = new FormData(this);
+            console.log("form submited",{
+                        "email":formData.get("email"),
+                        "role_id":parseInt(formData.get("role"))
+                    })
+            try {
+                fetch(`${DomainURL}/user/quick/user`,{
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body : JSON.stringify({
+                        "email":formData.get("email"),
+                        "role_id":parseInt(formData.get("role"))
+                    })
+                })
+                .then(res => res.json())
+                .then(data =>{
+                    if(data.status){
+                        showAlertMessage("success","User create","new employee created and employeeId:"+data.user.user_name)
+                        CancelNewEmployeeForm()
+                    }else
+                        showAlertMessage("error","User create",data.message)
+                })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        })
+    </script>
+
+</body>
+
+</html>

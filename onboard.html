@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Onboard</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="/frontend//static/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+    <div id="sidebar-empty">
+        <aside
+            class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out">
+
+        </aside>
+    </div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+        <div class="flex justify-center h-[90vh] overflow-auto">
+            <div class="m-10 w-1/2">
+                <div class="mb-8 border-b border-gray-300 flex space-x-6">
+                    <button class="tab-link border-b-2 border-blue-600 text-blue-600 pb-2"
+                        data-target="profile">Profile</button>
+                    <button class="tab-link text-gray-600 hover:text-blue-600 pb-2"
+                        data-target="education">Education</button>
+                    <button class="tab-link text-gray-600 hover:text-blue-600 pb-2"
+                        data-target="certificate">Certificate</button>
+                    <button class="tab-link text-gray-600 hover:text-blue-600 pb-2" data-target="bank">Bank</button>
+                </div>
+
+                <div id="targetContent">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="ConfirmForm"
+        class="fixed inset-0 z-50 w-full h-full bg-black bg-opacity-50 grid content-center justify-center hidden">
+        <div class="w-max h-40 bg-white text-sm p-6 rounded-lg shadow-md">
+            <h3 class="font-bold">Confirm to submit</h3>
+            <h4 class="font-medium text-textPrimary">You can make change after submittion</h4>
+            <div class="flex justify-end gap-4 mt-6">
+                <button onclick="SubmitConfirmForm()"
+                    class="py-3 px-6 font-medium border border-blue-300 rounded-lg">Yes</button>
+                <button onclick="CancelConfirmForm()"
+                    class="py-3 px-6 font-medium border hover:border-blue-300 rounded-lg">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/frontend/static/js/global.js"></script>
+    <script>
+        $("#targetContent").load("/frontend/componnet/onboard/profile.html")
+        $(document).on("click", "button.tab-link", function () {
+            let selected = $(this).attr("data-target")
+            $("#targetContent").html(``)
+            $("#targetContent").load("/frontend/componnet/onboard/" + selected + ".html")
+
+            $("button.tab-link").each(function () {
+                if (selected == $(this).attr("data-target")) {
+                    $(this).removeClass("hover:text-blue-600 text-gray-600")
+                    $(this).addClass("border-b-2 border-blue-600 text-blue-600")
+                } else {
+                    $(this).addClass("hover:text-blue-600 text-gray-600")
+                    $(this).removeClass("border-b-2 border-blue-600 text-blue-600")
+                }
+            });
+            setTimeout(() => { ButtonDisable() }, 500);
+        })
+
+        function ButtonDisable() {
+            const MyStatus = $.cookie("my_status")
+            $(document).ready(function () {
+                if (MyStatus != "pending") {
+                    $("#targetContent button").each(function () {
+                        $(this).prop("disabled", true)
+                        $(this).addClass("cursor-not-allowed")
+                    })
+                };
+            });
+        }
+
+        setTimeout(() => { ButtonDisable() }, 500);
+
+        // Education
+        let divID = 2
+        function addEducation() {
+            const container = document.getElementById('education-container');
+            const div = document.createElement('div');
+            div.className = 'border rounded-lg p-4 space-y-4 w-full';
+            div.innerHTML = `
+                <input type="hidden" name="EducationID" id="${divID}_EducationID" value="0" />
+                ${floatingInputTag("text",divID+"_institution","institution","Institution")}
+                ${floatingInputTag("text",divID+"_degree","degree","Degree")}
+                <div class="flex justify-between gap-6">
+                    <select class="w-64 mt-6 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
+                        id="${divID}_mark_type" name="mark_type">
+                        <option selected value="mark">Mark</option>
+                        <option value="grade">Grade</option>
+                    </select>
+                    ${floatingInputTag("text",divID+"_percentage","percentage","Percentage")}
+                </div>
+                <div class="flex justify-between gap-6">
+                     ${floatingInputTag("date",divID+"_start_year","start_year","Start year"," ")}
+                     ${floatingInputTag("date",divID+"_end_year","end_year","End year")}
+                </div>
+                <span id="${divID}_yearErrorMessage" class="text-xs text-red-400"></span>
+      `;
+            container.appendChild(div);
+            $(document).ready(function () {
+                $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
+            })
+            divID += 1
+        };
+
+        // Certificate
+        let fileDivID = 2
+        function addCertificate() {
+            const container = document.getElementById('certificate-container');
+            const div = document.createElement('div');
+            div.className = 'border-b grid grid-cols-1 gap-4 py-6';
+            div.innerHTML = `
+                <input type="hidden" name="FileID" id="${fileDivID}_FileID" value="0">
+                ${floatingInputTag("text",fileDivID+"_name","name","Certificate Name")}
+                ${floatingFileInputTag(fileDivID+'_file', 'file', 'Upload Certificate')}
+      `;
+            container.appendChild(div);
+            $(document).ready(function () {
+                $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
+            })
+            fileDivID += 1
+        };
+
+        // $(document).ready(function () {
+        //     $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
+        // });
+
+        function OpenConfirmForm() {
+            $("#ConfirmForm").removeClass("hidden")
+        }
+
+        function CancelConfirmForm() {
+            $("#ConfirmForm").addClass("hidden")
+        }
+
+        function SubmitConfirmForm() {
+            try {
+                fetch(`${DomainURL}/my/status`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
+                        "status": "onboard"
+                    })
+                }).then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            showAlertMessage("success","Form submition","your profile form details submited successfully, wait for approvels")
+                            window.location.reload()
+                        } else {
+                            showAlertMessage("error","Form submition","Error to submit form " +data?.message)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+            $("#ConfirmForm").addClass("hidden")
+        }
+    </script>
+
+</body>
+
+</html>

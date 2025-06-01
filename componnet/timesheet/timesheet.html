@@ -1,0 +1,330 @@
+
+<!-- Filter action -->
+<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
+    <div class="flex items-center gap-3">
+        <!-- <h3 class="font-medium" id="totalCount">33 Request</h3> -->
+        <div class="text-xs bg-gray-100 p-1 flex gap-1" id="status">
+            <button id="myselfList" class="p-3 font-medium bg-white">My-self</button>
+            <button id="othersList" class="p-3 font-medium">Others</button>
+            <div>
+                <select id="filter" class="w-full h-full p-3">
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="this_week">This Week</option>
+                    <option value="last_week">Last Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </div>
+            <div class="flex gap-2 items-center text-md bg-white px-2">
+                <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                <span id="countMessage">5 of 10</span>
+                <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+    <div>
+        <button id="AddNew" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs
+        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+            time entery</button>
+    </div>
+</div>
+<hr>
+<div id="timesheetCardList">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Name</th>
+                <th class="p-4 border-b">Start Time</th>
+                <th class="p-4 border-b">End Time</th>
+                <th class="p-4 border-b">Date</th>
+                <th class="p-4 border-b">Total Hours</th>
+                <th class="p-4 border-b">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        var access_token = $.cookie("access_token")
+
+        $(document).ready(function () {
+            const access = JSON.parse($.cookie("my_access"))
+            // others timesheet
+            if ("timesheet" in access && access["timesheet"].includes("read")) {
+                $("button#myselfList").removeClass("hidden")
+                $("button#othersList").removeClass("hidden")
+            } else {
+                $("button#othersList").addClass("hidden")
+                $("button#myselfList").addClass("hidden")
+            }
+        });
+
+        let TimeSheet = []
+        let filterList = "mySelf"
+        let filterBy = "today"
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+
+        function init() {
+            $("#editPanel #editContent").empty()
+            closePanel()
+            try {
+                fetch(`${DomainURL}/timesheet?list=${filterList}&filter=${filterBy}&page=${page}&page_size=${paseSize}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${access_token}`
+                },
+                method: "GET"
+            })
+                .then(res => res.json())
+                .then(data => {
+                    // console.log(data)
+                    if (data.status) {
+                        TotalCount = data.count
+                        $("#timesheetCardList tbody").empty()
+                        TimeSheet = data.sheet
+                        TimeSheet.forEach((item, index) => {
+                            $("#timesheetCardList tbody").append(`
+                <tr id="${index}" class="border-b hover:bg-gray-50 transition">
+                    <td class="p-4">
+                        ${capitalizeFirstLetter(item.user.user_name)}
+                    </td>
+                    <td class="p-4">
+                        ${new Date(item.start_time).toLocaleTimeString().slice(0, 5)}
+                    </td>
+                    <td class="p-4">
+                        ${new Date(item.end_time).toLocaleTimeString().slice(0, 5)}
+                    </td>
+                    <td class="p-4">
+                        ${new Date(item.entry_date).toDateString()}
+                    </td>
+                    <td class="p-4">
+                        ${item.total_hours}
+                    </td>
+                    <td class="p-4">
+                        ${item.description || "--"}
+                    </td>
+                </tr>
+                `)
+                        })
+                        var total = (page - 1) * paseSize
+                        $("#countMessage").text(`${total + TimeSheet.length} of ${TotalCount}`)
+
+                    } else {
+                        if (data.message === "Permission denied") {
+                            // $("a#permission").remove()
+                            // window.location.href = "index.html"
+                            filterList = "mySelf"
+                            $("button#myselfList").addClass("bg-white")
+                            $("button#othersList").removeClass("bg-white")
+                            init()
+                        }
+
+                    }
+                });
+        
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        init()
+
+        $(document).on("click", "button#othersList", function () {
+            filterList = "others"
+            $(this).addClass("bg-white")
+            $("button#myselfList").removeClass("bg-white")
+            init()
+        })
+        $(document).on("click", "button#myselfList", function () {
+            filterList = "mySelf"
+            $(this).addClass("bg-white")
+            $("button#othersList").removeClass("bg-white")
+            init()
+        })
+
+        $(document).on("change", "select#filter", function () {
+            filterBy = $(this).val()
+            init()
+        })
+
+        $(document).on("click", "button#previous", function () {
+            if (page != 1) {
+                page -= 1
+                init()
+            }
+        })
+
+        $(document).on("click", "button#next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                init()
+            }
+        })
+
+
+        $(document).on("click","#filterAction button#AddNew",function(){
+            openEditPanel()
+             $("#editPanel #editContent").append(`
+                <h1 class="text-xl font-semibold mt-3">Add time entery </h1>
+                <form id="newTimeSheetForm">
+                    <div class="text-xs m-3 font-medium space-y-3">
+                        <label for="start_time">Start time</label>
+                        <input type="time" id="start_time" name="start_time" required class="w-full p-2" />
+                    </div>
+                    <div class="text-xs m-3 font-medium space-y-3">
+                        <label for="end_time">End time</label>
+                        <input type="time" id="end_time" name="end_time" required class="w-full p-2" />
+                    </div>
+                    <div class="text-xs m-3 font-medium space-y-3">
+                        <label for="total_hours">Total hours</label>
+                        <input type="text" id="total_hours" name="total_hours" disabled required class="w-full p-2" />
+                    </div>
+                    <div class="text-xs m-3 font-medium space-y-3">
+                        <label for="entry_date">Entry date</label>
+                        <input type="date" id="entry_date" name="entry_date" required class="w-full p-2" />
+                    </div>
+                    <div class="mt-8 m-2 p-3 bg-gray-50 text-sm min-h-8">
+                        <label for="description" class="font-medium">Description<span class="text-red-600">*</span></label>
+                        <input type="text" id="description" name="description" placeholder="notes" required 
+                            class="text-textPrimary bg-gray-50 w-full focus:outline-none" />
+                    </div>
+                    <div class="grid content-end p-3 mt-3">
+                        <div class="flex justify-end gap-6">
+                            <button type="submit" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
+                        </div>
+                    </div>
+                </form>
+            `)
+
+            $(document).ready(function () {
+                let dateDetails = {val:"",min:0,max:0}
+                switch(tnow.getDay()){
+                    case 0 :
+                        dateDetails.min = tnow.setDate(tnow.getDate()-1)
+                        dateDetails.max = tnow.setDate(tnow.getDate());
+                        break;
+                    case 1 :
+                        dateDetails.val = tnow.toISOString().split("T")[0];
+                        dateDetails.min = tnow.setDate(tnow.getDate());
+                        dateDetails.max = tnow.setDate(tnow.getDate()+1);
+                        break;
+                    default:
+                        dateDetails.val = tnow.toISOString().split("T")[0];
+                        dateDetails.min = tnow.setDate(tnow.getDate()-1);
+                        dateDetails.max = tnow.setDate(tnow.getDate()+2);
+                        break;
+                }
+
+                $("#editPanel #editContent #entry_date").val(dateDetails.val)
+                $("#editPanel #editContent #entry_date").attr("min",new Date(dateDetails.min).toISOString().split("T")[0])
+                $("#editPanel #editContent #entry_date").attr("max",new Date(dateDetails.max).toISOString().split("T")[0])
+
+            })
+        })
+
+        // New Sheet
+        let Start
+        let End
+        let Totalhours
+        const tnow = new Date()
+        let today = new Date().toISOString().split("T")[0];
+        // console.log(tnow.getDay())
+
+        $(document).on("change", "#editPanel #editContent #start_time", function () {
+            Start = $(this).val()
+            calculateHours()
+        })
+        $(document).on("change", "#editPanel #editContent #end_time", function () {
+            End = $(this).val()
+            calculateHours()
+        })
+        $(document).on("change", "#editPanel #editContent #entry_date", function () {
+            today = new Date($(this).val()).toISOString().split("T")[0]
+            // console.log(today)
+            calculateHours()
+        })
+
+        function calculateHours() {
+            const startTime = new Date(`${today}T${Start}:00`);
+            const endTime = new Date(`${today}T${End}:00`);
+
+            let diffMs = endTime - startTime;
+
+            // if (diffMs < 0) {
+            //     // Crossed over midnight
+            //     diffMs += 24 * 60 * 60 * 1000;
+            // }
+
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const hours = Math.floor(diffMins / 60);
+            const minutes = diffMins % 60;
+            // Totalhours = parseInt(`${`${hours || 0}`.length<=1?`0${hours}`:`${hours}`}${`${minutes || 0}`.length<=1?`0${minutes}`:`${minutes}`}`)
+            Totalhours = hours
+            $("#editPanel #editContent #total_hours").val(`${hours}h ${minutes}m`)
+        }
+
+        
+
+        // Update Data
+        $(document).off("submit", "#editPanel #editContent #newTimeSheetForm");
+        const month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        const d = new Date();
+        $(document).on("submit", "#editPanel #editContent #newTimeSheetForm", function (e) {
+            e.preventDefault();
+            if(Totalhours <= 0){
+               $("#editPanel #editContent #end_time").focus()
+               $("#editPanel #editContent #end_time").val("")
+               showAlertMessage("info","Timesheet","total hours not a negative")
+            }else{
+                let formData = new FormData(this);
+                let data = {};
+                let requestId = $(this).attr("index")
+                formData.forEach((val, key) => {
+                    if (key.includes("time"))
+                        data[key] = new Date(`${today}T${val}:00`).getTime()
+                    else if (key == "entry_date")
+                        data[key] = new Date(val).getTime()
+                    else
+                        data[key] = val;
+                });
+                data["total_hours"] = Totalhours
+                data["entry_month"] = month[d.getMonth()]
+                data["entry_year"] = `${d.getFullYear()}`
+                // console.log(data)
+                try {
+                    fetch(`${DomainURL}/timesheet`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success","Timesheet","New time entery added")
+                            init()
+                            closePanel()
+                        } else {
+                            showAlertMessage("error","Timesheet",data.message)
+                        }
+                    });
+                
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+                
+            }
+        })
+
+    })
+</script>

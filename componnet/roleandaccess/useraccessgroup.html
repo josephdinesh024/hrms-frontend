@@ -1,0 +1,661 @@
+<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
+    <div class="flex items-center gap-3">
+        <h3 class="font-medium" id="totalCount">Access Group</h3>
+        <div class="flex gap-2 items-center text-md px-2">
+            <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+            <span id="countMessage">5 of 10</span>
+            <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+        </div>
+    </div>
+    <div>
+        <button id="AddNewForm" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+            Group</button>
+    </div>
+</div>
+<hr>
+<div id="accessGroupCardList">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Name</th>
+                <th class="p-4 border-b">Members</th>
+                <th class="p-4 border-b">Member Count</th>
+                <th class="p-4 border-b">Permissions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+        let groupDatas = []
+        let teamMemberList = []
+        let permissionDatas = []
+        let roleDatas = []
+        let memberDatas = []
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        function initFun() {
+            try {
+                fetch(`${DomainURL}/team/usergroup?page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            $("#accessGroupCardList tbody").empty()
+                            groupDatas = data.team
+                            groupDatas.forEach((item, index) => {
+                                $("#accessGroupCardList tbody").append(`
+                            <tr id="${index}" class="border-b hover:bg-slate-50 transition SelectedList">
+                                <td class="p-4">${capitalizeFirstLetter(item.name)}</td>
+                                <td class="p-4 max-w-48 whitespace-normal break-words">${teamMember(item.member)}</td>
+                                <td class="p-4 max-w-48 whitespace-normal break-words">${teamMemberList.length}</td>
+                                <td class="p-4 max-w-48 whitespace-normal break-words">${teamPermission(item.permission) || "--"}</td>
+                            </tr>
+                        `)
+                            });
+
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#countMessage").text(`${total + groupDatas.length} of ${TotalCount}`)
+                        }
+                    });
+
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+            try {
+                fetch(`${DomainURL}/permission`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            permissionDatas = data.permissions
+                        }
+                    });
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+
+            try {
+                fetch(`${DomainURL}/role`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            roleDatas = data.roles
+                        }
+                    });
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+
+
+        }
+        initFun()
+        $(document).on("click", "button#previous", function () {
+            if (page != 1) {
+                page -= 1
+                init()
+            }
+        })
+
+        $(document).on("click", "button#next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                init()
+            }
+        })
+        //Extract members
+        function teamMember(member) {
+            teamMemberList = []
+            member.forEach((item, index) => {
+                teamMemberList.push(capitalizeFirstLetter(item["user"]["user_name"]))
+            })
+            return teamMemberList.join(", ")
+        }
+
+        function teamPermission(data) {
+            let teampermission = []
+            data.forEach(item => {
+                teampermission.push(item.name)
+            })
+            return teampermission.join(", ")
+        }
+
+        let selectedData
+        let PermissionDetails = { selectedData: [], newData: [], deleteData: [] }
+        let MemberDetails = { selectedData: [], newData: [], deleteData: [] }
+        $(document).on("click", "#accessGroupCardList tbody tr.SelectedList", function () {
+            let index = $(this).attr("id");
+            selectedData = groupDatas[index]
+            PermissionDetails = { selectedData: [], newData: [], deleteData: [] }
+            // console.log(selectedData)
+            openFixedEditPanel()
+            DataAppend()
+        })
+
+        $(document).on("click", "#filterAction button#AddNewForm", function () {
+            selectedData = {}
+            PermissionDetails = { selectedData: [], newData: [], deleteData: [] }
+            openFixedEditPanel()
+            DataAppend()
+        })
+
+        function DataAppend() {
+            $("#fixedEditPanel #editContent").html(`
+                <div id="permissionName" class="-mt-6">
+                    <h1 class="px-6 text-base text-textPrimary font-bold w-full py-2 space-x-4 relative">
+                        Role <span id="pname">${capitalizeFirstLetter(selectedData.name || "name")}</span>
+                    </h1>
+                    <div class="mx-6 flex flex-col">
+                        <input id="permission_name" name="name" placeholder="Name" value="${selectedData.name || ""}"
+                            class="p-1 border-b-2 w-3/4 focus:outline-none focus:border-blue-400">
+                        <span class="text-xs text-red-600 ml-2" id="errorMessage"></span>
+                    </div>
+
+                    <div class="flex items-center max-w-full mt-3 px-6 text-base text-textPrimary font-bold w-full py-2">
+                        <h4 class="w-2/6" >Permissions : </h4>
+                        <div id="permission" class="grid grid-flow-col max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
+                            ${"permission" in selectedData ? selectedData.permission.map(item => {
+                PermissionDetails.selectedData.push(item.id)
+                return `
+                                        <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
+                                            <h5>${capitalizeFirstLetter(item.name)}</h5>
+                                            <button id="${item.id}" class="font-medium removePermission">
+                                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                            </button>
+                                        </div>
+                                    `
+            }).join("") : ""}                            
+                        </div>
+                    </div>
+
+                    <div class="flex items-center max-w-full mt-3 px-6 text-base text-textPrimary font-bold w-full py-2">
+                        <h4 class="w-2/6" >Members : </h4>
+                        <div id="member" class="grid grid-flow-col max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
+                            ${"member" in selectedData ? selectedData.member.map(item => {
+                MemberDetails.selectedData.push(item.user_id)
+                return `
+                                        <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
+                                            <h5>${capitalizeFirstLetter(item.user.user_name)}</h5>
+                                            <button id="${item.user_id}" class="font-medium removeMember">
+                                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                            </button>
+                                        </div>
+                                    `
+            }).join("") : ""}                            
+                        </div>
+                    </div>
+                    <div class="flex max-w-full mt-3 px-6 text-base text-textPrimary font-bold py-2">
+                        <h4 class="w-1/4" >Members : </h4>
+                        <div id="newMemberList" class="max-w-3/4 gap-2 text-sm">
+                            <input type="search" id="newMemberSearch" class="border-b-2 p-1 focus:outline-none focus:border-blue-400" placeholder="search with id or email" />
+                            <div id="newMemberSearchResult" class="max-h-32 shadow-lg overflow-auto">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div id="groupPermissionDerivation" class="mt-3 px-6 text-sm text-textPrimary font-bold w-full py-2">
+                        <h3 class="mb-4">Permission Derivation</h3>
+                        <label class="text-black font-medium">Other permission : 
+                            <select id="otherPermission" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                                ${permissionDatas.map(item => {
+                return `
+                                        <option value="${item.id}">${item.name}</option>
+                                        `
+            }).join("")}
+                            </select>
+                        </label>
+                        <br>
+                        <label class="text-black font-medium">Other role : 
+                            <select id="otherRole" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                                ${roleDatas.map(item => {
+                return `
+                                        <option value="${item.id}">${item.name}</option>
+                                        `
+            }).join("")}
+                            </select>
+                        </label>
+                        <br>
+                        <label class="text-black font-medium">Other group : 
+                            <select id="otherGroup" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                                ${groupDatas.map(item => {
+                return `
+                                        <option value="${item.id}">${item.name}</option>
+                                        `
+            }).join("")}
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="permissionModules" class="md:w-[500px] max-h-[450px] overflow-y-scroll">
+                    <h1 class="px-6 text-base text-textPrimary font-bold w-full py-2 space-x-4 relative">
+                        <span>Modules</span>
+                    </h1>
+                    <div id="modules" class="grid grid-cols-2 md:grid-cols-3 gap-3 border-t border-dashed px-3 pb-6 relative">
+                        
+                    </div>
+                </div>
+            `);
+
+            $("#fixedEditPanel #functionBtn").html(`
+                <button id="saveGroupEdit" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
+                <button onclick="closeFixedEditPanel()" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+            `)
+
+            if ("permission" in selectedData)
+                $(document).ready(function () {
+                    selectedData.permission.forEach(permission => {
+                        ModulePermission(permission.permission)
+                    });
+                });
+
+        };
+
+        function ModulePermission(permission) {
+            Object.keys(permission).forEach(key => {
+                if (key in moduleData && permission[key].length) {
+                    if (moduleData[key].length < 4) {
+                        let actions = moduleData[key] || []
+                        permission[key].forEach(action => {
+                            if (!actions.includes(action)) {
+                                $(`#fixedEditPanel #editContent #permissionModules .${key}ModuleAction`).each(function () {
+                                    let text = $(this).parent().find("span").text()
+                                    if (text.toLocaleLowerCase() === action) {
+                                        $(this).prop("checked", true);
+                                    }
+                                })
+                                actions.push(action)
+                                moduleData[key] = actions
+                            }
+                        })
+                    }
+                } else {
+                    permissionModuleList(key, permission[key], true)
+                }
+            })
+
+        }
+        async function MemberSearch(params) {
+            try {
+                fetch(`${DomainURL}/search/name?module=user&q=${params}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult").empty()
+                            if (data.data.length)
+                                data.data.forEach(item => {
+                                    $("#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult").append(`
+                                        <h4 class="p-1 bg-white hover:bg-slate-50 text-sm cursor-pointer border-b newMemberSelected" id="${item.id}">${item.user_name}</h4>
+                                    `);
+                                });
+                            else
+                                $("#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult").append(`
+                                <span>No record </span>
+                                `)
+                        }
+                    });
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        $(document).on("keyup", "#fixedEditPanel #editContent #permissionName #permission_name", function () {
+            let text = $(this).val()
+            $("#fixedEditPanel #editContent #permissionName #pname").text(capitalizeFirstLetter(text))
+        });
+
+        $(document).on("keyup", "#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearch", function () {
+            let text = $(this).val().toLocaleLowerCase()
+            if (text != "") {
+                MemberSearch(text)
+            } else {
+                $("#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult").empty()
+            }
+        });
+
+        $(document).on("blur", "#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearch", function () {
+            let text = $(this).val()
+            if (text.trim() == "") {
+                $("#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult").empty()
+            }
+        })
+
+        $(document).on("click", "#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult .newMemberSelected", function () {
+            let memberID = parseInt($(this).attr("id"));
+            let memberName = $(this).text().trim().toLocaleLowerCase()
+            // console.log("member",memberID,memberName)
+            if (!MemberDetails.selectedData.includes(memberID) && !MemberDetails.newData.includes(memberID)) {
+                MemberDetails.newData.push(memberID)
+                $("#fixedEditPanel #editContent #member").append(`
+                        <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
+                            <h5>${capitalizeFirstLetter(memberName)}</h5>
+                            <button id="${memberID}" class="font-medium removeMember">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+            }
+            if (MemberDetails.selectedData.includes(memberID) && MemberDetails.deleteData.includes(memberID)) {
+                MemberDetails.deleteData = MemberDetails.deleteData.filter(val => val != memberID)
+                $("#fixedEditPanel #editContent #member").append(`
+                        <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
+                            <h5>${capitalizeFirstLetter(memberName)}</h5>
+                            <button id="${memberID}" class="font-medium removeMember">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+            }
+        })
+
+        $(document).on("click", "#fixedEditPanel #editContent #member button.removeMember", function () {
+            let ID = parseInt($(this).attr("id"))
+            $(this).parent().remove()
+
+            if (MemberDetails.selectedData.includes(ID)) {
+                MemberDetails.deleteData.push(ID)
+            }
+            if (MemberDetails.newData.includes(ID)) {
+                MemberDetails.newData = MemberDetails.newData.filter(val => val != ID)
+            }
+        });
+
+        // Permission
+        $(document).on("click", "#fixedEditPanel #editContent #permission button.removePermission", function () {
+            let ID = parseInt($(this).attr("id"))
+            $(this).parent().remove()
+
+            if (PermissionDetails.selectedData.includes(ID)) {
+                PermissionDetails.deleteData.push(ID)
+            }
+            if (PermissionDetails.newData.includes(ID)) {
+                PermissionDetails.newData = PermissionDetails.newData.filter(val => val != ID)
+            }
+            // console.log(PermissionDetails)
+            let perm = permissionDatas.filter(item => PermissionDetails.newData.includes(item.id) || (PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.deleteData.includes(item.id)))
+            $("#fixedEditPanel #editContent #permissionModules #modules").empty()
+            moduleData = {}
+            // console.log(perm)
+            if (perm.length) {
+                perm.forEach(permission => {
+                    ModulePermission(permission.permission)
+                })
+            }
+        });
+
+        // Group Selected
+        $(document).on("change", "#fixedEditPanel #groupPermissionDerivation select#otherGroup", function () {
+            let RoleID = parseInt($(this).val())
+            let roleItem = groupDatas.find(val => val.id == RoleID);
+            roleItem.permission.forEach(item => {
+                if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
+                    PermissionDetails.newData.push(item.id)
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    ModulePermission(item.permission)
+                }
+                if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
+                    ModulePermission(item.permission)
+                }
+            });
+
+        });
+
+
+        // Role Selected
+        $(document).on("change", "#fixedEditPanel #groupPermissionDerivation select#otherRole", function () {
+            let RoleID = parseInt($(this).val())
+            let roleItem = roleDatas.find(val => val.id == RoleID);
+            roleItem.permission.forEach(item => {
+                if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
+                    PermissionDetails.newData.push(item.id)
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    ModulePermission(item.permission)
+                }
+                if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
+                    ModulePermission(item.permission)
+                }
+            });
+
+        });
+
+        // PermissionSelected
+        $(document).on("change", "#fixedEditPanel #groupPermissionDerivation select#otherPermission", function () {
+            let ID = parseInt($(this).val())
+            let item = permissionDatas.find(val => val.id == ID);
+            if (!PermissionDetails.selectedData.includes(ID) && !PermissionDetails.newData.includes(ID)) {
+                PermissionDetails.newData.push(ID)
+                $("#fixedEditPanel #editContent #permission").append(`
+                    <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                        <span>${capitalizeFirstLetter(item.name)}</span>
+                        <button id="${item.id}" class="font-medium removePermission">
+                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                        </button>
+                    </div>
+                `)
+                ModulePermission(item.permission)
+            }
+            if (PermissionDetails.selectedData.includes(ID) && PermissionDetails.deleteData.includes(ID)) {
+                $("#fixedEditPanel #editContent #permission").append(`
+                    <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                        <span>${capitalizeFirstLetter(item.name)}</span>
+                        <button id="${item.id}" class="font-medium removePermission">
+                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                        </button>
+                    </div>
+                `)
+                PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != ID)
+                ModulePermission(item.permission)
+            }
+
+        });
+
+
+        $(document).on("click", "#fixedEditPanel #functionBtn button#saveGroupEdit", function () {
+            let name = $("#fixedEditPanel #editContent #permissionName #permission_name").val().toLocaleLowerCase();
+            // let level = $("#editPanel #level").val() || 10
+            console.log(name)
+            if (name == "" || (PermissionDetails.selectedData.length == PermissionDetails.deleteData.length && PermissionDetails.newData.length == 0)) {
+                $("#fixedEditPanel #editContent #permissionName #errorMessage").text("name or module empty")
+            }
+            else {
+                try {
+                    
+                    fetch(`${DomainURL}/team${selectedData.id ? "/" + selectedData.id : ""}`, {
+                    method: selectedData.id ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
+                        name,
+                        "team_type": "user"
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            teamDataUpdates(data.team.id)
+                            showAlertMessage("success","Group access",selectedData.id ? "Group access updated" : "Created successfully")
+                        } else {
+                            closeFixedEditPanel()
+                            showAlertMessage("error","Group access",data.message)
+                        }
+
+                    })
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+                
+            }
+        });
+
+        // Set access group
+        function teamDataUpdates(ID) {
+            //New Permission
+            PermissionDetails.newData.forEach(id => {
+                try {
+                    fetch(`${DomainURL}/team/permission`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        body: JSON.stringify({
+                            "team_id": ID,
+                            "permission_id": id
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success","Group access","Team permission updated")
+                            } else
+                                showAlertMessage("error","Group access",data.message)
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+            })
+            // New Member
+            MemberDetails.newData.forEach(id => {
+                try {
+                    fetch(`${DomainURL}/team/member`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "POST",
+                        body: JSON.stringify({
+                            "team_id": ID,
+                            "user_id": id
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success","Group access","Team member updated")
+                            } else
+                               showAlertMessage("error","Group access",data.message)
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+            })
+
+            // Delete Member
+            MemberDetails.deleteData.forEach(id => {
+                try {
+                    fetch(`${DomainURL}/team/member/delete`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        body: JSON.stringify({
+                            "team_id": ID,
+                            "user_id": id
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success","Group access","Team member deleted")
+                            } else
+                                showAlertMessage("error","Group access",data.message)
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+            })
+
+            // Delete Permission
+            PermissionDetails.deleteData.forEach(id => {
+                try {
+                    fetch(`${DomainURL}/team/permission/${ID}?permission-id=${id}`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success","Group access","Team permission deleted")
+                            } else
+                                showAlertMessage("error","Group access",data.message)
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+            })
+
+            setTimeout(() => { initFun() }, 1000)
+            closeFixedEditPanel()
+        }
+
+    })
+</script>

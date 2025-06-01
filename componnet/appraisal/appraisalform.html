@@ -1,0 +1,294 @@
+<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
+  <div class="flex items-center gap-3">
+    <h3 class="font-medium" id="totalCount">Forms</h3>
+  </div>
+  <div>
+    <button id="AddNewForm" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+      Form</button>
+  </div>
+</div>
+<hr>
+<div id="formCardList">
+  <table class="w-full border-collapse text-xs">
+    <thead>
+      <tr class="bg-gray-100 text-gray-700 text-left">
+        <th class="p-4 border-b">Title</th>
+        <th class="p-4 border-b">Question</th>
+        <th class="p-4 border-b">Type</th>
+        <th class="p-4 border-b">Open time</th>
+        <th class="p-4 border-b">Close time</th>
+        <th class="p-4 border-b">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
+</div>
+
+<div id="formModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 w-full max-w-2xl h-5/6 shadow-lg overflow-auto">
+    <h2 class="text-xl font-bold mb-4">Create Appraisal Form</h2>
+
+    <form id="appraisalForm">
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Title</label>
+        <input id="title" name="title" type="text" required class="w-full border p-2 rounded mt-1" />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Appraisal Type</label>
+        <select id="type" name="type" class="w-full p-2 border rounded-lg">
+          <option value="all">All</option>
+          <option value="role">Role</option>
+        </select>
+      </div>
+      <div class="mb-4 hidden">
+        <label class="block text-sm font-medium">Role</label>
+        <select id="role_id" name="role_id" class="w-full p-2 border rounded-lg">
+
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Start Time</label>
+        <input id="start_time" name="start_time" type="date" required class="w-full border p-2 rounded mt-1" />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">End Time</label>
+        <input id="end_time" name="end_time" type="date" required class="w-full border p-2 rounded mt-1" />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Status</label>
+        <select id="status" name="status" class="w-full p-2 border rounded-lg">
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Questions</label>
+        <div id="questionList" class="space-y-2 mt-2">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-2 mt-6">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    var access_token = $.cookie("access_token")
+    let forms = []
+    let categories = []
+    let roleList = []
+    let selectedFormID = 0
+    function initFetch() {
+      $("#editPanel #editContent").empty()
+      closePanel()
+      try {
+        fetch(`${DomainURL}/appraisal/form`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${access_token}`
+          },
+          method: "GET"
+        })
+          .then(res => res.json())
+          .then(data => {
+            // console.log(data)
+            if (data.status) {
+              selectedFormID = 0
+              $("#formCardList tbody").empty()
+              forms = data.appraisal_form
+              if (forms.length)
+                forms.forEach((element, index) => {
+                  $("#formCardList tbody").append(`
+                                <tr id="${index}" class="border-b hover:bg-gray-50 transition selectedList">
+                                    <td class="p-4">${capitalizeFirstLetter(element.title)}</td>
+                                    <td class="p-4 w-20 overflow-auto">${element.question.length}</td>
+                                    <td class="p-4">${capitalizeFirstLetter(element.type)} ${element.role_id && element.type != "all" ? `(${element.role.name})` : ""}</td>
+                                    <td class="p-4">${new Date(element.start_time).toLocaleDateString()}</td>
+                                    <td class="p-4">${new Date(element.end_time).toLocaleDateString()}</td>
+                                    <td class="p-4">${element.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>` :
+                      `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>`
+                    }</td>
+                                </tr>
+                            `)
+
+                });
+            }
+          });
+
+      } catch (error) {
+        showAlertMessage("warning","API error", error)
+      }
+
+      try {
+        fetch(`${DomainURL}/appraisal/category/2`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${access_token}`
+          },
+          method: "GET"
+        })
+          .then(res => res.json())
+          .then(data => {
+            // console.log(data)
+            if (data.status) {
+              categories = data.category.category
+            }
+          });
+
+      } catch (error) {
+        showAlertMessage("warning","API error", error)
+      }
+
+      try {
+        fetch(`${DomainURL}/role?page_size=50`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${access_token}`
+          },
+          method: "GET"
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status) {
+              // console.log(data)
+              data.roles.forEach(element => {
+                // if (element.active)
+                $("#formModal #role_id").append(`<option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>`)
+              })
+            }
+          });
+      } catch (error) {
+        showAlertMessage("warning","API error", error)
+      }
+
+    }
+
+    initFetch()
+
+    let questionListData = []
+    // New
+    $(document).on("click", "#formCardList tbody .selectedList", function () {
+      let index = $(this).attr("id")
+      let selectedForm = forms[index]
+      selectedFormID = selectedForm.id
+      questionListData = []
+      $("#formModal").removeClass("hidden");
+      $("#formModal form")[0].reset();
+
+      $(document).ready(function () {
+        $("#formModal #appraisalForm #title").val(selectedForm.title);
+        $("#formModal #appraisalForm #type").val(selectedForm.type);
+        $("#formModal #appraisalForm #role_id").val(selectedForm.role_id);
+        $("#formModal #appraisalForm #status").val(selectedForm.status);
+        $("#formModal #appraisalForm #start_time").val(new Date(selectedForm.start_time).toISOString().split("T")[0]);
+        $("#formModal #appraisalForm #end_time").val(new Date(selectedForm.end_time).toISOString().split("T")[0]);
+        $("#formModal #questionList").empty()
+        $("#formModal #questionList").append(`
+              ${categories.map((items, index) => {
+          return `<div class="w-full p-2 bg-white hover:shadow-sm hover:border-b-2 categorys">
+                    <label for="${index}" class="w-full flex gap-3 cursor-pointer" >
+                      <input id="${index}" ${selectedForm.question.find(item => {
+            if (item.index == index) {
+              questionListData.push({ index: item.index, question: item.question })
+              return true
+            }
+            else
+              return false
+          }) ? "checked" : ""} type="checkbox" class="questionSelect"/>
+                      <h5>${index + 1}) ${items}</h5>
+                    </label>
+                  </div>`
+        }).join("")}
+          `)
+      });
+
+    });
+    // Edit 
+    $(document).on("click", "#filterAction #AddNewForm", function () {
+      document.getElementById("formModal").classList.remove("hidden");
+      selectedFormID = 0
+      questionListData = []
+      $("#formModal #questionList").append(`
+            ${categories.map((items, index) => {
+        return `<div class="w-full p-2 bg-white hover:shadow-sm hover:border-b-2 categorys">
+                  <label for="${index}" class="w-full flex gap-3 cursor-pointer" >
+                    <input id="${index}" type="checkbox" class="questionSelect"/>
+                    <h5>${index + 1}) ${items}</h5>
+                  </label>
+                </div>`
+      }).join("")}
+        `)
+    })
+
+    $(document).on("change", "#formModal select#type", function () {
+      let val = $(this).val()
+      let parent = $("#formModal select#role_id").parent()
+
+      val == "role" ? parent.removeClass("hidden") : parent.addClass("hidden")
+    })
+
+    $(document).on("change", "#formModal #questionList input.questionSelect", function (e) {
+      let index = $(this).attr("id")
+      // console.log($(this).val())
+      if (e.target.checked)
+        questionListData.push({ index, question: categories[index] })
+      else
+        questionListData = questionListData.filter(items => items.index != index)
+    });
+
+    $(document).on("submit", "#formModal #appraisalForm", async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const payload = {
+        title: formData.get("title"),
+        start_time: new Date(formData.get("start_time")).getTime(),
+        end_time: new Date(formData.get("end_time")).getTime(),
+        type: formData.get("type"),
+        question: questionListData,
+        role_id: formData.get("type") == "all" ? null : parseInt(formData.get("role_id")),
+        status: formData.get("status")
+      };
+      console.log(payload)
+      try {
+        await fetch(`${DomainURL}/appraisal/form${selectedFormID ? "/" + selectedFormID : ""}`, {
+          method: selectedFormID ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${access_token}`
+          },
+          body: JSON.stringify(payload),
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status) {
+              showAlertMessage("success","Appraisal form",`Appraisal Form ${selectedFormID ? "Updated" : "Created"} Successfully`);
+              initFetch()
+              closeModal();
+            } else {
+              console.log(data.message)
+              showAlertMessage("error","Appraisal form",`Failed to ${selectedFormID ? "update" : "create"} form`);
+            }
+          })
+      } catch (error) {
+        showAlertMessage("warning","API error", error)
+      }
+    });
+
+  })
+
+  function closeModal() {
+    document.getElementById("formModal").classList.add("hidden");
+    $("#formModal form")[0].reset();
+    document.getElementById("questionList").innerHTML =
+      '';
+  }
+</script>

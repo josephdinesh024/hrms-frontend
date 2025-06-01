@@ -1,0 +1,621 @@
+<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
+    <div class="flex items-center gap-3">
+        <h3 class="font-medium" id="totalCount">Request</h3>
+        <div class="text-xs bg-gray-100 p-1" id="status">
+            <button id="pending" class="p-3 font-medium bg-white">Pending
+                <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
+            <button id="approved" class="p-3 font-medium">Approved
+                <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
+            <button id="rejected" class="p-3 font-medium">Rejected
+                <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
+        </div>
+        <div class="flex gap-2 items-center bg-white p-3 text-sm">
+            <button id="timeoff-previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+            <span id="timeoff-countMessage">5 of 10</span>
+            <button id="timeoff-next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+        </div>
+    </div>
+    <div>
+        <button id="AddNew" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs
+        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+            time-off</button>
+    </div>
+</div>
+<hr>
+<div id="cardList">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Name</th>
+                <th class="p-4 border-b">Duration</th>
+                <th class="p-4 border-b">Date</th>
+                <th class="p-4 border-b">Type</th>
+                <th class="p-4 border-b">Reason</th>
+                <th class="p-4 border-b">Approval</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let PermissionToCreate = false
+        let PermissionToEdit = false
+        $(document).ready(function () {
+            const access = JSON.parse($.cookie("my_access"))
+            if ("request" in access  && access["request"].includes("create")) {
+                PermissionToCreate = true
+            } 
+            if ("request" in access  && access["request"].includes("edit")) {
+                PermissionToEdit = true
+            } 
+            
+        });
+
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        let timeRequest = []
+        let UserList = []
+        let Status = "pending"
+        function initFetch() {
+            $("#editPanel #editContent").empty()
+            closePanel()
+            try {
+                fetch(`${DomainURL}/manage/request/leave?status=${Status}&page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    if (data.status) {
+                        $("#cardList tbody").empty()
+                        timeRequest = data.request
+                        timeRequest.forEach((element, index) => {
+                            $("#cardList tbody").append(`
+                            <tr id="${index}" class="border-b hover:bg-gray-50 transition selectedList">
+                                <td class="p-4">${capitalizeFirstLetter(element.module.user.user_name)}</td>
+                                <td class="p-4">${element.module.total_days} ${element.module.leave_unit.includes("day") ? "Days" : element.module.leave_unit == "fn" ? "Half-day (FN)" : "Half-day (AN)"}</td>
+                                <td class="p-4">${leaveDates(element.module.start_date, element.module.end_date)}</td>
+                                <td class="p-4">${capitalizeFirstLetter(element.module.policy_id ? element.module.policy.name : "others")}</td>
+                                <td class="p-4"><i class="fa-regular fa-note-sticky"></i></td>
+                                <td class="p-4">${element.status === "pending" ? `<button><i class="fa-regular fa-circle-check" style="color: #63E6BE;"></i></button>  <button><i class="fa-regular fa-circle-xmark" style="color: #d63a05;"></i></button>` :
+                                            element.status === "viewed" ? `<span class="px-3 py-1 text-xs font-bold text-blue-700 bg-blue-100 rounded-md"> Viewed </span>` :
+                                                element.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>` :
+                                                    `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>`
+                                        }</td>
+                            </tr>
+                        `)
+                        });
+                        TotalCount = data.total_count
+                        var total = (page - 1) * paseSize
+                        $("#timeoff-countMessage").text(`${total + timeRequest.length} of ${TotalCount}`)
+                    }
+                });
+
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+            
+            if(PermissionToCreate)
+            try {
+                fetch(`${DomainURL}/user`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            UserList = data.user
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#timeoff-previous", function () {
+            if (page != 1) {
+                page -= 1
+                init()
+            }
+        })
+
+        $(document).on("click", "button#timeoff-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                init()
+            }
+        })
+
+        async function searchName(module, query) {
+            try {
+                const response = await fetch(`${DomainURL}/search/name?module=${module}&q=${query}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                });
+
+                const data = await response.json();
+                if (data.status) {
+                    return data.data;
+                } else {
+                    return [];
+                }
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+                return [];
+            }
+        }
+
+        async function MyPolicys(userID) {
+            try {
+                fetch(`${DomainURL}/timesheet/mypolicy?user_id=${userID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#editPanel #editContent #timeOffType").empty()
+                            $("#editPanel #editContent #timeOffType").prepend(`
+                        <option selected value="0">Others</option>
+                    `)
+                            data.policy.forEach(element => {
+                                if (element.active)
+                                    $("#editPanel #editContent #timeOffType").prepend(`
+                        <option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>
+                    `)
+                            })
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+
+        $(document).on("click", "#filterAction #status button", function () {
+            let selectedStatus = $(this).attr("id")
+            $("#filterAction button").each(function () {
+                if (selectedStatus != $(this).attr("id")) {
+                    $(this).removeClass("bg-white")
+                } else
+                    $(this).addClass("bg-white")
+            })
+            Status = selectedStatus
+            initFetch()
+        })
+
+        function leaveDates(start, end) {
+            let startDate = new Date(start)
+            let endDate = new Date(end)
+            const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            let dateString = ''
+            if (startDate.getFullYear() === endDate.getFullYear()) {
+                if (startDate.getMonth() === endDate.getMonth()) {
+                    if (startDate.getDate() === endDate.getDate()) {
+                        dateString = `${startDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}`
+                    } else {
+                        dateString = `${startDate.getDate()}-${endDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}`
+                    }
+                } else {
+                    dateString = `${startDate.getDate()}${month[startDate.getMonth()]}-${endDate.getDate()}${month[endDate.getMonth()]} ${startDate.getFullYear()}`
+                }
+            } else {
+                dateString = `${startDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}-${endDate.getDate()}${month[endDate.getMonth()]} ${endDate.getFullYear()}`
+            }
+
+            return dateString
+        }
+
+        let newTimeOffData = { start_date: 0, end_date: 0, leave_unit: "days", total_days: 0, description: "", policy_id: null }
+        let newTimeOffUserID = 0
+// New time off
+        $(document).on("click", "#filterAction button#AddNew", function () {
+            leaveRequestID = 0
+            openEditPanel()
+            newTimeOffData = { start_date: 0, end_date: 0, leave_unit: "days", total_days: 0, description: "", policy_id: null }
+            newTimeOffUserID = 0
+            $("#editPanel #editContent").append(`
+        <h1 class="text-xl font-semibold mt-3">Add time off </h1>
+        ${PermissionToCreate ? `<div class="text-base m-3 font-medium space-y-3">
+            <label for="selectEmployee">Select Employee <span class="text-xs text-textPrimary">(if null, time off for you)</span></label>
+            <div class="relative">
+                <div class="flex items-center border px-3 text-sm">
+                    <i class="fas fa-search text-gray-400"></i>
+                    <input type="search" id="selectEmployee" class="focus:outline-none p-3 w-full" placeholder="search employee" />
+                </div>
+                <div id="SearchList" class="absolute w-full mt-1 bg-white text-xs font-medium shadow-lg border rounded-lg max-h-40 h-fit overflow-auto hidden">
+                    
+                </div>
+            </div>
+        </div>
+        <hr>`: ""
+                }
+        <div class="text-base m-3 font-medium space-y-3">
+            <label for="timeOffType">Time off type</label>
+            <select id="timeOffType" class="text-sm w-full p-3 border rounded-lg">
+                
+            </select>
+        </div>
+        <hr>
+        <div class="text-base m-3 font-medium space-y-3" id="timeOffTime">
+            <label for="timeOffTime">Time off Time</label>
+            <div id="calendar-inline"></div>
+            <div class="mt-4 space-y-1">
+                <label for="timeOffLeaveUnit">Leave type :</label>
+                <select id="timeOffLeaveUnit" class="text-xs">
+                    <option value="days">Days</option>
+                    <option value="fn">Half-day (FN)</option>
+                    <option value="an">Half-day (AN)</option>
+                </select>
+                <p class="text-sm font-medium">Start Date: <span id="timeOffDates" class="text-textPrimary">--</span></p>
+                <p class="text-sm font-medium">Total Days: <span id="totalDays" class="text-textPrimary">--</span></p>
+            </div>
+        </div>
+        <hr>
+        <div class="text-base m-3 font-medium space-y-3">
+            <label for="timeOffReason">Time off Reason</label>
+            <input type="text" id="timeOffReason" class="p-2 border w-full" placeholder="reason" />
+        </div>
+        <hr>
+        <div class="grid content-end p-3 mt-3">
+            <div class="flex justify-end gap-6">
+                <button id="newTimeOffSubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
+            </div>
+        </div>
+    `)
+            datePicker()
+            MyPolicys(newTimeOffUserID)
+        })
+
+        function datePicker() {
+            const picker = new Litepicker({
+                element: document.getElementById('calendar-inline'),
+                inlineMode: true,
+                singleMode: false,
+                numberOfMonths: 1,
+                minDays: 1,
+                maxDays: newTimeOffData.leave_unit == "days" ? null : 1,
+                numberOfColumns: 1,
+                autoApply: true,
+                setup: (picker) => {
+                    picker.on('selected', (start, end) => {
+                        const days = end.diff(start, 'days') + 1;
+                        var d = newTimeOffData.leave_unit == "days" ? days : 0.5
+                        document.getElementById('timeOffDates').innerText = leaveDates(start.getTime(), end.getTime())
+                        document.getElementById('totalDays').innerText = d + " " + newTimeOffData.leave_unit;
+                        newTimeOffData.start_date = start.getTime()
+                        newTimeOffData.end_date = end.getTime()
+                        newTimeOffData.total_days = d
+                    });
+                }
+            });
+        }
+
+        $(document).on("focus", "#editPanel #editContent input#selectEmployee", function () {
+            let parentElm = $(this).parent()
+            parentElm.addClass("border-blue-200")
+            parentElm.parent().find("#SearchList").show()
+        })
+        $(document).on("blur", "#editPanel #editContent input#selectEmployee", function () {
+            let text = $(this).val()
+            if (text.trim() === "") {
+                newTimeOffUserID = 0
+            }
+            if (newTimeOffUserID == 0) {
+                $(this).val("")
+            }
+
+            let parentElm = $(this).parent()
+            parentElm.removeClass("border-blue-200")
+            setTimeout(() => {
+                MyPolicys(newTimeOffUserID)
+                parentElm.parent().find("#SearchList").hide()
+            }, 500)
+        })
+    
+    // time off other employee 
+        let userSearchList = []
+        $(document).on("keyup", "#editPanel #editContent input#selectEmployee", async function () {
+            let text = $(this).val()
+            if (text.trim() === "") {
+                newTimeOffUserID = 0
+                $("#editPanel #editContent #SearchList").hide()
+            } else {
+                $("#editPanel #editContent #SearchList").empty()
+                userSearchList = await searchName("user", text.toLowerCase());
+                if (userSearchList.length) {
+                    userSearchList.forEach(element => {
+                        $("#editPanel #editContent #SearchList").append(`
+                    <h5 class="cursor-pointer w-full border-b hover:bg-gray-50 p-2.5 selectedUserlist" id="${element.id}"> ${capitalizeFirstLetter(element.user_name)}</h5>
+                `)
+                    })
+                }
+            }
+        })
+
+        $(document).on("click", "#editPanel #editContent #SearchList .selectedUserlist", function () {
+            newTimeOffUserID = parseInt($(this).attr("id"))
+            $("#editPanel #editContent input#selectEmployee").val($(this).text().trim())
+        })
+
+        $(document).on("change", "#editPanel #editContent #timeOffType", function () {
+            var ID = parseInt($(this).val())
+            if (ID != 0) {
+                newTimeOffData.policy_id = ID
+            } else
+                newTimeOffData.policy_id = null
+        })
+
+        $(document).on("change", "#editPanel #editContent #timeOffLeaveUnit", function () {
+            $("#editPanel #editContent #timeOffTime p").each(function () { $(this).find("span").text("--") })
+            $("#editPanel #editContent #timeOffTime #calendar-inline").empty()
+            newTimeOffData.start_date = 0
+            newTimeOffData.leave_unit = $(this).val()
+            datePicker();
+        })
+
+        $(document).on("keyup", "#editPanel #editContent #timeOffReason", function () {
+            newTimeOffData.description = $(this).val()
+        })
+
+        $(document).on("click", "#editPanel #editContent #newTimeOffSubmitBtn", function () {
+            if (newTimeOffData.start_date == 0) {
+                $("#editPanel #editContent #timeOffTime #timeOffDates").parent("p").addClass("border border-red-400")
+            } else {
+                try {
+                    fetch(`${DomainURL}/timesheet/leave?user_id=${newTimeOffUserID || ''}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "POST",
+                        body: JSON.stringify(newTimeOffData)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            showAlertMessage("success","Time off","Added new time off")
+                            initFetch()
+                            closePanel()
+                        } else {
+                            showAlertMessage("error","Time off",data.message)
+                        }
+                    });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+                
+            }
+        })
+        let User_ID
+        async function leaveRequest(status, start, end) {
+            try {
+                fetch(`${DomainURL}/timesheet/leave?status=${status}&user_id=${User_ID}&start=${start}&end=${end}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            $("#editPanel #editContent #leaveRequestList").empty()
+                            data.leave_request.forEach(element => {
+                                $("#editPanel #editContent #leaveRequestList").append(`
+                        <div class="grid grid-cols-2 gap-2 w-2/3 bg-white rounded-lg border p-3 text-xs">
+                            <h3>${leaveDates(element.start_date, element.end_date)}</h3>
+                            <h3>${element.total_days} ${element.leave_unit}</h3>
+                            <h3>${capitalizeFirstLetter(element.policy_id ? element.policy.name : "others")}</h3>
+                            <div>
+                                ${element.status === "pending" ? `<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-md">${capitalizeFirstLetter(element.status)}</span>` :
+                                        element.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>` :
+                                            `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>`}
+                            </div>
+                        </div>
+                    `)
+                            })
+                        }
+                        else {
+                            console.log(data.messgae)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        // Edit panel 
+        async function AlreadyTakenLeave(userID, policyID) {
+            try {
+                fetch(`${DomainURL}/timesheet/leave/filter/${userID}/${policyID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            $("#editPanel #editContent h4#alreadyTakenLeaves").text(`${data.leave_taken} / ${data.total_leave}`)
+                        } else {
+                            console.log(data.message)
+
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+
+            }
+        }
+
+        let leaveStart = 0
+        let leaveEnd = 0
+        let leaveRequestID = 0
+        let timeOffDescription = ""
+        $(document).on("click", "#cardList tbody .selectedList", function () {
+            let index = $(this).attr("id")
+            let datas = timeRequest[index]
+            openEditPanel()
+            // console.log(datas)
+            leaveRequestID = datas.id
+            let user = datas.module.user
+            $("#editPanel #editContent").append(`
+        <div class="text-sm m-3 p-4 border relative h-fit">
+            <h3>${user.user_name}</h3>
+            <h3>${user.email}</h3>
+            <h3>${user.profile.phone}</h3>
+            <div class="absolute top-1/2 right-10">
+                ${datas.status === "pending" ? `<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-md">${capitalizeFirstLetter(datas.status)}</span>` :
+                    datas.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(datas.status)} </span>` :
+                        `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(datas.status)} </span>`}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 content-center my-3 p-2 text-sm">
+            <div>
+                <h3 class="font-medium text-textPrimary">Time-off Type</h3>
+                <h4>${capitalizeFirstLetter(datas.module.policy_id ? datas.module.policy.name : "others")}</h4>
+            </div>
+            <div>
+                <h3 class="font-medium text-textPrimary">Time-off Date</h3>
+                <h4>${leaveDates(datas.module.start_date, datas.module.end_date)}</h4>
+            </div>
+            <div>
+                <h3 class="font-medium text-textPrimary">Duration</h3>
+                <h4>${datas.module.total_days} ${datas.module.leave_unit}</h4>
+            </div>
+            <div class="grid content-center text-xs text-textPrimary font-medium">
+                ${datas.assigned_id != datas.approvedby_id ?
+                    `<h4>Assigned to: <span class="text-black">${datas.assigned.user_name}</span></h4>` : ""}
+                ${datas.status != "pending" ?
+                    `<h4>Approved by: <span class="text-black">${datas.approved.user_name}</span></h4>` : ""}
+            </div>
+            <div>
+                <h3 class="font-medium text-textPrimary">Time offs</h3>
+                <h4 id="alreadyTakenLeaves" class="px-1"></h4>
+            </div>
+        </div>
+
+        <div class="mt-8 m-2 p-3 bg-cyan-50 text-sm min-h-8">
+            <h3 class="font-medium">Reason</h3>
+            <h4 class="text-textPrimary">${datas.module.description || "--"}</h4>
+        </div>
+        ${ PermissionToEdit ? `
+                <hr>
+                <div class="text-xs my-3">
+                    <div class="flex gap-3 items-center">
+                        <button id="leaveStatus" class="p-2 border border-green-400 rounded-lg">Approved</button>
+                        <span>Start:</span> <input type="date" id="leaveStart" class="border p-1.5"/>
+                        <span>End:</span> <input type="date" id="leaveEnd" class="border p-1.5"/>
+                    </div>
+                    <div id="leaveRequestList" class="p-2 max-h-40 h-fit overflow-auto space-y-2">
+                    </div>
+                </div>
+                <div class="mt-8 m-2 p-3 bg-gray-50 text-sm min-h-8">
+                    <h3 class="font-medium">Description<span class="text-red-600">*</span></h3>
+                    <input type="text" id="timeOffDescription" placeholder="notes" value="${datas.description}" class="text-textPrimary bg-gray-50 w-full focus:outline-none" />
+                </div>
+                <div class="grid content-end p-3 mt-8">
+                    <div class="flex justify-end gap-6">
+                        <button value="approved" class="border p-3 text-sm border-green-400 rounded-lg timeOffStatusBtn">Approved</button>
+                        <button value="rejected" class="border p-3 text-sm border-red-400 rounded-lg timeOffStatusBtn">Rejected</button>
+                    </div>
+                </div>
+            ` : ""}
+        `)
+            User_ID = user.id
+            leaveRequest("", leaveStart, leaveEnd)
+            AlreadyTakenLeave(User_ID, datas.module.policy_id || 0)
+        })
+
+        $(document).ready(function () {
+            $(document).on("change", "input#leaveStart", function () {
+                leaveStart = new Date($(this).val()).getTime()
+                leaveRequest("", leaveStart, leaveEnd)
+            })
+            $(document).on("change", "input#leaveEnd", function () {
+                leaveEnd = new Date($(this).val()).getTime()
+                leaveRequest("", leaveStart, leaveEnd)
+            })
+            $(document).on("click", "button#leaveStatus", function () {
+                let text = $(this).text().trim()
+                if (text === "Approved") {
+                    $(this).text("Rejected")
+                    $(this).removeClass("border-green-400")
+                    $(this).addClass("border-red-400")
+                    leaveRequest(status = "rejected")
+                } else {
+                    $(this).text("Approved")
+                    $(this).removeClass("border-red-400")
+                    $(this).addClass("border-green-400")
+                    leaveRequest(status = "approved")
+                }
+            })
+
+            $(document).on("keyup", "#editPanel #editContent input#timeOffDescription", function () {
+                timeOffDescription = $(this).val()
+            })
+        })
+
+        $(document).off("click", "#editPanel #editContent button.timeOffStatusBtn");
+        $(document).on("click", "#editPanel #editContent button.timeOffStatusBtn", function () {
+            let timeOffStatus = $(this).val()
+            if (leaveRequestID)
+                try {
+                    fetch(`${DomainURL}/manage/request/${leaveRequestID}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "PUt",
+                        body: JSON.stringify({
+                            "description": timeOffDescription,
+                            "status": timeOffStatus
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success","Time off",data.message)
+                            initFetch()
+                            closePanel()
+                        } else {
+                            showAlertMessage("error","Time off",data.message)
+                        }
+                    });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+                
+            else {
+                showAlertMessage("info","Time off","Invalid id")
+                closePanel()
+            }
+        })
+
+    })
+</script>

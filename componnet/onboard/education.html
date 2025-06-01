@@ -1,0 +1,180 @@
+<!-- Education Section -->
+<form id="tab-education" class="tab-section">
+    
+</form>
+
+<script>
+    $(function () {
+        // floatingInputTag(type,id,name,labelName,placeholder="",value="",required=true)
+        $("#tab-education").html(`
+            <h2 class="text-lg font-semibold mb-4">Education</h2>
+            <div id="education-container" class="space-y-4">
+                <div class="border rounded-lg p-4 space-y-4 w-full">
+                    <input type="hidden" name="EducationID" id="1_EducationID" value="0" />
+                    ${floatingInputTag("text","1_institution","institution","Institution")}
+                    ${floatingInputTag("text","1_degree","degree","Degree")}
+                    <div class="flex justify-between gap-6">
+                        <select class="w-64 mt-6 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
+                            id="1_mark_type" name="mark_type">
+                            <option selected value="mark">Mark</option>
+                            <option value="grade">Grade</option>
+                        </select>
+                        ${floatingInputTag("text","1_percentage","percentage","Percentage")}
+                    </div>
+                    <div class="flex justify-between gap-6">
+                         ${floatingInputTag("date","1_start_year","start_year","Start year"," ")}
+                         ${floatingInputTag("date","1_end_year","end_year","End year")}
+                    </div>
+                    <span id="1_yearErrorMessage" class="text-xs text-red-400"></span>
+                </div>
+            </div>
+            <button type="button" onclick="addEducation()" class="mt-4 text-blue-600 hover:underline">+ Add More</button>
+            <div class="flex space-x-2 justify-end">
+                <button type="submit" id="SaveEducationBtn"
+                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+            </div>
+        `)
+        let UserEductaion = []
+        function initFun() {
+            try {
+                fetch(`${DomainURL}/my/education`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            // console.log(data)
+                            UserEductaion = data.education
+                            if (UserEductaion.length) {
+                                $("#tab-education #education-container").empty()
+                                UserEductaion.forEach((item, index) => {
+                                    $("#tab-education #education-container").append(`
+                                    <div class="border rounded-lg p-4 space-y-4 w-full">
+                                        <input type="hidden" name="EducationID" id="${index + 1}_EducationID" value="${item.id}" />
+                                        ${floatingInputTag("text",`${index + 1}_institution`,"institution","Institution",value=item.institution)}
+                                        ${floatingInputTag("text",`${index + 1}_degree`,"degree","Degree",value=item.degree)}
+                                        <div class="flex justify-between gap-6">
+                                            <select class="w-64 mt-6 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
+                                                id="${index + 1}_mark_type" name="mark_type">
+                                                <option selected value="mark">Mark</option>
+                                                <option value="grade">Grade</option>
+                                            </select>
+                                            ${floatingInputTag("text",`${index + 1}_percentage`,"percentage","Percentage",value=item.percentage)}
+                                        </div>
+                                        <div class="flex justify-between gap-6">
+                                            ${floatingInputTag("date",`${index + 1}_start_year`,"start_year","Start year",value=item.start_year)}
+                                            ${floatingInputTag("date",`${index + 1}_end_year`,"end_year","End year",value=item.end_year)}
+                                        </div>
+                                        <span id="${index + 1}_yearErrorMessage" class="text-xs text-red-400"></span>
+                                    </div>
+                                `);
+                                });
+                                divID = UserEductaion.length+1
+                            }
+
+                        } else {
+                            console.log(data.message)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        initFun()
+
+        $(document).on("change", `#tab-education #education-container input[name="start_year"]`, function () {
+            let FormID = $(this).attr("id").split("_")[0]
+            stYr = new Date($(this).val()).getFullYear();
+            edYr = new Date($(`#tab-education #education-container #${FormID}_end_year`).val()).getFullYear();
+            if (edYr) {
+                if (edYr - stYr < 1) {
+                    $(`#tab-education #education-container #${FormID}_yearErrorMessage`).text("Invalid date range")
+                    $(`#tab-education #SaveEducationBtn `).prop("disabled", true)
+                }
+                else {
+                    $(`#tab-education #education-container #${FormID}_yearErrorMessage`).text("")
+                    $(`#tab-education #SaveEducationBtn `).prop("disabled", false)
+                }
+            }
+        })
+
+        $(document).on("change", `#tab-education #education-container input[name="end_year"]`, function () {
+            let FormID = $(this).attr("id").split("_")[0]
+            edYr = new Date($(this).val()).getFullYear();
+            stYr = new Date($(`#tab-education #education-container #${FormID}_start_year`).val()).getFullYear();
+            if (stYr) {
+                if (edYr - stYr < 1) {
+                    $(`#tab-education #education-container #${FormID}_yearErrorMessage`).text("Invalid date range")
+                    $(`#tab-education #SaveEducationBtn `).prop("disabled", true)
+                }
+                else {
+                    $(`#tab-education #education-container #${FormID}_yearErrorMessage`).text("")
+                    $(`#tab-education #SaveEducationBtn `).prop("disabled", false)
+                }
+            }
+        });
+
+        $(document).off("submit", "form#tab-education");
+        $(document).on("submit", "form#tab-education", function (e) {
+            e.preventDefault();
+            let formData = new FormData(this)
+            let data = []
+            let dataObj = {}
+            let checkedVal = true
+            formData.forEach((val, key) => {
+                if (key in dataObj) {
+                    dataObj["EducationID"] = $(`form#tab-education #education-container #${data.length + 1}_EducationID`).val()
+                    data.push(dataObj);
+                    dataObj = {};
+                }
+                if (val == "") {
+                    $(`form#tab-education #education-container #${data.length + 1}_${key}`).addClass("border-b border-red-400")
+                    checkedVal = false
+                }
+                dataObj[key] = val;
+            });
+            data.push(dataObj);
+            // console.log(data)
+
+            if (checkedVal) {
+                data.forEach((item, index) => {
+                    // console.log(item)
+                    try {
+                        fetch(`${DomainURL}/my/education${item.EducationID != "0" ? "/" + item.EducationID : ""}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: item.EducationID  != 0 ? "PUT" : "POST",
+                            body: JSON.stringify({
+                                "degree" :item.degree,
+                                "end_year" :item.end_year,
+                                "institution" :item.institution,
+                                "mark_type" :item.mark_type,
+                                "percentage" :item.percentage,
+                                "start_year" :item.start_year,
+                            })
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.status) {
+                                    $(`form#tab-education #education-container #${index + 1}__EducationID`).val(data.education.id)
+                                    // console.log(data)
+                                    showAlertMessage("success","Employee profile","Education details saved")
+                                } else {
+                                    showAlertMessage("error","Employee profile",data.message)
+                                }
+                            })
+                    } catch (error) {
+                        showAlertMessage("warning","API error", error)
+                    }
+                })
+            }
+
+        })
+    });
+</script>

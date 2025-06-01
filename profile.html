@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Users</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="/frontend//static/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <script src="/frontend/static/js/theme.js"> </script>
+
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body class="flex bg-background h-screen w-screen">
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+    <div>
+        <aside
+            class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out">
+        </aside>
+    </div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main id="usermain" class="p-6 overflow-y-scroll h-[90vh]">
+            <h2 class="text-xl font-semibold">Employee Profile</h2>
+            <div class="bg-secondary p-6 mt-3 rounded-md relative">
+                <form class="grid grid-cols-3 gap-6 my-4" id="newuserprofile">
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" name="email" disabled placeholder="Enter email"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="first_name" name="first_name" required placeholder="Enter name"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" required placeholder="Father name"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input type="number" id="phone" name="phone" required maxlength="10" placeholder="Mobile number"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="dob" class="block text-sm font-medium text-gray-700">DOB</label>
+                        <input type="date" id="dob" name="dob"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
+                        <select id="gender" name="gender"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="others">Others</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                        <input type="text" id="address" name="address" placeholder="Current address"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                        <input type="text" id="city" name="city" placeholder="City name"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                        <input type="text" id="state" name="state" placeholder="State"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
+                        <input type="text" id="country" name="country" placeholder="Country"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="pincode" class="block text-sm font-medium text-gray-700">Pincode</label>
+                        <input type="text" id="pincode" name="pincode" placeholder="Address pincode"
+                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="absolute flex ietms-center bottom-3 right-6 text-sm space-x-3">
+                        <button type="submit" id="newuserbutton"
+                            class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="/frontend/static/js/global.js"></script>
+    <script>
+        const access_token = $.cookie("access_token");
+        if (!access_token)
+            window.location.href = '/frontend/login.html'
+        $(function () {
+            let userName = $.cookie("user_name")
+            try {
+              fetch(`${DomainURL}/search/filter`, {
+                method: "POST",
+                body: JSON.stringify({
+                    "module_type": "user",
+                    "module_field": "user_name",
+                    "field_data": userName
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status) {
+                        $("#newuserprofile #email").val(data.data.email)
+                    }
+                    else {
+                        $.removeCookie("access_token")
+                        $.removeCookie("user_name")
+                        window.location.reload()
+                    }
+                })  
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+            
+        })
+        $(document).on("submit", "#newuserprofile", function (e) {
+            e.preventDefault()
+            let formData = new FormData(this)
+            let data = {}
+            formData.forEach((value, key) => { data[key] = value })
+            try {
+                fetch(`${DomainURL}/tempary/user/profile`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${access_token}`
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status) {
+                        window.location.href = 'index.html'
+                    }
+                    else {
+                        showAlertMessage("error","Error",data.message)
+                    }
+                })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+            
+        })
+    </script>
+
+
+</body>
+
+</html>

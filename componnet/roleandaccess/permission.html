@@ -1,0 +1,252 @@
+<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
+    <div class="flex items-center gap-3">
+        <h3 class="font-medium" id="totalCount">Permission</h3>
+        <div class="flex gap-2 items-center text-md px-2">
+            <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+            <span id="countMessage">5 of 10</span>
+            <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+        </div>
+    </div>
+    <div>
+        <button id="AddNewForm" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+            permission</button>
+    </div>
+</div>
+<hr>
+<div id="employeeCardList">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Name</th>
+                <th class="p-4 border-b">Modules</th>
+                <th class="p-4 border-b">Created At</th>
+                <th class="p-4 border-b">Updated At</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+        let permissionDatas = []
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        function initFun() {
+            try {
+                fetch(`${DomainURL}/permission?page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            // console.log(data)
+                            $("#employeeCardList tbody").empty()
+                            permissionDatas = data.permissions
+                            permissionDatas.forEach((item, index) => {
+                                $("#employeeCardList tbody").append(`
+                            <tr id="${index}" class="border-b hover:bg-slate-50 transition SelectedList">
+                                <td class="p-4">${capitalizeFirstLetter(item.name)}</td>
+                                <td class="p-4">${permissionModules(item.permission)}</td>
+                                <td class="p-4">${new Date(item.created_at).toDateString()}</td>
+                                <td class="p-4">${new Date(item.updated_at).toDateString()}</td>
+                            </tr>
+                        `)
+                            });
+
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#countMessage").text(`${total + permissionDatas.length} of ${TotalCount}`)
+                        }
+                    });
+
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+
+        }
+        initFun()
+        $(document).on("click", "button#previous", function () {
+            if (page != 1) {
+                page -= 1
+                init()
+            }
+        })
+
+        $(document).on("click", "button#next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                init()
+            }
+        })
+
+        // Extratc permission module names
+        function permissionModules(items) {
+            let names = []
+            Object.keys(items).forEach(val => {
+                names.push(capitalizeFirstLetter(val))
+            })
+
+            return names.join(", ")
+        }
+
+        let selectedData = {}
+        let selectedModuleList = []
+        $(document).on("click", "#employeeCardList tbody tr.SelectedList", function () {
+            let index = $(this).attr("id");
+            selectedData = permissionDatas[index]
+            selectedModuleList = []
+            openFixedEditPanel()
+            DataAppend()
+        });
+
+        $(document).on("click", "#filterAction button#AddNewForm", function () {
+            selectedData = {}
+            selectedModuleList = []
+            openFixedEditPanel()
+            DataAppend()
+        })
+
+        function DataAppend() {
+            $("#fixedEditPanel #editContent").html(`
+                <div id="permissionName" class="">
+                    <h1 class="px-6 text-base text-textPrimary font-bold w-full py-2 space-x-4 relative">
+                        Permission <span id="pname">${capitalizeFirstLetter(selectedData.name || "name")}</span>
+                    </h1>
+                    <div class="mx-6 flex flex-col">
+                        <input id="permission_name" name="name" placeholder="Name" value="${selectedData.name || ""}"
+                            class="p-1 border-b focus:outline-none focus:border-blue-400">
+                        <span class="text-xs text-red-600 ml-2" id="errorMessage"></span>
+                    </div>
+                    <hr>
+                    <div id="permissionDerivation" class="mt-8 px-6 text-base text-textPrimary font-bold w-full py-2">
+                        <h3 class="mb-4">Permission Derivation</h3>
+                        <label class="text-black font-medium">Other permission : 
+                            <select id="otherPermission" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                                ${permissionDatas.map(item => {
+                return `
+                                    <option value="${item.id}">${item.name}</option>
+                                    `
+            }).join("")}
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div id="permissionModules" class="md:w-[500px] max-h-[450px] overflow-y-scroll">
+                    <h1 class="px-6 text-base text-textPrimary font-bold w-full py-2 space-x-4 relative">
+                        <span>Modules</span>
+                    </h1>
+                    <div id="modules" class="grid grid-cols-2 md:grid-cols-3 gap-3 border-t border-dashed px-3 pb-6 relative">
+                        
+                    </div>
+                </div>
+            `)
+
+            $("#fixedEditPanel #functionBtn").html(`
+                <button id="saveEdit" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
+                <button onclick="closeFixedEditPanel()" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+            `)
+
+            $(document).ready(function () {
+                if ("permission" in selectedData)
+                    Object.keys(selectedData.permission).forEach(val => {
+                        permissionModuleList(val, selectedData.permission[val])
+                        selectedModuleList.push(val)
+                    });
+                modules.forEach(key => {
+                    if (!selectedModuleList.includes(key)) {
+                        permissionModuleList(key, [])
+                    }
+                })
+            });
+
+        }
+
+        $(document).on("keyup", "#fixedEditPanel #editContent #permissionName #permission_name", function () {
+            let text = $(this).val()
+            $("#fixedEditPanel #editContent #permissionName #pname").text(capitalizeFirstLetter(text))
+        });
+
+        $(document).on("change", "#fixedEditPanel #permissionDerivation select#otherPermission", function () {
+            let item = permissionDatas.find(val => val.id == $(this).val());
+
+            Object.keys(item.permission).forEach(key => {
+                if (key in moduleData) {
+                    if (moduleData[key].length < 4) {
+                        let actions = moduleData[key] || []
+                        item.permission[key].forEach(action => {
+                            if (!actions.includes(action)) {
+                                $(`#fixedEditPanel #editContent #permissionModules .${key}ModuleAction`).each(function () {
+                                    let text = $(this).parent().find("span").text()
+                                    if (text.toLocaleLowerCase() === action) {
+                                        $(this).prop("checked", true);
+                                    }
+                                })
+                                actions.push(action)
+                                moduleData[key] = actions
+                            }
+                        })
+                    }
+                } else {
+                    let actions = moduleData[key] || []
+                    item.permission[key].forEach(action => {
+                        $(`#fixedEditPanel #editContent #permissionModules .${key}ModuleAction`).each(function () {
+                            let text = $(this).parent().find("span").text()
+                            if (text.toLocaleLowerCase() === action) {
+                                $(this).prop("checked", true);
+                            }
+                        })
+                        actions.push(action)
+                        moduleData[key] = actions
+                    });
+                }
+            })
+        })
+
+        $(document).on("click", "#fixedEditPanel #functionBtn button#saveEdit", function () {
+            let name = $("#fixedEditPanel #editContent #permissionName #permission_name").val().toLocaleLowerCase();
+            let permission = moduleData;
+
+            if (name == "" && Object.keys(permission).length) {
+                $("#fixedEditPanel #editContent #permissionName #errorMessage").text("name must not empty")
+            } else {
+                try {
+                    fetch(`${DomainURL}/permission${selectedData.id ? "/" + selectedData.id : ""}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: selectedData.id ? "PUT" : "POST",
+                        body: JSON.stringify({
+                            name,
+                            permission
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                initFun()
+                                closeFixedEditPanel()
+                                showAlertMessage("success","Permission",selectedData.id ? "Permission updated" : "Created successfully")
+                            } else {
+                                closeFixedEditPanel()
+                                showAlertMessage("error","Permission",data.message)
+                            }
+                        });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+            }
+        })
+
+    })
+</script>

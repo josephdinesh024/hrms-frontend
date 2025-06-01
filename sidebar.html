@@ -1,0 +1,66 @@
+<!-- Sidebar -->
+<aside class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out" id="sidebar">
+    <div class="space-y-6 flex flex-col mt-20" id="minisidebar">
+        <a href="index.html" class="text-white employee" ><i class="fas fa-user"></i></a>
+        <a href="timesheet.html" class="text-white timesheet" ><i class="fa-regular fa-calendar-days"></i></a>
+        <a href="appraisal.html" class="text-white appraisal" ><i class="fa-solid fa-chart-simple"></i></a>
+        <!-- <a href="access.html" class="text-white" ><i class="fa-solid fa-universal-access"></i></a>
+        <a href="team.html" class="text-white" ><i class="fa-solid fa-user-group"></i></a>
+        <a href="request.html" class="text-white" ><i class="fa-solid fa-quote-right"></i></a> -->
+        <!-- <a id="permission" href="permission.html" class="text-white" ><i class="fa-solid fa-shield-halved"></i></a> -->
+        <a id="roles" href="roleandaccess.html" class="text-white roleAccess" ><i class="fas fa-cog"></i></a>
+        
+
+        <div class="absolute -right-2.5 text-xl text-white baricon cursor-pointer" index="open">
+            <!-- <i class="fa-solid fa-circle-chevron-left shadow-sm shadow-third rounded-full bg-black"></i> -->
+            <i class="fa-solid fa-circle-chevron-right shadow-sm shadow-third rounded-full bg-black"></i>
+        </div>
+    </div>
+    <div class="space-y-6 flex flex-col mt-20 hidden" id="fullsidebar">
+        <a href="index.html" class="text-white employee" ><i class="fas fa-user w-6"></i> User</a>
+        <a href="timesheet.html" class="text-white timesheet" ><i class="fa-regular fa-calendar-days w-6"></i> Time Sheet</a>
+        <a href="appraisal.html" class="text-white appraisal" ><i class="fa-solid fa-chart-simple w-6"></i> Appraisal</a>
+        <!-- <a href="access.html" class="text-white" ><i class="fa-solid fa-universal-access w-6"></i> Access</a> -->
+        <!-- <a href="team.html" class="text-white" ><i class="fa-solid fa-user-group w-6"></i> Team</a> -->
+        <!-- <a href="request.html" class="text-white" ><i class="fa-solid fa-quote-right w-6"></i> Querys</a> -->
+        <!-- <a id="permission" href="permission.html" class="text-white" ><i class="fa-solid fa-shield-halved w-6"></i> Permission</a> -->
+        <a id="roles" href="roleandaccess.html" class="text-white roleAccess" ><i class="fas fa-cog w-6"></i> Role</a> 
+
+        <div class="absolute -right-2.5 text-xl text-white baricon cursor-pointer" index="close">
+            <i class="fa-solid fa-circle-chevron-left shadow-sm shadow-third rounded-full bg-black"></i>
+            <!-- <i class="fa-solid fa-circle-chevron-right shadow-sm shadow-third rounded-full bg-black"></i> -->
+        </div>
+    </div>
+</aside>
+
+
+<script>
+    $(function(){
+        const access = JSON.parse($.cookie("my_access"))
+        // console.log(access)
+        // employee
+        if("user" in access && access["user"].includes("read") && (access["user"].includes("create") || access["user"].includes("edit"))){
+            $("a.employee").removeClass("hidden")
+        }else{
+            $("a.employee").addClass("hidden")
+        }
+        // // timesheet
+        // if("timesheet" in access && access["timesheet"].includes("read")){
+        //     $("a.timesheet").removeClass("hidden")
+        // }else{
+        //     $("a.timesheet").addClass("hidden")
+        // }
+        // // appraisal
+        // if("appraisal" in access && access["appraisal"].includes("read")){
+        //     $("a.appraisal").removeClass("hidden")
+        // }else{
+        //     $("a.appraisal").addClass("hidden")
+        // }
+        //role and access
+        if("role" in access && access["role"].includes("read") && (access["role"].includes("create") || access["role"].includes("edit"))){
+            $("a.roleAccess").removeClass("hidden")
+        }else{
+            $("a.roleAccess").addClass("hidden")
+        }
+    })
+</script>

@@ -1,0 +1,12 @@
+
+.floating-label input:focus + label,
+.floating-label input.not-empty + label {
+  top: 0 !important;
+  font-size: 0.75rem; /* text-sm */
+  color: #3b82f6; /* blue-500 */
+}
+.floating-label label {
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}

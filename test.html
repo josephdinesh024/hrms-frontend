@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/frontend/static/js/theme.js"> </script>
+    <script src="/frontend/static/js/confic.js"></script>
+</head>
+<body>
+    
+<div id="toast-container" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+<!-- Example Buttons -->
+<div class="space-x-2 mt-10 ml-10">
+  <button onclick="showToast('success', 'Success', 'This is a success toast and will dismiss automatically.')" class="bg-green-600 text-white px-4 py-2 rounded">Success</button>
+
+  <button onclick="showToast('error', 'Error', 'This is an error toast and must be closed manually.', false)" class="bg-red-600 text-white px-4 py-2 rounded">Error</button>
+
+  <button onclick="showToast('warning', 'Warning', 'This is a warning toast.', false)" class="bg-yellow-500 text-white px-4 py-2 rounded">Warning</button>
+
+  <button onclick="showToast('info', 'Informational', 'This is an info toast.', false)" class="bg-blue-600 text-white px-4 py-2 rounded">Info</button>
+</div>
+
+
+<script>
+  function showToast(type, title, message, autoClose = true, duration = 10000) {
+    const id = `toast-${Date.now()}`;
+
+    const config = {
+      success: {
+        icon: "✅",
+        bg: "bg-green-100",
+        border: "border-l-4 border-green-600",
+        text: "text-green-900"
+      },
+      error: {
+        icon: "❌",
+        bg: "bg-red-100",
+        border: "border-l-4 border-red-600",
+        text: "text-red-900"
+      },
+      warning: {
+        icon: "⚠️",
+        bg: "bg-yellow-100",
+        border: "border-l-4 border-yellow-600",
+        text: "text-yellow-900"
+      },
+      info: {
+        icon: "ℹ️",
+        bg: "bg-blue-100",
+        border: "border-l-4 border-blue-600",
+        text: "text-blue-900"
+      }
+    };
+
+    const toast = `
+      <div id="${id}" class="${config[type].bg} ${config[type].border} ${config[type].text} rounded shadow-md px-4 py-3 flex items-start gap-3 animate-fade-in">
+        <div class="text-2xl mt-0.5">${config[type].icon}</div>
+        <div class="flex-1">
+          <strong class="font-semibold">${title}</strong>
+          <div class="text-sm mt-1">${message}</div>
+        </div>
+        <button onclick="$('#${id}').remove()" class="text-xl font-bold leading-none hover:text-gray-700">&times;</button>
+      </div>
+    `;
+
+    $('#toast-container').append(toast);
+
+    if (autoClose) {
+      setTimeout(() => {
+        $(`#${id}`).fadeOut(300, function() {
+          $(this).remove();
+        });
+      }, duration);
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+
+<!-- <h1 id="titlePreview" class="text-xl font-semibold">Title</h1>
+        <h6 id="codePreview" class="w-full text-xs text-end font-medium -mt-3">code</h6>
+        <div id="questionPreview" class="space-y-4 p-4 border rounded bg-gray-50"></div>
+        <div class="flex justify-end p-2 mt-4">
+            <button id="saveAnswerBtn" class="bg-blue-400 rounded-lg p-2 text-white font-medium">Sumbit</button>
+        </div> -->
+
+<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
+    <div class="flex items-center gap-3">
+        <h3 class="font-medium" id="totalCount">Categories</h3>
+    </div>
+    <div>
+        <button id="AddNewCategory" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add Cotegory</button>
+    </div>
+</div>
+<hr>
+<div id="categoryCardList">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Name</th>
+                <th class="p-4 border-b">Question</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+        let questions = [];
+        let formCode
+        let formTitle
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+        let token = params.get("token")
+
+        try {
+            fetch(`${DomainURL}/appraisal/testform?token=${token}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${access_token}`
+                },
+                method: "GET"
+            })
+            .then(res => res.json())
+            .then(data =>{
+                if(data.status){
+                    questions = data.form.content
+                    $("#codePreview").text(data.form.name)
+                    formCode = data.form.name
+                    formTitle = data.form.title
+                    $("#titlePreview").text(capitalizeFirstLetter(data.form.title))
+                    renderQuestions()
+                }else{
+                    showAlertMessage("error","Appraisal category",data.message)
+                }
+            });
+        
+        } catch (error) {
+            showAlertMessage("warning","API error", error)
+        }
+        
+
+        // Add question answer
+        $(document).on("keyup","input",function(){
+            var ID = parseInt($(this).attr("id"))
+            questions.forEach((q,index) =>{
+                if (q.id == ID){
+                    questions[index]["value"] = $(this).val()
+                }
+            })
+        })
+        $(document).on("change","select",function(){
+            var ID = parseInt($(this).attr("id"))
+            questions.forEach((q,index) =>{
+                if (q.id == ID){
+                    questions[index]["value"] = $(this).val()
+                }
+            })
+        })
+
+        // Render questions in preview
+        function renderQuestions() {
+            const container = $('#questionPreview');
+            container.html('');
+
+            questions.forEach((q, index) => {
+                let inputHTML = '';
+                if (q.type === 'text') {
+                    inputHTML = `<input type="text" id="${q.id}" class="border p-2 w-full rounded" placeholder="Answer...">`;
+                    questions[index]["value"] = ""
+                } 
+                else if (q.type === 'select') {
+                    inputHTML = `<select id="${q.id}" class="border p-2 w-full rounded">
+                    ${q.options.map(opt => `<option>${capitalizeFirstLetter(opt)}</option>`).join('')}
+                        </select>`;
+                        questions[index]["value"] = q.options[0];
+                }
+
+                container.append(`
+                <div class="relative">
+                    <label class="block font-medium mb-1">${index + 1}. ${capitalizeFirstLetter(q.text)}</label>
+                    ${inputHTML}
+                </div>
+                `);
+                
+            });
+        }
+
+
+        $("#saveAnswerBtn").on("click",function(){
+            let data = {}
+            data["answer"] = questions
+            console.log(data)
+        
+            try {
+                fetch(`${DomainURL}/appraisal?token=${token}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${access_token}`
+                },
+                method: "POST",
+                body:JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data =>{
+                if(data.status){
+                    showAlertMessage("success","Success","Form submited")
+                    window.location.href = "index.html"
+                }
+                else
+                    showAlertMessage("error","Error",data.message)
+            });
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+            
+            
+        
+        })
+    
+</script>
