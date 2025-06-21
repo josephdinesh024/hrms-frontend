@@ -60,8 +60,8 @@
       <div class="mb-4">
         <label class="block text-sm font-medium">Status</label>
         <select id="status" name="status" class="w-full p-2 border rounded-lg">
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
+          <option value="3">Approved</option>
+          <option value="4">Rejected</option>
         </select>
       </div>
       <div class="mb-4">
@@ -97,7 +97,7 @@
           },
           method: "GET"
         })
-          .then(res => res.json())
+          .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
           .then(data => {
             // console.log(data)
             if (data.status) {
@@ -113,9 +113,9 @@
                                     <td class="p-4">${capitalizeFirstLetter(element.type)} ${element.role_id && element.type != "all" ? `(${element.role.name})` : ""}</td>
                                     <td class="p-4">${new Date(element.start_time).toLocaleDateString()}</td>
                                     <td class="p-4">${new Date(element.end_time).toLocaleDateString()}</td>
-                                    <td class="p-4">${element.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>` :
-                      `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>`
-                    }</td>
+                                    <td class="p-4">
+                                        ${StatusColourCode(element.status)}
+                                    </td>
                                 </tr>
                             `)
 
@@ -135,7 +135,7 @@
           },
           method: "GET"
         })
-          .then(res => res.json())
+          .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
           .then(data => {
             // console.log(data)
             if (data.status) {
@@ -155,7 +155,7 @@
           },
           method: "GET"
         })
-          .then(res => res.json())
+          .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
           .then(data => {
             if (data.status) {
               // console.log(data)
@@ -255,7 +255,7 @@
         type: formData.get("type"),
         question: questionListData,
         role_id: formData.get("type") == "all" ? null : parseInt(formData.get("role_id")),
-        status: formData.get("status")
+        status: parseInt(formData.get("status"))
       };
       console.log(payload)
       try {
@@ -267,7 +267,7 @@
           },
           body: JSON.stringify(payload),
         })
-          .then(res => res.json())
+          .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
           .then(data => {
             if (data.status) {
               showAlertMessage("success","Appraisal form",`Appraisal Form ${selectedFormID ? "Updated" : "Created"} Successfully`);

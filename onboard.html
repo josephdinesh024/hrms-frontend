@@ -22,6 +22,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+    <script src="./static/js/global.js"></script>
 </head>
 
 <body class="flex bg-background w-screen">
@@ -30,7 +31,9 @@
     <div id="sidebar-empty">
         <aside
             class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out">
-
+            <div class="px-4 pt-2 min-w-16 w-full">
+                <img src="./static/image/alcor_logo.png" class="bg-cover w-12"/>
+            </div>
         </aside>
     </div>
 
@@ -49,7 +52,7 @@
                     <button class="tab-link text-gray-600 hover:text-blue-600 pb-2" data-target="bank">Bank</button>
                 </div>
 
-                <div id="targetContent">
+                <div id="targetContent" class="overflow-auto h-full">
 
                 </div>
             </div>
@@ -69,7 +72,7 @@
         </div>
     </div>
 
-    <script src="./static/js/global.js"></script>
+    
     <script>
         $("#targetContent").load("./componnet/onboard/profile.html")
         $(document).on("click", "button.tab-link", function () {
@@ -86,46 +89,54 @@
                     $(this).removeClass("border-b-2 border-blue-600 text-blue-600")
                 }
             });
-            setTimeout(() => { ButtonDisable() }, 500);
+            setTimeout(() => { ButtonDisable(false) }, 500);
         })
 
-        function ButtonDisable() {
+        function ButtonDisable(init) {
             const MyStatus = $.cookie("my_status")
             $(document).ready(function () {
-                if (MyStatus != "pending") {
+                if (!(["0","6"].includes(MyStatus))) {
                     $("#targetContent button").each(function () {
                         $(this).prop("disabled", true)
                         $(this).addClass("cursor-not-allowed")
                     })
                 };
             });
+
+            if (init){
+                showAlertMessage("info","Profile Status","Your current profile status is "+ statusNames[MyStatus])
+            }
         }
 
-        setTimeout(() => { ButtonDisable() }, 500);
+        setTimeout(() => { ButtonDisable(true) }, 500);
 
         // Education
         let divID = 2
         function addEducation() {
             const container = document.getElementById('education-container');
             const div = document.createElement('div');
-            div.className = 'border rounded-lg p-4 space-y-4 w-full';
+            div.className = "border rounded-lg p-4 w-full";
             div.innerHTML = `
                 <input type="hidden" name="EducationID" id="${divID}_EducationID" value="0" />
                 ${floatingInputTag("text",divID+"_institution","institution","Institution")}
                 ${floatingInputTag("text",divID+"_degree","degree","Degree")}
-                <div class="flex justify-between gap-6">
-                    <select class="w-64 mt-6 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
-                        id="${divID}_mark_type" name="mark_type">
-                        <option selected value="mark">Mark</option>
-                        <option value="grade">Grade</option>
-                    </select>
-                    ${floatingInputTag("text",divID+"_percentage","percentage","Percentage")}
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="grid grid-cols-2 gap-6">
+                        <select class="mt-5 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
+                            id="${divID}_mark_type" name="mark_type">
+                            <option selected value="mark">Mark</option>
+                            <option value="grade">Grade</option>
+                        </select>
+                        ${floatingInputTag("text",divID+"_percentage","percentage","Percentage")}
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 mt-4">
+                        ${floatingInputTag("date",divID+"_start_year","start_year","Start year"," ")}
+                        ${floatingInputTag("date",divID+"_end_year","end_year","End year")}
+                        <span id="${divID}_yearErrorMessage" class="text-xs text-red-400"></span>
+                    </div>
                 </div>
-                <div class="flex justify-between gap-6">
-                     ${floatingInputTag("date",divID+"_start_year","start_year","Start year"," ")}
-                     ${floatingInputTag("date",divID+"_end_year","end_year","End year")}
-                </div>
-                <span id="${divID}_yearErrorMessage" class="text-xs text-red-400"></span>
+                ${floatingFileInputTag(`${divID}_file`, 'file', 'Upload Marksheet')}
+                
       `;
             container.appendChild(div);
             $(document).ready(function () {
@@ -139,7 +150,7 @@
         function addCertificate() {
             const container = document.getElementById('certificate-container');
             const div = document.createElement('div');
-            div.className = 'border-b grid grid-cols-1 gap-4 py-6';
+            div.className = 'border rounded-lg grid grid-cols-1 gap-4 p-3';
             div.innerHTML = `
                 <input type="hidden" name="FileID" id="${fileDivID}_FileID" value="0">
                 ${floatingInputTag("text",fileDivID+"_name","name","Certificate Name")}
@@ -163,7 +174,28 @@
         function CancelConfirmForm() {
             $("#ConfirmForm").addClass("hidden")
         }
-
+        let MyOnboardDetails
+        function initFun() {
+            try {
+                fetch(`${DomainURL}/my/onboard`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            MyOnboardDetails = data.onboard
+                        } else {
+                            showAlertMessage("error","Onboard","Error to fetch details. " +data?.message)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        $(document).ready(function(){initFun()})
         function SubmitConfirmForm() {
             try {
                 fetch(`${DomainURL}/my/status`, {
@@ -173,13 +205,13 @@
                         Authorization: `Bearer ${access_token}`
                     },
                     body: JSON.stringify({
-                        "status": "onboard"
+                        "status": 5
                     })
-                }).then(res => res.json())
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             showAlertMessage("success","Form submition","your profile form details submited successfully, wait for approvels")
-                            window.location.reload()
+                            setTimeout(() =>ButtonDisable(true),1000)
                         } else {
                             showAlertMessage("error","Form submition","Error to submit form " +data?.message)
                         }
@@ -189,6 +221,7 @@
             }
             $("#ConfirmForm").addClass("hidden")
         }
+    
     </script>
 
 </body>

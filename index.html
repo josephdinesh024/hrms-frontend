@@ -134,7 +134,7 @@
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     },
-                }).then(res => res.json())
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data=>{
                     if(data.status){
                         data.roles.forEach(element => {
@@ -171,7 +171,7 @@
                         "role_id":parseInt(formData.get("role"))
                     })
                 })
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data =>{
                     if(data.status){
                         showAlertMessage("success","User create","new employee created and employeeId:"+data.user.user_name)
@@ -183,6 +183,8 @@
                 showAlertMessage("warning","API error", error)
             }
         })
+
+        
     </script>
 
 </body>

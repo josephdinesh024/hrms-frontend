@@ -49,7 +49,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $("#accessGroupCardList tbody").empty()
@@ -82,7 +82,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             permissionDatas = data.permissions
@@ -100,7 +100,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             roleDatas = data.roles
@@ -309,7 +309,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -534,7 +534,7 @@
                         "team_type": "user"
                     })
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             teamDataUpdates(data.team.id)
@@ -568,7 +568,7 @@
                             "permission_id": id
                         })
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success","Group access","Team permission updated")
@@ -593,7 +593,7 @@
                             "user_id": id
                         })
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success","Group access","Team member updated")
@@ -619,7 +619,7 @@
                             "user_id": id
                         })
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success","Group access","Team member deleted")
@@ -641,7 +641,7 @@
                             Authorization: `Bearer ${access_token}`
                         },
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success","Group access","Team permission deleted")

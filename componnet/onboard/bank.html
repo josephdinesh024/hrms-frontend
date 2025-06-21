@@ -6,8 +6,7 @@
 </div>
 
 <div class="absolute bottom-6 right-12">
-    <button
-        onclick="OpenConfirmForm()"
+    <button onclick="OpenConfirmForm()"
         class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third 
                                 hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
         Submit
@@ -18,14 +17,18 @@
     $(function () {
         $("#tab-bank form#bank-form").html(`
         <div id="bank-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="hidden" id="bank_id" name="id" value="0" />
-            ${floatingInputTag("text","holder_name","holder_name","Account Holder Name")}
-            ${floatingInputTag("text","account_number","account_number","Account Number")}
-            ${floatingInputTag("text","bank_name","bank_name","Bank Name")}
-            ${floatingInputTag("text","ifsc_code","ifsc_code","IFSC Code")}
+            <input type="hidden" id="bank_id" value="0" />
+            ${floatingInputTag("text", "holder_name", "holder_name", "Account Holder Name")}
+            ${floatingInputTag("text", "account_number", "account_number", "Account Number")}
+            ${floatingInputTag("text", "bank_name", "bank_name", "Bank Name")}
+            ${floatingInputTag("text", "ifsc_code", "ifsc_code", "IFSC Code")}
+            ${floatingInputTag("text", "branch", "branch", "Branch Name")}
+            <div class="">
+                ${floatingFileInputTag('upload_file', 'upload_file', 'Upload bank passbook')}
+            </div>
         </div>
         <div class="flex space-x-2 justify-end">
-            <input type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer" value="Save"/>
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer">Save</button>
         </div>
         `)
         let UserBank = []
@@ -38,7 +41,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             // console.log(data)
@@ -47,11 +50,16 @@
                                 $("#bank-form #bank-container").empty()
                                 UserBank.forEach((item, index) => {
                                     $("#bank-form #bank-container").append(`
-                                    <input type="hidden" id="bank_id" name="id" value="${item.id}" />
-                                    ${floatingInputTag("text","holder_name","holder_name","Account Holder Name",value=item.holder_name)}
-                                    ${floatingInputTag("text","account_number","account_number","Account Number",value=item.account_number)}
-                                    ${floatingInputTag("text","bank_name","bank_name","Bank Name",value=item.bank_name)}
-                                    ${floatingInputTag("text","ifsc_code","ifsc_code","IFSC Code",value=item.ifsc_code)}
+                                    <input type="hidden" id="bank_id" value="${item.id}" />
+                                    ${floatingInputTag("text", "holder_name", "holder_name", "Account Holder Name", value = item.holder_name)}
+                                    ${floatingInputTag("text", "account_number", "account_number", "Account Number", value = item.account_number)}
+                                    ${floatingInputTag("text", "bank_name", "bank_name", "Bank Name", value = item.bank_name)}
+                                    ${floatingInputTag("text", "ifsc_code", "ifsc_code", "IFSC Code", value = item.ifsc_code)}
+                                    ${floatingInputTag("text", "branch", "branch", "Branch Name", value = item.branch)}
+                                    <div>
+                                        ${floatingFileInputTag('upload_file', 'upload_file', 'Upload bank passbook', item?.file.file_path.split("/").pop(), false)}
+                                        <span onclick="FilePreviewURL('${item.file.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>
+                                    </div>
                                 `);
                                 });
                             }
@@ -61,46 +69,63 @@
                         }
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                showAlertMessage("warning", "API error", error)
+            }
+
+            if (MyOnboardDetails.correction_marked) {
+                setTimeout(() => MarkCorrection(), 500)
             }
         }
         initFun()
 
         $(document).off("submit", "#tab-bank form#bank-form");
-
         $(document).on("submit", "#tab-bank form#bank-form", function (e) {
             e.preventDefault();
             let formData = new FormData(this);
-            let item = {}
-            formData.forEach((val, key) => { item[key] = val });
+            let ID = $("#bank-container input#bank_id").val()
+            // let item = {}
+            // formData.forEach((val, key) => { item[key] = val });
+            // console.log(item)
 
             try {
-                fetch(`${DomainURL}/my/bank${item.id != "0" ? "/" + item.id : ""}`, {
+                fetch(`${DomainURL}/my/bank${ID != "0" ? "/" + ID : ""}`, {
                     headers: {
-                        "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     },
-                    method: item.id != 0 ? "PUT" : "POST",
-                    body: JSON.stringify({
-                        "holder_name": item.holder_name,
-                        "account_number": item.account_number,
-                        "bank_name": item.bank_name,
-                        "ifsc_code": item.ifsc_code
-                    })
+                    method: ID != 0 ? "PUT" : "POST",
+                    body: formData
+                    // body: JSON.stringify({
+                    //     "holder_name": item.holder_name,
+                    //     "account_number": item.account_number,
+                    //     "bank_name": item.bank_name,
+                    //     "ifsc_code": item.ifsc_code
+                    // })
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $(`#bank-form #bank-container #bank_id`).val(data.bank.id)
                             // console.log(data)
-                            showAlertMessage("success","Employee profile","Bank details saved")
+                            showAlertMessage("success", "Employee profile", "Bank details saved")
                         } else {
-                            showAlertMessage("error","Employee profile",data.message)
+                            showAlertMessage("error", "Employee profile", data.message)
                         }
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                showAlertMessage("warning", "API error", error)
             }
-        })
+        });
+
+        // Mark Correction  function
+        function MarkCorrection() {
+            let MyBank = MyOnboardDetails?.correction_note.bank
+            let child = $("#tab-bank form#bank-form").children()
+            let arr = Object.keys(MyBank)
+            if (arr.length) {
+                arr.forEach(key => {
+                    $(child[0]).find(`[name=${key}]`).addClass("border-red-400")
+                })
+            }
+        }
     });
 </script>

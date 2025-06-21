@@ -126,7 +126,7 @@
                     "field_data": userName
                 })
             })
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data => {
                     if (data.status) {
                         $("#newuserprofile #email").val(data.data.email)
@@ -156,7 +156,7 @@
                 },
                 body: JSON.stringify(data)
             })
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data => {
                     if (data.status) {
                         window.location.href = 'index.html'

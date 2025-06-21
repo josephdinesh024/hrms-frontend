@@ -82,7 +82,7 @@
                 },
                 method: "GET"
             })
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data => {
                     // console.log(data)
                     if (data.status) {
@@ -307,7 +307,7 @@
                     },
                     body: JSON.stringify(data)
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {

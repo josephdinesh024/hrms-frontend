@@ -24,12 +24,12 @@ async function AccessCheck(){
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     },
-        }).then(res => res.json())
+        }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
         .then(data =>{
             if(data.status){
                 $.cookie("my_access",JSON.stringify(data.access)) 
                 $.cookie("my_status",data.my_status) 
-                if(["pending","onboard"].includes(data.my_status) && !window.location.pathname.split("/").pop().includes("onboard.html"))
+                if([0,5,6].includes(data.my_status) && !window.location.pathname.split("/").pop().includes("onboard.html"))
                     window.location.href = "onboard.html"
             }else{
                 $.removeCookie("access_token")
@@ -45,8 +45,10 @@ async function AccessCheck(){
 setTimeout(()=>{AccessCheck()},500)
 
 
-$("#sidebar").load("sidebar.html")
-$("#header").load("header.html")
+$(document).ready(function(){
+    $("#sidebar").load("sidebar.html")
+    $("#header").load("header.html")
+});
 
 
 const userName = $.cookie("user_name");
@@ -78,7 +80,7 @@ $(document).on("input", "input#search", function () {
         // },
         method: "GET"
     })
-        .then(res => res.json())
+        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
         .then(data => {
             if (data.status) {
                 data.data.forEach(element => {
@@ -89,8 +91,7 @@ $(document).on("input", "input#search", function () {
                                 <td class="p-4">${capitalizeFirstLetter(element.first_name)} ${element.last_name}</td>
                                 <td class="p-4">${capitalizeFirstLetter(element.user.role.name) || "--"}</td>
                                 <td class="p-4">
-                                    ${element.user.status === "active" ? `<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-md">Active</span>` :
-                            element.user.status === "block" ? `<span class="block w-max px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> Blocked </span>` : ""}
+                                    ${StatusColourCode(element.status)}
                                 </td>
                             </tr>
                     `)
@@ -123,34 +124,6 @@ $(function () {
     })
 })
 
-
-// SideBar
-$(document).ready(function () {
-
-    $("#sidebar").mouseover(function () {
-        $("#sidebar .baricon").each(function () {
-            $(this).removeClass("hidden")
-        })
-    })
-    $("#sidebar").mouseleave(function () {
-        $("#sidebar .baricon").each(function () {
-            $(this).addClass("hidden")
-        })
-    })
-
-    $(document).on("click", "#sidebar .baricon", function () {
-        if ($(this).attr("index") === "open") {
-            $("#sidebar #fullsidebar").removeClass("hidden")
-            $("#sidebar #minisidebar").addClass("hidden")
-            $("#sidebar").width("180px")
-        }
-        else {
-            $("#sidebar #minisidebar").removeClass("hidden")
-            $("#sidebar #fullsidebar").addClass("hidden")
-            $("#sidebar").width("64px")
-        }
-    })
-})
 
 
 function loadScript(src, callback) {

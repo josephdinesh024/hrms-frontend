@@ -82,7 +82,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -161,7 +161,7 @@
                         method: "PUT",
                         body: JSON.stringify(reviewData)
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success","Success","Review updated")

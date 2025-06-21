@@ -47,7 +47,7 @@
                 },
                 method: "GET"
             })
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
             .then(data =>{
                 if(data.status){
                     questions = data.form.content
@@ -127,7 +127,7 @@
                 method: "POST",
                 body:JSON.stringify(data)
             })
-            .then(res => res.json())
+            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
             .then(data =>{
                 if(data.status){
                     showAlertMessage("success","Success","Form submited")

@@ -1,93 +1,111 @@
 <!-- Profile Section -->
-<div  class="tab-section">
+<div class="tab-section">
     <form id="tab-profile" class="space-y-6">
     </form>
 </div>
 
 <script>
-    $(function(){
+    $(function () {
         // floatingInputTag(type,id,name,labelName,value)
         $("form#tab-profile").html(`
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                ${floatingInputTag("text","first_name","first_name","First Name")}
-                ${floatingInputTag("text","last_name","last_name","Last Name")}
-                ${floatingInputTag("text","email","email","Email","",false,true)}
-                ${floatingInputTag("number","phone","phone","Phone")}
-                ${floatingInputTag("text","dob","dob","Date of Birth")}
-                <div class="w-64 mt-4">
+                ${floatingInputTag("text", "first_name", "first_name", "First Name")}
+                ${floatingInputTag("text", "last_name", "last_name", "Last Name")}
+                ${floatingInputTag("text", "email", "email", "Email", "", false, true)}
+                ${floatingInputTag("number", "phone", "phone", "Phone")}
+                ${floatingInputTag("date", "dob", "dob", "Date of Birth")}
+                <div class="w-64 mt-5">
                     <label class="w-full text-sm text-blue-500">Gender</label>
-                    <select id="gender" name="gender" class="w-full border-b-2 border-gray-300 bg-transparent text-sm pb-1 focus:outline-none focus:border-blue-500">
+                    <select id="gender" name="gender" class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500">
                         <option>--</option>
                         <option selected value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                 </div>
-                ${floatingInputTag("text","address","address","Address")}
-                ${floatingInputTag("text","city","city","City")}
-                ${floatingInputTag("text","state","state","State")}
-                ${floatingInputTag("text","country","country","Country")}
-                ${floatingInputTag("text","pincode","pincode","Pincode")}
+                ${floatingInputTag("text", "address", "address", "Address")}
+                ${floatingInputTag("text", "city", "city", "City")}
+                ${floatingInputTag("text", "state", "state", "State")}
+                ${floatingInputTag("text", "country", "country", "Country")}
+                ${floatingInputTag("text", "pincode", "pincode", "Pincode")}
             </div>
             <div class="flex space-x-2 justify-end">
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
             </div>
         `)
-        function initFun(){
+        function initFun() {
             try {
-                fetch(`${DomainURL}/my/profile`,{
-                  headers: {
+                fetch(`${DomainURL}/my/profile`, {
+                    headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
-                    .then(data =>{
-                        if(data.status){
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
                             $(`#tab-profile #email`).val(data.user.email);
-                            Object.keys(data.user.profile).forEach(key =>{
+                            Object.keys(data.user.profile).forEach(key => {
                                 $(`#tab-profile #${key}`).val(data.user.profile[key]);
                             });
-                        }else{
-                            showAlertMessage("error","Profile", data.message)
+                        } else {
+                            showAlertMessage("error", "Profile", data.message)
                         }
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                showAlertMessage("warning", "API error", error)
             }
+
+
+            setTimeout(() => {
+                if (MyOnboardDetails.correction_marked)
+                    MarkCorrection()
+            }, 500)
         };
 
-        $(document).ready(function(){
+        $(document).ready(function () {
             initFun();
             $(document).off("submit", "form#tab-profile");
-            $(document).on("submit","form#tab-profile",function(e){
+            $(document).on("submit", "form#tab-profile", function (e) {
                 e.preventDefault();
                 let formData = new FormData(this);
                 let data = {};
-                formData.forEach((val,key)=>{
+                formData.forEach((val, key) => {
                     data[key] = val;
                 });
                 try {
-                    fetch(`${DomainURL}/my/profile`,{
-                    headers: {
+                    fetch(`${DomainURL}/my/profile`, {
+                        headers: {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${access_token}`
                         },
                         method: "PUT",
                         body: JSON.stringify(data)
                     })
-                        .then(res => res.json())
-                        .then(data =>{
-                            if(data.status){
-                                showAlertMessage("success","Employee profile","profile saved")
-                            }else{
-                                showAlertMessage("error","Employee profile",data.message)
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success", "Employee profile", "profile saved")
+                            } else {
+                                showAlertMessage("error", "Employee profile", data.message)
                             }
                         })
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    showAlertMessage("warning", "API error", error)
                 }
             });
         });
+
+        // Mark Correction  function
+        function MarkCorrection() {
+            let MyProfile = MyOnboardDetails?.correction_note.profile
+            let child = $("form#tab-profile").children()
+            let arr = Object.keys(MyProfile)
+            if (arr.length) {
+                arr.forEach(key => {
+                    $(child[0]).find(`[name=${key}]`).addClass("border-red-400")
+                })
+            }
+        }
     });
 </script>

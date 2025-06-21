@@ -1,8 +1,8 @@
 <!-- Certificate Section -->
 
-<form id="tab-certificate" class="tab-section">
+<div id="tab-certificate" class="tab-section">
     
-</form>
+</div>
 
 
 <script>
@@ -10,7 +10,7 @@
         $("#tab-certificate").html(`
         <h2 class="text-lg font-semibold mb-4">Certificate</h2>
         <div id="certificate-container" class="space-y-4">
-            <div class="border-b grid grid-cols-1 gap-4 pb-6">
+            <div class="border rounded-lg grid grid-cols-1 gap-4 p-3">
                 <input type="hidden" name="FileID" id="1_FileID" value="0">
                 ${floatingInputTag("text","1_name","name","Certificate Name")}
                 ${floatingFileInputTag('1_file', 'file', 'Upload Certificate')}
@@ -18,7 +18,7 @@
         </div>
         <button type="button" onclick="addCertificate()" class="mt-4 text-blue-600 hover:underline">+ Add More</button>
         <div class="flex space-x-2 justify-end">
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+            <button id="saveCertificateDetails" type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
         </div>
         `)
 
@@ -31,19 +31,19 @@
                         Authorization: `Bearer ${access_token}`
                     },
                     method: "GET"
-                }).then(res => res.json())
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
-                        console.log(data)
+                        // console.log(data)
                         if (data.status) {
                             UserCertificate = data.file
                             if (UserCertificate.length) {
                                 $("#tab-certificate #certificate-container").empty()
                                 UserCertificate.forEach((item, index) => {
                                     $("#tab-certificate #certificate-container").append(`
-                                    <div class="border-b grid grid-cols-1 gap-4">
+                                    <div class="border rounded-lg grid grid-cols-1 gap-4 p-3">
                                         <input type="hidden" name="FileID" id="${index + 1}_FileID" value="${item.id}">
                                         ${floatingInputTag("text",index+1+"_name","name","Certificate Name",value=item.name)}
-                                        ${floatingFileInputTag(index+1+'_file', 'file', 'Upload Certificate',item?.file_path.split("/").pop())}
+                                        ${floatingFileInputTag(index+1+'_file', 'file', 'Upload Certificate',item?.file_path.split("/").pop(),false)}
                                         <span onclick="FilePreviewURL('${item.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>
                                     </div>
                                 `);
@@ -56,42 +56,40 @@
             } catch (error) {
                 showAlertMessage("warning","API error", error)
             }
+
+            if(MyOnboardDetails.correction_marked){
+                setTimeout(()=>MarkCorrection(),500)
+            }
         }
         initFun()
 
-        $(document).off("submit", "form#tab-certificate");
-        $(document).on("submit", "form#tab-certificate", async function (e) {
-            e.preventDefault();
-            let formData = new FormData(this)
-            let data = []
-            let dataCheck = []
-            let newForm = new FormData()
-            formData.forEach((val, key) => {
-                if (dataCheck.includes(key)) {
-                    newForm.append("module_type", "users")
-                    newForm.append("type", "certificate")
-                    data.push(newForm)
-                    newForm = new FormData()
-                    dataCheck = []
-                }
-                newForm.append(key, val)
-            });
-            newForm.append("module_type", "users")
-            newForm.append("type", "certificate")
-            data.push(newForm)
-            console.log(data)
+        // $(document).off("submit", "form#tab-certificate");
+        $(document).on("click", "#tab-certificate button#saveCertificateDetails", async function (e) {
+            let childrens = $("#certificate-container").children()
+            for(let i=0; i<childrens.length; i++){
+                let form = new FormData()
+                let data = childrens[i]
+                let ID = $(data).find("input[name=FileID]").val()
+                let nameData = $(data).find("input[name=name]").val()
+                let fileData = $(data).find("input[name=file]")[0].files[0]
+                form.append("module_type", "users")
+                form.append("type", "certificate")
+                form.append("name", nameData)
+                form.append("file", fileData)
+                UploadFiles(ID,form,i)
+            }        
+        })
 
-            data.forEach(async function(item, index){
-                console.log(item)
-                try {
-                    fetch(`${DomainURL}/my/file${item.get("FileID") != "0" ? "/" + item.get("FileID") : ""}`, {
+        async function UploadFiles(ID,form,index){
+            try {
+                    fetch(`${DomainURL}/my/file${ID != "0" ? "/" + ID : ""}`, {
                         headers: {
                             Authorization: `Bearer ${access_token}`
                         },
-                        method: item.get("FileID") != 0 ? "PUT" : "POST",
-                        body: item
+                        method: ID != 0 ? "PUT" : "POST",
+                        body: form
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 $(`#tab-certificate #certificate-container #${index + 1}_FileID`).val(data.file.id)
@@ -104,8 +102,24 @@
                 } catch (error) {
                     showAlertMessage("warning","API error", error)
                 }
-            });
-        })
+        }
     
+        // Mark Correction  function
+        function MarkCorrection(){
+            let MyCertificate = MyOnboardDetails?.correction_note.file
+            let child = $("#tab-certificate #certificate-container").children()
+                MyCertificate.forEach((crt,i) =>{
+                    let arr = Object.keys(crt)
+                    if(arr.length){
+                        arr.forEach(key=>{
+                            if(crt[key] == false){
+                                $(child[i]).find(`[name=${key}]`).addClass("border-red-400")
+                                $(child[i]).find(`[name=file]`).parent().find("div").addClass("border-red-400")
+                            }
+                        })
+                    }
+                })
+        };
+
     });
 </script>

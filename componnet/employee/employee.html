@@ -7,11 +7,11 @@
             <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
         </div>
     </div>
-    <div>
+    <!-- <div>
         <button id="AddNewForm" onclick="OpenNewEmployeeForm()" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
         hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
             Employee</button>
-    </div>
+    </div> -->
 </div>
 <hr>
 <div id="employeeCardList">
@@ -98,7 +98,7 @@
                 },
                 method: "GET"
             })
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data => {
                     // console.log(data)
                     if (data.status) {
@@ -137,7 +137,7 @@
             //     },
             //     method: "GET"
             //   })
-            //     .then(res => res.json())
+            //     .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
             //     .then(data => {
             //       // console.log(data)
             //       if (data.status) {
@@ -152,7 +152,7 @@
             //     },
             //     method: "GET"
             //   })
-            //     .then(res => res.json())
+            //     .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
             //     .then(data => {
             //       if (data.status) {
             //         // console.log(data)
@@ -169,7 +169,7 @@
         // Role name extract
         function roleName(access) {
             for (let item of access) {
-                if (item["module_type"] === "role" && item["status"] === "active") {
+                if (item["module_type"] === "role" && item["status"] === 1) {
                     var name = item["module"]["name"]
                     return capitalizeFirstLetter(name)
                 }
@@ -312,14 +312,15 @@
                     </div>
                     <div class="relative">
                         <h4 class="font-medium text-gray-900">Status</h4>
-                        ${StatusColourCode(selectedEmp.status.toLocaleLowerCase())}
+                        ${StatusColourCode(selectedEmp.status)}
                         <button class="font-bold text-xs" id="employeeStatusChange"><i class="fas fa-chevron-down"></i></button>
                         <div class="absolute w-20 mt-1 bg-white shadow-lg rounded-lg font-medium text-xs hidden" id="employeeStatusList">
-                        <h5 class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected rounded-t-lg">Active</h5>
-                        <h5 class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">Inactive</h5>
-                        <h5 class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">Suspended</h5>
-                        <h5 class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">Onboard</h5>
-                        <h5 class="p-2 rounded-b-lg cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">Pending</h5>
+                        <h5 data-value="1" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected rounded-t-lg">${statusNames[1]}</h5>
+                        <h5 data-value="2" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[2]}</h5>
+                        <h5 data-value="7" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[7]}</h5>
+                        <h5 data-value="5" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[5]}</h5>
+                        <h5 data-value="6" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[6]}</h5>
+                        <h5 data-value="0" class="p-2 rounded-b-lg cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[0]}</h5>
                         </div>
                     </div>
                     <div class="mt-6">
@@ -465,10 +466,10 @@
                     },
                     method: "PUT",
                     body: JSON.stringify({
-                        "status":$(this).text().trim().toLocaleLowerCase()
+                        "status":parseInt($(this).attr("data-value"))
                     })
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data =>{
                         if(data.status){
                             showAlertMessage("success","Employee","Employee Status updated")
@@ -534,7 +535,7 @@
                     method: selectedProfile.id ? "PUT" : "POST",
                     body: JSON.stringify(profileData)
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data =>{
                         if(data.status){
                             showAlertMessage("success","Employee","Profile updated")

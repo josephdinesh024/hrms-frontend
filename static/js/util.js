@@ -3,6 +3,9 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// URL Params
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
 
 // Edit panels
 function editPanelOpen() {
@@ -21,19 +24,29 @@ $(document).on("click", "#closePanel", function () {
     closePanel()
 })
 
+const statusNames = {0:"Pending",1:"Active",2:"Inactive",3:"Approved",4:"Rejected",5:"Verification",6:"Correction",7:"Suspended"}
 
 function StatusColourCode(status){
     switch(status){
-        case "pending" || "pend":
-            return `<span class="inline-block px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">${capitalizeFirstLetter(status)}</span>`
-        case "active":
-            return `<span class="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded""> ${capitalizeFirstLetter(status)} </span>`
-        case "onboard" || "onboarding" || "v":
-            return `<span class="inline-block px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded""> ${capitalizeFirstLetter(status)} </span>`
-        case "view" || "viewed":
-            return `<span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded""> ${capitalizeFirstLetter(status)} </span>`
-        case "block" || "suspended" || "inactive":
-            return `<span class="inline-block px-2 py-1 text-xs bg-red-100 text-white rounded"> ${capitalizeFirstLetter(status)} </span>`
+        case 0:
+            return `<span class="inline-block px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">${statusNames[status]}</span>`
+        case 1:
+            return `<span class="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">${statusNames[status]}</span>`
+        case 2:
+            return `<span class="inline-block px-2 py-1 text-xs bg-red-100 text-white rounded">${statusNames[status]}</span>`
+        case 3:
+            return `<span class="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">${statusNames[status]}</span>`
+        case 4:
+            return `<span class="inline-block px-2 py-1 text-xs bg-red-100 text-white rounded">${statusNames[status]}</span>`
+        case 5:
+            return `<span class="inline-block px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded">${statusNames[status]}</span>`
+        case 6:
+            return `<span class="inline-block px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded">${statusNames[status]}</span>`
+        case 7:
+            return `<span class="inline-block px-2 py-1 text-xs bg-red-100 text-white rounded">${statusNames[status]}</span>`
+        default:
+            return `<span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Error status</span>`
+        
     }                        
 }
 
@@ -55,11 +68,11 @@ async function FilePreviewURL(url) {
 // Input Tag
 function floatingInputTag(type,id,name,labelName,value="",required=true,disabled=false){
     let InputTag = `
-    <div class="relative mt-6 w-64 floating-label">
+    <div class="relative mt-6 floating-label">
         <input
             type="${type}"
             id="${id}"
-            class="w-full border-b-2 border-gray-300 bg-transparent text-sm ${type=="date"? "pt-10 focus:pt-5 focus:pb-5" :"pt-4" } pb-1 focus:outline-none focus:border-blue-500"
+            class="peer w-full border-b-2 border-gray-300 bg-transparent text-sm pt-4 pb-1 focus:outline-none focus:border-blue-500"
             name="${name}"
             placeholder=" "
             value="${value}"
@@ -68,7 +81,7 @@ function floatingInputTag(type,id,name,labelName,value="",required=true,disabled
         />
         <label
             for="${id}"
-            class="absolute left-0 text-gray-500 text-sm transition-all duration-200"
+            class="absolute left-0 text-gray-500 text-sm transition-all duration-200 ${type=="date"? "peer-[:not(:focus)]:-bottom-8 peer-[:focus]:bottom-8 peer-[:valid]:bottom-8"  :"" }"
         >
             ${labelName}
         </label>

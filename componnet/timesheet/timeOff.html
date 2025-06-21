@@ -2,11 +2,11 @@
     <div class="flex items-center gap-3">
         <h3 class="font-medium" id="totalCount">Request</h3>
         <div class="text-xs bg-gray-100 p-1" id="status">
-            <button id="pending" class="p-3 font-medium bg-white">Pending
+            <button id="0" class="p-3 font-medium bg-white">Pending
                 <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
-            <button id="approved" class="p-3 font-medium">Approved
+            <button id="3" class="p-3 font-medium">Approved
                 <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
-            <button id="rejected" class="p-3 font-medium">Rejected
+            <button id="4" class="p-3 font-medium">Rejected
                 <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
         </div>
         <div class="flex gap-2 items-center bg-white p-3 text-sm">
@@ -61,7 +61,7 @@
         let TotalCount = 0
         let timeRequest = []
         let UserList = []
-        let Status = "pending"
+        let Status = 0
         function initFetch() {
             $("#editPanel #editContent").empty()
             closePanel()
@@ -73,7 +73,7 @@
                     },
                     method: "GET"
                 })
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                 .then(data => {
                     console.log(data)
                     if (data.status) {
@@ -87,11 +87,9 @@
                                 <td class="p-4">${leaveDates(element.module.start_date, element.module.end_date)}</td>
                                 <td class="p-4">${capitalizeFirstLetter(element.module.policy_id ? element.module.policy.name : "others")}</td>
                                 <td class="p-4"><i class="fa-regular fa-note-sticky"></i></td>
-                                <td class="p-4">${element.status === "pending" ? `<button><i class="fa-regular fa-circle-check" style="color: #63E6BE;"></i></button>  <button><i class="fa-regular fa-circle-xmark" style="color: #d63a05;"></i></button>` :
-                                            element.status === "viewed" ? `<span class="px-3 py-1 text-xs font-bold text-blue-700 bg-blue-100 rounded-md"> Viewed </span>` :
-                                                element.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>` :
-                                                    `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>`
-                                        }</td>
+                                <td class="p-4">
+                                    ${StatusColourCode(element.status)}
+                                </td>
                             </tr>
                         `)
                         });
@@ -114,7 +112,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             UserList = data.user
@@ -173,7 +171,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -393,7 +391,7 @@
                         method: "POST",
                         body: JSON.stringify(newTimeOffData)
                     })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             showAlertMessage("success","Time off","Added new time off")
@@ -419,7 +417,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $("#editPanel #editContent #leaveRequestList").empty()
@@ -429,11 +427,9 @@
                             <h3>${leaveDates(element.start_date, element.end_date)}</h3>
                             <h3>${element.total_days} ${element.leave_unit}</h3>
                             <h3>${capitalizeFirstLetter(element.policy_id ? element.policy.name : "others")}</h3>
-                            <div>
-                                ${element.status === "pending" ? `<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-md">${capitalizeFirstLetter(element.status)}</span>` :
-                                        element.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>` :
-                                            `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(element.status)} </span>`}
-                            </div>
+                            <td class="p-4">
+                                ${StatusColourCode(element.status)}
+                            </td>
                         </div>
                     `)
                             })
@@ -456,7 +452,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $("#editPanel #editContent h4#alreadyTakenLeaves").text(`${data.leave_taken} / ${data.total_leave}`)
@@ -487,11 +483,9 @@
             <h3>${user.user_name}</h3>
             <h3>${user.email}</h3>
             <h3>${user.profile.phone}</h3>
-            <div class="absolute top-1/2 right-10">
-                ${datas.status === "pending" ? `<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-md">${capitalizeFirstLetter(datas.status)}</span>` :
-                    datas.status === "rejected" ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> ${capitalizeFirstLetter(datas.status)} </span>` :
-                        `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> ${capitalizeFirstLetter(datas.status)} </span>`}
-            </div>
+            <td class="p-4">
+                ${StatusColourCode(datas.status)}
+            </td>
         </div>
 
         <div class="grid grid-cols-2 gap-3 content-center my-3 p-2 text-sm">
@@ -510,7 +504,7 @@
             <div class="grid content-center text-xs text-textPrimary font-medium">
                 ${datas.assigned_id != datas.approvedby_id ?
                     `<h4>Assigned to: <span class="text-black">${datas.assigned.user_name}</span></h4>` : ""}
-                ${datas.status != "pending" ?
+                ${datas.status != 0 ?
                     `<h4>Approved by: <span class="text-black">${datas.approved.user_name}</span></h4>` : ""}
             </div>
             <div>
@@ -540,8 +534,8 @@
                 </div>
                 <div class="grid content-end p-3 mt-8">
                     <div class="flex justify-end gap-6">
-                        <button value="approved" class="border p-3 text-sm border-green-400 rounded-lg timeOffStatusBtn">Approved</button>
-                        <button value="rejected" class="border p-3 text-sm border-red-400 rounded-lg timeOffStatusBtn">Rejected</button>
+                        <button value="3" class="border p-3 text-sm border-green-400 rounded-lg timeOffStatusBtn">Approved</button>
+                        <button value="4" class="border p-3 text-sm border-red-400 rounded-lg timeOffStatusBtn">Rejected</button>
                     </div>
                 </div>
             ` : ""}
@@ -566,12 +560,12 @@
                     $(this).text("Rejected")
                     $(this).removeClass("border-green-400")
                     $(this).addClass("border-red-400")
-                    leaveRequest(status = "rejected")
+                    leaveRequest(status = "4")
                 } else {
                     $(this).text("Approved")
                     $(this).removeClass("border-red-400")
                     $(this).addClass("border-green-400")
-                    leaveRequest(status = "approved")
+                    leaveRequest(status = "3")
                 }
             })
 
@@ -596,7 +590,7 @@
                             "status": timeOffStatus
                         })
                     })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         console.log(data)
                         if (data.status) {

@@ -47,7 +47,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $("#roleCardList tbody").empty()
@@ -81,7 +81,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             permissionDatas = data.permissions
@@ -373,7 +373,7 @@
                             "name": name
                         })
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 RolePermission(data.role.id)
@@ -407,7 +407,7 @@
                                 "permission_id": parseInt(id)
                             })
                         })
-                            .then(res => res.json())
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
                                     showAlertMessage("success","Role","new role permission seted")
@@ -434,7 +434,7 @@
                                 "permission_id": parseInt(id)
                             })
                         })
-                            .then(res => res.json())
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
                                     showAlertMessage("error","Role","deleted role permission")

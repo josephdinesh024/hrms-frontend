@@ -45,7 +45,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             // console.log(data)
@@ -231,7 +231,7 @@
                             permission
                         })
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 initFun()

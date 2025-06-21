@@ -58,7 +58,7 @@
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     }
-                }).then(res => res.json())
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -283,7 +283,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.json())
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -376,7 +376,7 @@
                                 Authorization: `Bearer ${access_token}`
                             },
                         })
-                            .then(res => res.json())
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
                                     showAlertMessage("success","Employee access","Deleted a employee access record")
@@ -405,7 +405,7 @@
                                 "module_id": Id
                             })
                         })
-                            .then(res => res.json())
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
                                     showAlertMessage("success","Employee access","Created an new employee access record")
@@ -434,7 +434,7 @@
                             "module_type": "users"
                         })
                     })
-                        .then(res => res.json())
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success","Employee access","Employee reportee added")
@@ -459,7 +459,7 @@
                                     Authorization: `Bearer ${access_token}`
                                 },
                             })
-                                .then(res => res.json())
+                                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                                 .then(data => {
                                     if (data.status) {
                                         showAlertMessage("success","Employee access","Employee reportee deleted")
