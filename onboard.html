@@ -195,7 +195,9 @@
                 showAlertMessage("warning","API error", error)
             }
         }
-        $(document).ready(function(){initFun()})
+        $(document).ready(function(){
+            setTimeout(()=>initFun(),500)
+        })
         function SubmitConfirmForm() {
             try {
                 fetch(`${DomainURL}/my/status`, {

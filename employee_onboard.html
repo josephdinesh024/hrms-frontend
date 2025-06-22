@@ -223,7 +223,7 @@
 
 
     <script>
-        $(function () {
+        setTimeout(() => $(function () {
             try {
                 let employee = []
                 let page = urlParams.get("page") || 1
@@ -256,7 +256,7 @@
                                     <td class="p-4">
                                         ${!element.personal_verified ? "Profile verification"
                                                 : element.term_sent && !element.offer_sent ? "Terms & Condition"
-                                                    : element.offer_sent && !element.status? "Offer Letter"
+                                                    : element.offer_sent && !element.status ? "Offer Letter"
                                                         : "Final"}
                                     </td>
                                     <td class="p-4">
@@ -705,65 +705,66 @@
                 showAlertMessage("warning", "Page error", `${error} referesh page. try again`)
             }
         })
+            , 500)
 
-         function OpenNewEmployeeForm() {
-                    $("#NewEmployeeForm").removeClass("hidden")
-                    try {
-                        fetch(`${DomainURL}/role?page_size=50`, {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${access_token}`
-                            },
-                        }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
-                            .then(data => {
-                                if (data.status) {
-                                    data.roles.forEach(element => {
-                                        $("#NewEmployeeForm form#employeeForm #role").append(`
+        function OpenNewEmployeeForm() {
+            $("#NewEmployeeForm").removeClass("hidden")
+            try {
+                fetch(`${DomainURL}/role?page_size=50`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            data.roles.forEach(element => {
+                                $("#NewEmployeeForm form#employeeForm #role").append(`
                                 <option value="${element.id}">${element.name}</option>
                             `)
-                                    });
-                                }
-                            })
-                    } catch (error) {
-                        showAlertMessage("warning", "API error", error)
-                    }
-                }
-                function CancelNewEmployeeForm() {
-                    $("#NewEmployeeForm").addClass("hidden")
-                }
+                            });
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+        function CancelNewEmployeeForm() {
+            $("#NewEmployeeForm").addClass("hidden")
+        }
 
-                $(document).on("submit", "#NewEmployeeForm form#employeeForm", function (e) {
-                    e.preventDefault();
-                    let formData = new FormData(this);
-                    console.log("form submited", {
+        $(document).on("submit", "#NewEmployeeForm form#employeeForm", function (e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            console.log("form submited", {
+                "email": formData.get("email"),
+                "role_id": parseInt(formData.get("role"))
+            })
+            try {
+                fetch(`${DomainURL}/user/quick/user`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
                         "email": formData.get("email"),
                         "role_id": parseInt(formData.get("role"))
                     })
-                    try {
-                        fetch(`${DomainURL}/user/quick/user`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${access_token}`
-                            },
-                            body: JSON.stringify({
-                                "email": formData.get("email"),
-                                "role_id": parseInt(formData.get("role"))
-                            })
-                        })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
-                            .then(data => {
-                                if (data.status) {
-                                    showAlertMessage("success", "User create", "new employee created and employeeId:" + data.user.user_name)
-                                    CancelNewEmployeeForm()
-                                } else
-                                    showAlertMessage("error", "User create", data.message)
-                            })
-                    } catch (error) {
-                        showAlertMessage("warning", "API error", error)
-                    }
                 })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            showAlertMessage("success", "User create", "new employee created and employeeId:" + data.user.user_name)
+                            CancelNewEmployeeForm()
+                        } else
+                            showAlertMessage("error", "User create", data.message)
+                    })
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+        })
 
     </script>
 </body>
