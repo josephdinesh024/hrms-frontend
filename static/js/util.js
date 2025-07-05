@@ -50,9 +50,30 @@ function StatusColourCode(status){
     }                        
 }
 
-async function FilePreviewURL(url) {
+
+async function FilePreviewURL(url,preview=true) {
     const newURL = DomainURL + url;
     const response = await fetch(newURL);
+
+    if (!response.ok) {
+        console.error("Failed to fetch file");
+        return;
+    }
+
+    const blob = await response.blob();
+    const fileURL = URL.createObjectURL(blob);
+    if(preview)
+        window.open(fileURL, '_blank');
+    else
+        return fileURL
+}
+
+async function FileDownload(url) {
+    const newURL = DomainURL + url;
+    const response = await fetch(newURL,{method:"GET",headers:{
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    }});
 
     if (!response.ok) {
         console.error("Failed to fetch file");
@@ -83,7 +104,7 @@ function floatingInputTag(type,id,name,labelName,value="",required=true,disabled
             for="${id}"
             class="absolute left-0 text-gray-500 text-sm transition-all duration-200 ${type=="date"? "peer-[:not(:focus)]:-bottom-8 peer-[:focus]:bottom-8 peer-[:valid]:bottom-8"  :"" }"
         >
-            ${labelName}
+            ${labelName} ${required ? "*" : ""}
         </label>
     </div>
     `
@@ -100,6 +121,27 @@ function floatingInputTag(type,id,name,labelName,value="",required=true,disabled
     });},300)
 
     return InputTag
+}
+
+function SelectionTag(id,name,labelName,value,required=true,options=[]){
+    let selectTag = `
+        <div class="mt-5">
+            <label class="w-full text-sm text-blue-500">${labelName}</label>
+            <select class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                id="${id}" name="${name}"
+                ${required ? "required" : ""} >
+                <option>--</option>
+                ${options.map(opt =>{
+                    return `<option ${value == opt ? 'selected':""}
+                                value="${opt}">
+                                ${capitalizeFirstLetter(opt)}
+                            </option>`
+                }).join("")}
+            </select>
+        </div>
+    `
+    // console.log(selectTag)
+    return selectTag
 }
 
 function toggleLabel($input) {
@@ -130,7 +172,7 @@ function floatingFileInputTag(id, name, labelName, fileName="", required = true)
             for="${id}"
             class="absolute left-0 text-sm transition-all duration-200 ${fileName != ""? "text-blue-500":"text-gray-500"}"
         >
-            ${labelName}
+            ${labelName} ${required ? "*" : ""}
         </label>
     </div>
     `;
@@ -159,4 +201,39 @@ function floatingFileInputTag(id, name, labelName, fileName="", required = true)
     }, 300);
 
     return InputTag;
+}
+
+
+
+// FILE UPLOAD
+
+async function uploadFileData(ID,form,message) {
+    let flag = true
+    let resp = null
+    try {
+        let response = await fetch(`${DomainURL}/my/file${ID != "0" ? "/" + ID : ""}`, {
+            headers: {
+                Authorization: `Bearer ${access_token}`
+            },
+            method: ID != 0 ? "PUT" : "POST",
+            body: form
+        });
+        if (!response.ok){
+            showAlertMessage("warning", "API error", `${response.status} ${response.statusText}`)
+            return {flag:false,resp}
+        }
+        let data = await response.json()
+        if (data.status) {
+            resp = data.file
+            showAlertMessage("success", "Employee profile", message || "File document upload successfully")
+        } else {
+            showAlertMessage("error", "Employee profile", data.message)
+            flag = false
+        }
+    } catch (error) {
+        showAlertMessage("warning", "API error", error)
+        flag = false
+    }
+
+    return {flag,resp}
 }

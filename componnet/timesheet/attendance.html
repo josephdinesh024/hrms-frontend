@@ -1,0 +1,58 @@
+<div class="flex justify-between w-full">
+    <div id="attendance" class="tab-content max-w-3/4">
+        <div class="p-6">
+            <div class="flex justify-between mb-4">
+                <h2 class="text-xl font-semibold" id="monthYearLabel">Attendance</h2>
+                <div class="space-x-2">
+                    <button onclick="changeMonth(-1)" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">◀</button>
+                    <button onclick="changeMonth(1)" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">▶</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-7 gap-2 text-center font-semibold text-sm">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+
+            <div id="calendar-grid" class="grid grid-cols-7 gap-2 mt-2 text-sm">
+                <!-- Calendar dates go here -->
+            </div>
+
+            <!-- Legend -->
+            <div class="mt-6 text-sm" id="colour-details">
+                <div class="flex items-center gap-2 mb-1 colours" id="green">
+                    <div class="w-4 h-4 bg-green-400 rounded-full"></div> <span>Worked</span>
+                </div>
+                <div class="flex items-center gap-2 mb-1 colours" id="yellow">
+                    <div class="w-4 h-4 bg-yellow-400 rounded-full"></div> <span>Half Day / Permission</span>
+                </div>
+                <div class="flex items-center gap-2 mb-1 colours" id="red">
+                    <div class="w-4 h-4 bg-red-400 rounded-full"></div> <span>Leave</span>
+                </div>
+                <div class="flex items-center gap-2" id="gray">
+                    <div class="w-4 h-4 bg-gray-300 rounded-full"></div> <span>No Entry</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="attendanceModal" class="w-fit hidden">
+        <div id="modalPanel"
+            class="h-full sm:w-96 bg-white shadow-lg border-l-2 overflow-y-auto translate-x-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Attendance Details</h3>
+                    <button onclick="closeModal()" class="text-gray-600 hover:text-black text-xl">✖</button>
+                </div>
+                <div id="modalDescrition" class="text-sm space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="./static/js/attendAction.js"></script>

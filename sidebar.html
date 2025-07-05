@@ -1,176 +1,138 @@
-<!-- Sidebar -->
-<aside class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out" id="sidebar">
-    <div class="pl-5 pt-2 min-w-16 w-full">
-        <img src="./static/image/alcor_logo.png" class="bg-cover w-12"/>
-    </div>
-    <div class="space-y-2 flex flex-col mt-20" id="minisidebar">
-        
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fas fa-user w-6"></i></h4>
-            </div>
-        </div>
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fa-regular fa-calendar-days w-6"></i></h4>
-            </div>
-        </div>
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fa-solid fa-chart-simple w-6"></i></h4>
-            </div>
-        </div>
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fas fa-cog w-6"></i></h4>
-            </div>
-        </div>
-        <!-- <a href="index.html" class="text-white employee" ><i class="fas fa-user"></i></a>
-        <a href="timesheet.html" class="text-white timesheet" ><i class="fa-regular fa-calendar-days"></i></a>
-        <a href="appraisal.html" class="text-white appraisal" ><i class="fa-solid fa-chart-simple"></i></a>
-        <a id="roles" href="roleandaccess.html" class="text-white roleAccess" ><i class="fas fa-cog"></i></a> -->
-        
+<aside
+    class="min-w-16 w-56 bg-gradient-to-b from-primary to-blue-800 h-screen py-4 relative transition-all ease-in-out">
 
-        <div class="absolute -right-2.5 text-xl text-white baricon cursor-pointer" index="open">
-            <!-- <i class="fa-solid fa-circle-chevron-left shadow-sm shadow-third rounded-full bg-black"></i> -->
-            <i class="fa-solid fa-circle-chevron-right shadow-sm shadow-third rounded-full bg-black"></i>
+    <div class="space-y-6 w-full text-white text-md">
+        <div class="pl-5 pt-2 min-w-16 w-full mb-20">
+            <img src="./static/image/alcor_logo.png" class="bg-cover w-12"/>
         </div>
-    </div>
-    <div class="space-y-2 flex flex-col mt-20 hidden w-full" id="fullsidebar">
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fas fa-user w-6"></i> User</h4>
-                <i id="sectionIcon" class="fa-solid fa-chevron-left"></i>
+        
+        <div class="section" id="section-user">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="user">
+                <div>
+                    <i class="fas fa-user w-6"></i>
+                    <span class="section-name pl-2">User</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
             </div>
-            <div id="section" class="space-y-3 flex flex-col bg-white pl-4 py-3 w-full hidden">
-                <a href="index.html" class="employee" ><i class="fas fa-user w-6"></i> User</a>
-                <a href="employee_onboard.html" class="employee" ><i class="fas fa-user w-6"></i> Onboard</a>
-            </div>
+            <ul id="submenu-user" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="sub-item" data-key="user"><a href="index.html" class="employee"><i
+                            class="fas fa-user w-6"></i> Employee</a></li>
+                <li class="sub-item" data-key="onboard"><a href="recruitment.html" class="employee"><i
+                            class="fa-solid fa-address-book w-6"></i> Recruitment</a></li>
+                <li class="sub-item" data-key="onboard"><a href="emp-access.html" class="employee"><i
+                            class="fas fa-universal-access w-6"></i> Access</a></li>
+            </ul>
         </div>
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fa-regular fa-calendar-days w-6"></i> Time Sheet</h4>
-                <i id="sectionIcon" class="fa-solid fa-chevron-left"></i>
-            </div>
-            <div id="section" class="space-y-3 flex flex-col bg-white pl-4 py-3 w-full hidden">
-                <a href="timesheet.html" class="timesheet" ><i class="fa-regular fa-calendar-days w-6"></i> Time Sheet</a>
-            </div>
-        </div>
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fa-solid fa-chart-simple w-6"></i> Appraisal</h4>
-                <i id="sectionIcon" class="fa-solid fa-chevron-left"></i>
-            </div>
-            <div id="section" class="space-y-3 flex flex-col bg-white pl-4 py-3 w-full hidden">
-                <a href="appraisal.html" class="appraisal" ><i class="fa-solid fa-chart-simple w-6"></i> Appraisal</a>
-            </div>
-        </div>
-        <div class="font-medium w-full menuSections cursor-pointer pr-1">
-            <div class="flex justify-between items-center h-fit p-3 text-white">
-                <h4><i class="fas fa-cog w-6"></i> Role</h4>
-                <i id="sectionIcon" class="fa-solid fa-chevron-left"></i>
-            </div>
-            <div id="section" class="space-y-3 flex flex-col bg-white pl-4 py-3 w-full hidden">
-                <a id="roles" href="roleandaccess.html" class="roleAccess" ><i class="fas fa-cog w-6"></i> Role</a> 
-            </div>
-        </div>
-        <!-- <a href="index.html" class="text-white employee" ><i class="fas fa-user w-6"></i> User</a> -->
-        <!-- <a href="timesheet.html" class="text-white timesheet" ><i class="fa-regular fa-calendar-days w-6"></i> Time Sheet</a> -->
-        <!-- <a href="appraisal.html" class="text-white appraisal" ><i class="fa-solid fa-chart-simple w-6"></i> Appraisal</a> -->
-        <!-- <a id="roles" href="roleandaccess.html" class="text-white roleAccess" ><i class="fas fa-cog w-6"></i> Role</a>  -->
 
-        <div class="absolute -right-2.5 text-xl text-white baricon cursor-pointer" index="close">
-            <i class="fa-solid fa-circle-chevron-left shadow-sm shadow-third rounded-full bg-black"></i>
-            <!-- <i class="fa-solid fa-circle-chevron-right shadow-sm shadow-third rounded-full bg-black"></i> -->
+        <div class="section" id="section-timesheet">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="timesheet">
+                <div>
+                    <i class="fa-regular fa-calendar-days w-6"></i>
+                    <span class="section-name pl-2">Time sheet</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
+            </div>
+            <ul id="submenu-timesheet" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="" data-key="timesheet"><a href="timesheet.html" class="employee"><i
+                            class="fa-solid fa-calendar-check w-6"></i> Timesheet</a></li>
+                <li class="sub-item" data-key="timesheet"><a href="emp-timesheet.html" class="employee"><i
+                            class="fa-solid fa-calendar-check w-6"></i> Employee</a></li>
+                <li class="sub-item" data-key="request"><a href="leave-request.html" class="employee"><i
+                            class="fa-solid fa-calendar-check w-6"></i> Leave Request</a></li>
+                <li class="sub-item" data-key="timeoffpolicy"><a href="time-policy.html" class="employee"><i
+                            class="fa-solid fa-calendar-week w-6"></i> Policy</a></li>
+            </ul>
         </div>
+
+        <div class="section" id="section-appraisal">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="appraisal">
+                <div>
+                    <i class="fa-solid fa-chart-simple w-6"></i>
+                    <span class="section-name pl-2">Appraisal</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
+            </div>
+            <ul id="submenu-appraisal" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="" data-key="appraisal"><a href="appraisal.html" class="employee"><i
+                            class="fa-solid fa-chart-simple w-6"></i> Appraisal</a></li>
+                <li class="sub-item" data-key="appraisalform"><a href="#" class="employee"><i
+                            class="fa-regular fa-file w-6"></i> Appraisal Form</a></li>
+            </ul>
+        </div>
+
+        <div class="section" id="section-roleaccess">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="roleaccess">
+                <div>
+                    <i class="fas fa-cog w-6"></i>
+                    <span class="section-name pl-2">Role Access</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
+            </div>
+            <ul id="submenu-roleaccess" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="sub-item" data-key="appraisal"><a href="role-access.html" class="employee"><i
+                            class="fas fa-user w-6"></i> Role</a></li>
+                <li class="sub-item" data-key="appraisalform"><a href="#" class="employee"><i
+                            class="fa-solid fa-universal-access w-6"></i> Term Access</a></li>
+                <li class="sub-item" data-key="appraisalform"><a href="#" class="employee"><i
+                            class="fa-solid fa-sliders w-6"></i> Permission</a></li>
+            </ul>
+        </div>
+
+    </div>
+    <div class="absolute top-40 -right-2.5 text-xl text-white baricon cursor-pointer" id="toggleSidebar">
+        <i class="fa-solid fa-circle-chevron-left shadow-sm shadow-third rounded-full bg-black"></i>
     </div>
 </aside>
-
-
 <script>
     $(function(){
+    // Sidebar open/close
+    $('#toggleSidebar').click(function () {
+        $(this).toggleClass('rotate-180');
+        $(".submenu").hide()
+        $(".fa-chevron-left ").removeClass("-rotate-90")
+        $(".section-name").toggleClass("hidden")
+        $("aside").toggleClass("w-56 w-20")
+        $(".section").find("div").toggleClass("justify-between justify-center")
+    });
 
-        // Section function
-        $(document).on("click",".menuSections",function(){
-            let sections = $(this).find("div#section")
-            let icon = $(this).find("#sectionIcon")
-            let fullSideBar = $("#sidebar #fullsidebar")
-            if(!(fullSideBar.is(":visible"))){
-                sideBar("open")
-            }else{
-                if(sections.is(":visible")){
-                    sections.addClass("hidden")
-                    icon.removeClass("fa-chevron-down")
-                    icon.addClass("fa-chevron-left")
-                }else{
-                    sections.removeClass("hidden")
-                    icon.addClass("fa-chevron-down")
-                    icon.removeClass("fa-chevron-left")
-                }
+    function toggles() {
+        $("#toggleSidebar").toggleClass('rotate-180');
+        $(".section-name").toggleClass("hidden")
+        $("aside").toggleClass("w-56 w-20")
+        $(".section").find("div").toggleClass("justify-between justify-center")
+    }
+
+    toggles()
+
+    $(document).ready(function () {
+        // Section toggle
+        $('[data-toggle]').on('click', function () {
+            if ($("aside").hasClass("w-20")) {
+                toggles()
             }
-        })
-
-        const access = JSON.parse($.cookie("my_access"))
-        // console.log(access)
-        // employee
-        if("user" in access && access["user"].includes("read") && (access["user"].includes("create") || access["user"].includes("edit"))){
-            $("a.employee").removeClass("hidden")
-        }else{
-            $("a.employee").addClass("hidden")
-        }
-        // // timesheet
-        // if("timesheet" in access && access["timesheet"].includes("read")){
-        //     $("a.timesheet").removeClass("hidden")
-        // }else{
-        //     $("a.timesheet").addClass("hidden")
-        // }
-        // // appraisal
-        // if("appraisal" in access && access["appraisal"].includes("read")){
-        //     $("a.appraisal").removeClass("hidden")
-        // }else{
-        //     $("a.appraisal").addClass("hidden")
-        // }
-        //role and access
-        if("role" in access && access["role"].includes("read") && (access["role"].includes("create") || access["role"].includes("edit"))){
-            $("a.roleAccess").removeClass("hidden")
-        }else{
-            $("a.roleAccess").addClass("hidden")
-        }
-
-        // SideBar
-        $(document).ready(function () {
-
-            $("#sidebar").mouseover(function () {
-                $("#sidebar .baricon").each(function () {
-                    $(this).removeClass("hidden")
-                })
-            })
-            $("#sidebar").mouseleave(function () {
-                $("#sidebar .baricon").each(function () {
-                    $(this).addClass("hidden")
-                })
-            })
-
-            $(document).on("click", "#sidebar .baricon", function () {
-                sideBar($(this).attr("index"))
-                $.cookie("my_sideBar_state", $(this).attr("index"))
-            });
-
-            sideBar($.cookie("my_sideBar_state"))
+            const key = $(this).data('toggle');
+            $("#submenu-" + key).slideToggle();
+            $(this).find("i#sectionIcon").toggleClass("-rotate-90")
         });
 
-        function sideBar(state){
-            if (state === "open") {
-                $("#sidebar #fullsidebar").removeClass("hidden")
-                $("#sidebar #minisidebar").addClass("hidden")
-                $("#sidebar").width("180px")
+        const permissions = JSON.parse($.cookie("my_access"))
+        $('.sub-item').each(function () {
+            const key = $(this).data('key');
+            if (!permissions[key] || !permissions[key].includes('read')) {
+                $(this).hide();
             }
-            else {
-                $("#sidebar #minisidebar").removeClass("hidden")
-                $("#sidebar #fullsidebar").addClass("hidden")
-                $("#sidebar").width("85px")
-            }
-        }
+        });
 
+        let users = $("#section-user #submenu-user li:visible")
+        if(users.length == 0)
+            $("#section-user").hide()
+
+        let role = $("#section-roleaccess #submenu-user li:visible")
+        if(users.length == 0)
+            $("#section-roleaccess").hide()
+        
+        $(".submenu").hide()
+        
     });
+})
 </script>

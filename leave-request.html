@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Request</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/profileAction.js"></script>
+    <script src="./static/js/global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+    <div id="sidebar"></div>
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main id="main" class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Leave Request
+            </h2>
+            <hr>
+            <div id="request-list" class="w-full h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
+
+            </div>
+            <div id="content" class="hidden h-[90%]">
+                <div class="w-full min-h-full bg-white shadow-md rounded-lg overflow-hidden flex">
+                    <!-- Sidebar -->
+                    <div class="max-w-1/4 min-w-fit bg-gray-50 p-6 border-r">
+                        <h3 class="font-semibold bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent p-3"
+                            id="employeeFullName">
+                            aes000
+                        </h3>
+                        <div id="profile_image" class="flex-1 justify-items-center mb-2">
+                            <img src="https://ui-avatars.com/api/?name=aes000" alt="Avatar"
+                                class="w-20 h-20 rounded-full shadow">
+                        </div>
+                        <div id="employeeStatus" class="text-center w-full mb-8 cursor-pointer menu-item"
+                            data-section="status">
+
+                        </div>
+                        <ul class="space-y-4 text-sm text-gray-700">
+                            <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="leave_request">
+                                Leave Request
+                            </li>
+                            <li class="menu-item cursor-pointer" data-section="profile">Profile</li>
+                            <!-- <li class="menu-item cursor-pointer" data-section="leave">Leave</li>
+                            <li class="menu-item cursor-pointer" data-section="entry">New entry</li> -->
+                        </ul>
+                    </div>
+
+                    <!-- Content -->
+                    <div id="section-content" class="p-8 w-full min-h-full">
+                        <div id="section-leave_request" class="section">
+                            <h2 class="text-lg font-semibold mb-6">Request Details <span>Pending</span></h2>
+                            <div class="grid md:grid-cols-2">
+                                <div class="text-sm grid md:grid-cols-2 gap-5 h-fit">
+                                    <div class="border-b-2 w-3/4" id="assigned_id">
+                                        <h4 class="mb-3">Assigned To</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4" id="approved_by">
+                                        <h4 class="mb-3">Approved By</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4" id="request_by">
+                                        <h4 class="mb-3">Requested By</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4" id="policy_name">
+                                        <h4 class="mb-3">Leave Policy</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4" id="total_days">
+                                        <h4 class="mb-3">Total Days</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4" id="leave_date">
+                                        <h4 class="mb-3">Leave Date</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4" id="reason">
+                                        <h4 class="mb-3">Reason</h4>
+                                        <span class="text-textPrimary"></span>
+                                    </div>
+                                </div>
+
+                                <div class="text-sm h-fit space-y-2">
+                                    <div>
+                                        <h4 id="policy">Policy : <span class="text-textPrimary"></span></h4>
+                                        <h4 id="max_leave">Max leave : <span class="text-textPrimary"></span></h4>
+                                        <h4 id="leave_taken">Leave taken : <span class="text-textPrimary"></span></h4>
+                                        <h4 id="remainding_leave">Remainding leave : <span class="text-textPrimary"></span></h4>
+                                    </div>
+                                    <hr>
+                                    <h4 class="font-medium text-md">Other Request</h4>
+                                    <div id="already-taken-leave" class="h-[38vh] overflow-y-auto my-2 space-y-2 z-30 mb-4">
+
+                                    </div>
+                                    <hr>
+                                    <div class="w-full relative mt-6 floating-label">
+                                        <input type="text" id="comment" name="comment" required
+                                            class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                                        <label for="comment"
+                                            class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                                            Comment<span class="text-red-600">*</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-6 mt-6" id="actionBtn">
+                                <div></div>
+                                <div>
+                                    <button data-status="3" class="border p-3 text-sm border-green-400 rounded-lg StatusBtn">Approved</button>
+                                    <button data-status="4" class="border p-3 text-sm border-red-400 rounded-lg StatusBtn">Rejected</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="section-profile" class="section">
+                            <h2 class="text-lg font-semibold mb-6">Personal Details</h2>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="col-span-2">
+                                    <h4>Full Name</h4>
+                                    <div class="flex justify-between w-3/4 gap-4 mt-3">
+                                        <span id="first_name" class="text-textPrimary border-b-2 w-full">First
+                                            Name</span>
+                                        <span id="last_name" class="text-textPrimary border-b-2 w-full">Last Name</span>
+                                    </div>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Employee ID</h4>
+                                    <span id="user_name" class="text-textPrimary">aes000</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Email</h4>
+                                    <span id="email" class="text-textPrimary">aes000@gmail.com</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Phone</h4>
+                                    <span id="phone" class="text-textPrimary">996******4</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Date of Birth</h4>
+                                    <span id="dob" class="text-textPrimary">dd/mm/yyyy</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Gender</h4>
+                                    <span id="gender" class="text-textPrimary">gender</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Address</h4>
+                                    <span id="address" class="text-textPrimary">address</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">City</h4>
+                                    <span id="city" class="text-textPrimary">city</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">State</h4>
+                                    <span id="state" class="text-textPrimary">state</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Country</h4>
+                                    <span id="country" class="text-textPrimary">country</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">PinCode</h4>
+                                    <span id="pincode" class="text-textPrimary">pincode</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let SelectedID
+        let List = $("#request-list")
+        let Content = $("#content")
+        let RequestDetail
+        let SelectedUser
+        $(document).ready(function () {
+            SelectedID = urlParams.get("request_id")
+            $("#main .menu-item").click(function () {
+                $("#main .menu-item").removeClass("font-bold text-blue-600")
+                $(this).addClass("font-bold text-blue-600")
+
+                let section = $(this).attr("data-section")
+                $("#main .section").hide()
+                $(`#main #section-${section}`).show()
+
+            });
+
+            if (SelectedID) {
+                List.hide()
+                Content.show()
+                $("#main .section").hide()
+                $(`#main #section-leave_request`).show()
+                RequestDetails(SelectedID)
+            } else {
+                Content.hide()
+                List.show()
+                $("#request-list").load("./componnet/timesheet/timeOff.html")
+            }
+
+            $(document).on("click","#main #content #section-content #section-leave_request button.StatusBtn",function(){
+                let status = $(this).data("status")
+                let comment = $("#main #content #section-content #section-leave_request input#comment").val()
+                if(comment == ""){
+                    showAlertMessage("warning","Leave Request", "Fill comment to continue")
+                    $("#main #content #section-content #section-leave_request input#comment").focus()
+                }else{
+                    try {
+                    fetch(`${DomainURL}/manage/request/${SelectedID}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "PUT",
+                        body: JSON.stringify({
+                            "description": comment,
+                            "status": status
+                        })
+                    })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success","Leave Request",data.message)
+                            setTimeout(()=>{window.location.href = "leave-request.html"},1000)
+                        } else {
+                            showAlertMessage("error","Leave Request",data.message)
+                        }
+                    });
+                } catch (error) {
+                    showAlertMessage("warning","API error", error)
+                }
+                }
+            })
+        });
+
+        function RequestDetails(ID) {
+            try {
+                fetch(`${DomainURL}/manage/request/${ID}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            RequestDetail = data.request
+                            SelectedUser = RequestDetail.module.user
+                            SelectedUser.profile["email"] = SelectedUser.email
+                            SelectedUser.profile["user_name"] = SelectedUser.user_name
+                            profileDataExtraction(SelectedUser.profile,"section-profile")
+                            dataExtraction()
+                        } else {
+                            showAlertMessage("error", "Time sheet", data.message)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        function dataExtraction(){
+            let section = $("#main #content #section-content #section-leave_request")
+            let module = RequestDetail.module
+
+            section.find("#assigned_id span").text(RequestDetail.assigned.user_name)
+            if(RequestDetail.approvedby_id)
+                section.find("#approved_by span").text(RequestDetail.assigned.user_name)
+            else
+                section.find("#approved_by").hide()
+
+            section.find("#request_by span").text(SelectedUser.user_name)
+            if(module.policy_id)
+                section.find("#policy_name span").text(module.policy?.name)
+            else
+                section.find("#policy_name span").text("others")
+            section.find("#total_days span").text(module.total_days == 0.5 ? `half(${module.leave_unit}) day`: `${module.total_days} ${module.leave_unit}`)
+            section.find("#leave_date span").text(leaveDates(module.start_date,module.end_date))
+            section.find("#reason span").text(module.description)
+
+            leaveRequest("0,3,4",SelectedUser.id)
+            AlreadyTakenLeave(SelectedUser.id,module.policy_id || 0)
+            $("#main #content #section-content #section-leave_request input#comment").val(RequestDetail.description)
+            if(RequestDetail.status)
+                $("#main #content #section-content #section-leave_request #actionBtn").hide()
+            else
+                $("#main #content #section-content #section-leave_request #actionBtn").show()
+        }
+
+        function leaveDates(start, end) {
+            let startDate = new Date(start)
+            let endDate = new Date(end)
+            const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            let dateString = ''
+            if (startDate.getFullYear() === endDate.getFullYear()) {
+                if (startDate.getMonth() === endDate.getMonth()) {
+                    if (startDate.getDate() === endDate.getDate()) {
+                        dateString = `${startDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}`
+                    } else {
+                        dateString = `${startDate.getDate()}-${endDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}`
+                    }
+                } else {
+                    dateString = `${startDate.getDate()}${month[startDate.getMonth()]}-${endDate.getDate()}${month[endDate.getMonth()]} ${startDate.getFullYear()}`
+                }
+            } else {
+                dateString = `${startDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}-${endDate.getDate()}${month[endDate.getMonth()]} ${endDate.getFullYear()}`
+            }
+
+            return dateString
+        }
+
+        function leaveRequest(status, User_ID) {
+            try {
+                fetch(`${DomainURL}/timesheet/leave?status=${status}&user_id=${User_ID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            $("#main #content #section-content #section-leave_request #already-taken-leave").empty()
+                            data.leave_request.forEach(element => {
+                                $("#main #content #section-content #section-leave_request #already-taken-leave").append(`
+                                    <div class="grid grid-cols-2 gap-2 w-2/3 bg-white rounded-lg border p-3 text-xs">
+                                        <h3>${leaveDates(element.start_date, element.end_date)}</h3>
+                                        <h3>${element.total_days} ${element.leave_unit}</h3>
+                                        <h3>${capitalizeFirstLetter(element.policy_id ? element.policy.name : "others")}</h3>
+                                        <h3>
+                                            ${StatusColourCode(element.status)}
+                                        </h3>
+                                    </div>
+                                `)
+                            })
+                            data.leave_request.forEach(element => {
+                                $("#main #content #section-content #section-leave_request #already-taken-leave").append(`
+                                    <div class="grid grid-cols-2 gap-2 w-2/3 bg-white rounded-lg border p-3 text-xs">
+                                        <h3>${leaveDates(element.start_date, element.end_date)}</h3>
+                                        <h3>${element.total_days} ${element.leave_unit}</h3>
+                                        <h3>${capitalizeFirstLetter(element.policy_id ? element.policy.name : "others")}</h3>
+                                        <h3>
+                                            ${StatusColourCode(element.status)}
+                                        </h3>
+                                    </div>
+                                `)
+                            })
+                        }
+                        else {
+                            showAlertMessage("warning","Leave Request", data.messgae)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+            }
+        }
+        // Edit panel 
+        async function AlreadyTakenLeave(userID, policyID) {
+            try {
+                fetch(`${DomainURL}/timesheet/leave/filter/${userID}/${policyID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            $("#main #content #section-content #section-leave_request #policy span").text(data.reason.name || "--")
+                            $("#main #content #section-content #section-leave_request #max_leave span").text(data.total_leave)
+                            $("#main #content #section-content #section-leave_request #leave_taken span").text(data.leave_taken)
+                            let tl = data.total_leave - data.leave_taken 
+                            $("#main #content #section-content #section-leave_request #remainding_leave span").text(tl< 0 ? 0 :tl)
+                        } else {
+                            showAlertMessage("warning","Leave Request", data.message)
+
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning","API error", error)
+
+            }
+        }
+
+
+    </script>
+
+
+</body>
+
+</html>

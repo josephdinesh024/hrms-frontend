@@ -1,20 +1,13 @@
-
-<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
-    <div class="flex items-center gap-3">
-        <h3 class="font-medium" id="totalCount">33 Policies</h3>
-        <div class="text-xs bg-gray-100 p-1" id="status">
-            <button id="all" class="p-3 font-medium bg-white">All <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
-            <button id="active" class="p-3 font-medium">Active <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
-            <button id="deactive" class="p-3 font-medium">Deactive <!--<span class="rounded-full bg-black text-white px-1 py-0.5">12</span>--></button>
-        </div>
-    </div>
+<div class="font-semibold text-xl p-6 flex content-between">
+    <p>Leave Policy</p>
     <div>
-        <button id="AddNewPolicy" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
-        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add Policy</button>
+        <button id="AddNewPolicy"
+            class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+            Policy</button>
     </div>
 </div>
-<hr>
-<div id="policyCardList">
+<div id="policyCardList" class="w-full mb-4">
     <table class="w-full border-collapse text-xs">
         <thead>
             <tr class="bg-gray-100 text-gray-700 text-left">
@@ -26,190 +19,226 @@
             </tr>
         </thead>
         <tbody>
-            
+
         </tbody>
     </table>
 </div>
 
+<div id="policyEditPanel" class="hidden p-5">
+
+</div>
 <script>
-    $(function(){        
-    var access_token = $.cookie("access_token")
-    let policy = []
-    let policyStatus = ""
-    function initFetch(){
-        $("#editPanel #editContent").empty()
-        closePanel()
-        try {
-            fetch(`${DomainURL}/timesheet/policy?active=${policyStatus}`,{
-                headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access_token}`
-            },
-            method: "GET"
-        })
-        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-        .then(data =>{
-            // console.log(data)
-            if(data.status){
-                $("#policyCardList tbody").empty()
-                policy = data.policy
-                policy.forEach((element,index) => {
-                    $("#policyCardList tbody").append(`
-                        <tr id="${index}" class="border-b hover:bg-gray-50 transition selectedList">
+    $(function () {
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        var access_token = $.cookie("access_token")
+        let policy = []
+        let policyStatus = ""
+        function initFetch() {
+            try {
+                fetch(`${DomainURL}/timesheet/policy?active=${policyStatus}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#policyCardList tbody").empty()
+                            policy = data.policy
+                            policy.forEach((element, index) => {
+                                $("#policyCardList tbody").append(`
+                        <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList">
                             <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
                             <td class="p-4">${element.max_leaves}</td>
                             <td class="p-4">${capitalizeFirstLetter(element.leave_type)}</td>
                             <td class="p-4">${element.tenure_required}</td>
-                            <td class="p-4">${
-                                !element.active? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> Deactive </span>`:
-                                `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> Active </span>`
-                            }</td>
+                            <td class="p-4">${!element.active ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> Deactive </span>` :
+                                        `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> Active </span>`
+                                    }</td>
                         </tr>
                     `)
-                    
-                });
+
+                            });
+
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#policy-countMessage").text(`${total + data.policy.length} of ${TotalCount}`)
+                        }
+                    });
+
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
             }
-        });
-    
-        } catch (error) {
-            showAlertMessage("warning","API error", error)
+
         }
-        
-    }
 
-    initFetch()
-
-    $(document).on("click","#filterAction #status button",function(){
-        let selectedStatus = $(this).attr("id")
-        $("#filterAction button").each(function(){
-            if(selectedStatus != $(this).attr("id")){
-                $(this).removeClass("bg-white")
-            }else
-                $(this).addClass("bg-white")
-        })
-        policyStatus = selectedStatus == "all" ? "": selectedStatus
         initFetch()
-    })
 
-    $(document).on("click","#AddNewPolicy",function(){
-        policyID = 0
-        openEditPanel()
-        $("#editPanel #editContent").append(`
-        <h1 class="text-xl font-semibold mt-3">Add time policy </h1>
-        ${formDatas}
-    `)
-    
-    })
 
-    let datas
-    $(document).on("click","#policyCardList tbody .selectedList",function(){
-        let index = $(this).attr("id")
-        datas = policy[index]
-        policyID = 0
-        openEditPanel()
-        $("#editPanel #editContent").empty()
-        // console.log(datas)
+        $(document).on("click", "button#policy-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
 
-        $("#editPanel #editContent").append(`
-            <div class="absolute right-6">
-                <i class="fa-solid fa-pen-to-square hover:text-xl cursor-pointer" id="editIcon"></i>
-            </div>
-            <div class="grid grid-cols-2 gap-3 my-3 p-2 text-sm">
-                <div>
-                    <h3 class="font-medium text-textPrimary">Name</h3>
-                    <h4>${capitalizeFirstLetter(datas.name)}</h4>
-                </div>
-                <div>
-                    <h3 class="font-medium text-textPrimary">Max leaves</h3>
-                    <h4>${datas.max_leaves}</h4>
-                </div>
-                <div>
-                    <h3 class="font-medium text-textPrimary">Tenure required</h3>
-                    <h4>${datas.tenure_required}</h4>
-                </div>
-            </div>
-            <div class="mt-10 m-2 p-3 bg-cyan-50 text-sm min-h-28">
-                <h3 class="font-medium">Description</h3>
-                <h4 class="text-textPrimary">${datas.description || "notes"}</h4>
-            </div>
-        `)
-    })
+        $(document).on("click", "button#policy-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
 
-    let policyID = 0
-    $(document).on("click","#editPanel #editContent #editIcon",function(){
-        let prt = $(this).parent().parent()
-        if(prt.find("form").length){
+
+        $(document).on("click", "#AddNewPolicy", function () {
             policyID = 0
-            prt.find("form#policyForm").remove()
-        }else{
-            $("#editPanel #editContent").append(formDatas)
-            $(document).ready(function(){
-                policyID = datas.id
-                $("#editPanel #editContent #policyForm").addClass("grid grid-cols-2")
-                $("#editPanel #editContent #policyForm #policyName").val(datas.name)
-                $("#editPanel #editContent #policyForm #policyType").val(datas.leave_type)
-                $("#editPanel #editContent #policyForm #maxLeave").val(datas.max_leaves)
-                $("#editPanel #editContent #policyForm #tenureMonth").val(datas.tenure_required)
-                $("#editPanel #editContent #policyForm #policyReason").val(datas.description)
-                $("#editPanel #editContent #policyForm #policyReason").parent().after(`
-                    <div class="text-xs m-3 font-medium space-y-3">
-                        <label for="policyType">Policy status</label>
-                        <select id="policyStatus" name="active" class="w-full p-2 border rounded-lg">
-                            <option ${datas.active && "selected"} value="true">Active</option>
-                            <option ${!datas.active && "selected"} value="false">Deactive</option>
-                        </select>
-                    </div>
-                `)
-            })
-        }
-    })
-
-    $(document).off("submit", "#editPanel #editContent #policyForm");
-    $(document).on("submit","#editPanel #editContent #policyForm",function(e){
-        e.preventDefault()
-        let formData = new FormData(this);
-        let data = {}
-        formData.forEach((v,k)=>{
-            if (k == "active"){
-                data[k] = v == "true" ? true :false
-            }
-            else if (["max_leaves","tenure_required"].includes(k)){
-                data[k] = parseInt(v)
-            }
-            else
-                data[k]= v
+            $("#policyEditPanel").show()
+            $("#policyCardList").hide()
+            $("#policyEditPanel").empty()
+            $("#policyEditPanel").append(`
+        <h1 class="text-xl font-semibold mt-3">Add new policy</h1>
+        ${formDatas}
+        <div class="grid content-end p-3 mt-3">
+                <div class="flex justify-end gap-6">
+                    <button type="submit" id="newPolicySubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
+                </div>
+            </div>
+            </form>
+    `)
 
         })
-        // console.log(data) 
-        try {
-           fetch(`${DomainURL}/timesheet/policy${policyID ? "/"+policyID:''}`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access_token}`
-            },
-            method: policyID ? "PUT" :"POST",
-            body: JSON.stringify(data)
+
+        let datas
+        $(document).on("click", "#policyCardList tbody .selectedList", function () {
+            let index = $(this).attr("id")
+            datas = policy[index]
+            policyID = datas.id
+            $("#policyEditPanel").show()
+            $("#policyCardList").hide()
+            $("#policyEditPanel").empty()
+            $("#policyEditPanel").append(`
+        <h1 class="text-xl font-semibold mt-3">Add new policy</h1>
+        ${formDatas}
+        <div class="mt-5 statusDiv">
+        </div>
+        <div class="grid col-span-2 content-end p-3 mt-3">
+                <div class="flex justify-end gap-6">
+                    <button type="submit" id="newPolicySubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
+                </div>
+            </div>
+            </form>
+    `)  
+           Object.keys(datas).forEach(key =>{
+                $(`#policyEditPanel form [name=${key}]`).val(datas[key])
+           });
+           $("#policyEditPanel div.statusDiv").append(`
+           
+            <label class="w-full text-sm text-blue-500" for="policyType">Policy status</label>
+            <select id="policyStatus" name="active" class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500">
+                <option ${datas.active && "selected"} value="true">Active</option>
+                <option ${!datas.active && "selected"} value="false">Deactive</option>
+            </select>
+        `)
         })
-            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-            .then(data => {
-                // console.log(data)
-                if (data.status) {
-                    showAlertMessage("success","Time policy",policyID?"Updated policy ":"Added new time policy")
-                    initFetch()
-                    closePanel()
-                } else {
-                    showAlertMessage("error","Time policy",data.message)
+
+        let policyID = 0
+        // $(document).on("click", "#policyEditPanel #editIcon", function () {
+        //     let prt = $(this).parent().parent()
+        //     if (prt.find("form").length) {
+        //         policyID = 0
+        //         prt.find("form#policyForm").remove()
+        //     } else {
+        //         $("#policyEditPanel").append(formDatas)
+        //         $(document).ready(function () {
+        //             policyID = datas.id
+        //             $("#policyEditPanel #policyForm").addClass("grid grid-cols-2")
+        //             $("#policyEditPanel #policyForm #policyName").val(datas.name)
+        //             $("#policyEditPanel #policyForm #policyType").val(datas.leave_type)
+        //             $("#policyEditPanel #policyForm #maxLeave").val(datas.max_leaves)
+        //             $("#policyEditPanel #policyForm #tenureMonth").val(datas.tenure_required)
+        //             $("#policyEditPanel #policyForm #policyReason").val(datas.description)
+        //             $("#policyEditPanel #policyForm #policyReason").parent().after(`
+        //             <div class="text-xs m-3 font-medium space-y-3">
+        //                 <label for="policyType">Policy status</label>
+        //                 <select id="policyStatus" name="active" class="w-full p-2 border rounded-lg">
+        //                     <option ${datas.active && "selected"} value="true">Active</option>
+        //                     <option ${!datas.active && "selected"} value="false">Deactive</option>
+        //                 </select>
+        //             </div>
+        //         `)
+        //         })
+        //     }
+        // })
+
+        $(document).off("submit", "#policyEditPanel #policyForm");
+        $(document).on("submit", "#policyEditPanel #policyForm", function (e) {
+            e.preventDefault()
+            let formData = new FormData(this);
+            let data = {}
+            let flag = true
+            formData.forEach((v, k) => {
+                if (k == "active") {
+                    data[k] = v == "true" ? true : false
                 }
-            }); 
-        } catch (error) {
-            showAlertMessage("warning","API error", error)
-        }
+                else if (["max_leaves", "tenure_required"].includes(k)) {
+                    data[k] = parseInt(v)
+                }else if (k == "leave_type" && v == "--"){
+                    flag = false
+                    showAlertMessage("warning","Leave Policy","Leave type should not be empty.")
+                }
+                else
+                    data[k] = v
+
+            })
+            // console.log(data) 
+            if(flag)
+            try {
+                fetch(`${DomainURL}/timesheet/policy${policyID ? "/" + policyID : ''}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: policyID ? "PUT" : "POST",
+                    body: JSON.stringify(data)
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success", "Time policy", policyID ? "Updated policy " : "Added new time policy")
+                            initFetch()
+                            $("#policyEditPanel").hide()
+                            $("#policyCardList").show()
+                        } else {
+                            showAlertMessage("error", "Time policy", data.message)
+                        }
+                    });
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+
+        })
+
+
+        let formDatas = `<form id="policyForm" class="w-5/6 grid md:grid-cols-2 gap-5">
+            ${floatingInputTag("text","name","name","Policy Name","")}
+            ${SelectionTag("leave_type","leave_type","Policy Type","",true,options=["paid","unpaid"])}
+            ${floatingInputTag("number","max_leaves","max_leaves","Max Leave","")}
+            ${floatingInputTag("number","tenure_required","tenure_required","Tenure Months","")}
+            ${floatingInputTag("text","description","description","Description","",false)}
+            `
+
         
     })
-    
-
-    let formDatas = `<form id="policyForm">
-            <div class="text-xs m-3 font-medium space-y-3">
+</script>
+<!-- 
+<div class="text-xs m-3 font-medium space-y-3">
                 <label for="policyName">Policy name</label>
                 <input type="search" id="policyName" name="name" required class="border p-2 w-full rounded-lg" placeholder="name" />
             </div>
@@ -231,13 +260,5 @@
             <div class="text-xs m-3 font-medium space-y-3">
                 <label for="policyReason">Time off Reason</label>
                 <input type="text" id="policyReason" name="description" class="p-2 border w-full min-h-16 text-start" placeholder="reason" />
-            </div>
+            </div> -->
             <div></div>
-            <div class="grid content-end p-3 mt-3">
-                <div class="flex justify-end gap-6">
-                    <button type="submit" id="newPolicySubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
-                </div>
-            </div>
-        </form>`
-    })
-</script>

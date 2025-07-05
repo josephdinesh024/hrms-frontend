@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
-    <script src=".//static/js/theme.js"></script>
+    <script src="./static/js/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -18,7 +18,8 @@
         }
     </style>
     <script src="./static/js/theme.js"> </script>
-
+    <script src="./static/js/profileAction.js"> </script>
+    <script src="./static/js/global.js"></script>
     <!-- FontAwesome for Icons -->
     <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
 
@@ -26,150 +27,283 @@
 
 <body class="flex bg-background h-screen w-screen">
     <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
-    <div>
-        <aside
-            class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out">
-        </aside>
-    </div>
+    <div id="sidebar"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
         <div id="header"></div>
 
-        <main id="usermain" class="p-6 overflow-y-scroll h-[90vh]">
-            <h2 class="text-xl font-semibold">Employee Profile</h2>
-            <div class="bg-secondary p-6 mt-3 rounded-md relative">
-                <form class="grid grid-cols-3 gap-6 my-4" id="newuserprofile">
-                    <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" id="email" name="email" disabled placeholder="Enter email"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <main id="usermain" class="flex-1 justify-items-center p-6 overflow-y-scroll h-[90vh]">
+            <div class="w-full min-h-full max-w-6xl bg-white shadow-md rounded-lg overflow-hidden flex">
+                <!-- Sidebar -->
+                <div class="w-1/6 bg-gray-50 p-6 border-r">
+                    <h3 class="font-semibold bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent p-3"
+                        id="employeeFullName">
+                        aes000
+                    </h3>
+                    <div id="profile_image" class="text-xl font-semibold mb-6">
+                        <img src="https://ui-avatars.com/api/?name=aes000" alt="Avatar"
+                            class="w-20 h-20 rounded-full shadow">
                     </div>
-                    <div class="mb-4">
-                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                        <input type="text" id="first_name" name="first_name" required placeholder="Enter name"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <ul class="space-y-4 text-sm text-gray-700">
+                        <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="profile">Profile</li>
+                        <li class="menu-item cursor-pointer" data-section="education">Education</li>
+                        <li class="menu-item cursor-pointer" data-section="bank">Bank</li>
+                        <li class="menu-item cursor-pointer" data-section="certificate">Certificates</li>
+                        <!-- <li class="menu-item cursor-pointer" data-section="attendance">Attendance</li>
+                        <li class="menu-item cursor-pointer" data-section="appraisal">Appraisal</li> -->
+                        <li class="menu-item cursor-pointer" data-section="docs">Docs</li>
+                    </ul>
+                </div>
+
+                <!-- Content -->
+                <div id="content" class="w-3/4 p-8">
+                    <div id="section-profile" class="section">
+                        <h2 class="text-lg font-semibold mb-6">Personal Details</h2>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="col-span-2">
+                                <h4>Full Name</h4>
+                                <div class="flex justify-between w-3/4 gap-4 mt-3">
+                                    <span id="first_name" class="text-textPrimary border-b-2 w-full">First Name</span>
+                                    <span id="last_name" class="text-textPrimary border-b-2 w-full">Last Name</span>
+                                </div>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Employee ID</h4>
+                                <span id="user_name" class="text-textPrimary">aes000</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Email</h4>
+                                <span id="email" class="text-textPrimary">aes000@gmail.com</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Phone</h4>
+                                <span id="phone" class="text-textPrimary">996******4</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Date of Birth</h4>
+                                <span id="dob" class="text-textPrimary">dd/mm/yyyy</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Gender</h4>
+                                <span id="gender" class="text-textPrimary">gender</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Address</h4>
+                                <span id="address" class="text-textPrimary">address</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">City</h4>
+                                <span id="city" class="text-textPrimary">city</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">State</h4>
+                                <span id="state" class="text-textPrimary">state</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Country</h4>
+                                <span id="country" class="text-textPrimary">country</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">PinCode</h4>
+                                <span id="pincode" class="text-textPrimary">pincode</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" required placeholder="Father name"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+
+                    <!-- EDUCATION  details -->
+                    <div id="section-education" class="section">
+                        <h2 class="text-lg font-semibold mb-6">Education Details</h2>
+                        <div id="inner-container" class="w-full divide-y space-y-6">
+                            <div class="grid grid-cols-2 gap-6 items-start text-sm">
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Degree</h4>
+                                    <span id="degree" class="text-textPrimary">degree</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Institution Name</h4>
+                                    <span id="institution" class="text-textPrimary">school / college</span>
+                                </div>
+                                <div class="border-b-2 w-2/6 col-span-2">
+                                    <h4 class="mb-3">Percentage</h4>
+                                    <span id="percentage" class="text-textPrimary">mark</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Start Year</h4>
+                                    <span id="start_year" class="text-textPrimary">yyyy</span>
+                                </div>
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">End Year</h4>
+                                    <span id="end_year" class="text-textPrimary">yyyy</span>
+                                </div>
+                                <div class="w-3/4">
+                                    <h4 class="mb-3">Education Doc</h4>
+                                    <div id="file_image" class="text-textPrimary cursor-pointer">
+                                        <img src="" alt="education" class="w-20 h-20">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
-                        <input type="number" id="phone" name="phone" required maxlength="10" placeholder="Mobile number"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+
+                    <!-- CERTIFICATE  details -->
+                    <div id="section-certificate" class="section">
+                        <h2 class="text-lg font-semibold mb-6">Certificates Details</h2>
+                        <div id="inner-container" class="w-full divide-y space-y-6">
+                            <div class="grid grid-cols-2 gap-6 items-start">
+                                <div class="border-b-2 w-3/4">
+                                    <h4 class="mb-3">Certificate Name</h4>
+                                    <span id="name" class="text-textPrimary">name</span>
+                                </div>
+                                <div class="w-3/4">
+                                    <h4 class="mb-3">Certifiacte Doc</h4>
+                                    <span id="file_image" class="text-textPrimary cursor-pointer">
+                                        <img src="" alt="certificate" class="w-20 h-20">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="dob" class="block text-sm font-medium text-gray-700">DOB</label>
-                        <input type="date" id="dob" name="dob"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+
+                    <!-- BANK details -->
+                    <div id="section-bank" class="section">
+                        <h2 class="text-lg font-semibold mb-6">Bank Details</h2>
+                        <div class="grid grid-cols-2 gap-6 items-start">
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Account Hold Name</h4>
+                                <span id="holder_name" class="text-textPrimary">myaccount</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Bank Name</h4>
+                                <span id="bank_name" class="text-textPrimary">bank name</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Account Number</h4>
+                                <span id="account_number" class="text-textPrimary">996******4</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">IFSC code</h4>
+                                <span id="ifsc_code" class="text-textPrimary">xyz000021</span>
+                            </div>
+                            <div class="border-b-2 w-3/4">
+                                <h4 class="mb-3">Branch Name</h4>
+                                <span id="branch" class="text-textPrimary">loaction</span>
+                            </div>
+                            <div class=" w-3/4">
+                                <h4 class="mb-3">Passbook Image</h4>
+                                <div id="file_image" class="text-textPrimary" onclick="">
+                                    <img src="" alt="passbook" class="w-20 h-20 cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
-                        <select id="gender" name="gender"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="others">Others</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
+
+                    <!-- Docs details -->
+                    <div id="section-docs" class="section">
+                        <h2 class="text-lg font-semibold mb-6">Document Details</h2>
+                        <div id="inner-container" class="w-full space-y-2">
+                            <div class="grid grid-cols-1 gap-6 items-start" id="terms_condition">
+                                <h2 class="text-lg font-bold">Terms & Conditions</h2>
+                                <div class="border-b-2 w-1/2">
+                                    <label>
+                                        <input type="checkbox" disabled>
+                                        <span id="name" class="text-textPrimary">Terms Accepted</span>
+                                    </label>
+                                </div>
+                                <div class="w-fit border-b-2 mb-4">
+                                    <span class="mb-3">Terms Doc</span>
+                                    <span id="file_image" class="text-textPrimary cursor-pointer">
+                                        <img src="" alt="terms" class="w-20 h-20">
+                                    </span>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="grid grid-cols-1 gap-6 mt-4 " id="offer_letter">
+                                <h2 class="text-lg font-bold">Offer Letter</h2>
+                                <div class="w-fit border-b-2">
+                                    <span class="mb-3">Offer Doc</span>
+                                    <span id="file_image" class="text-textPrimary cursor-pointer">
+                                        <img src="" alt="offer" class="w-20 h-20">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                        <input type="text" id="address" name="address" placeholder="Current address"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label for="city" class="block text-sm font-medium text-gray-700">City</label>
-                        <input type="text" id="city" name="city" placeholder="City name"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label for="state" class="block text-sm font-medium text-gray-700">State</label>
-                        <input type="text" id="state" name="state" placeholder="State"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
-                        <input type="text" id="country" name="country" placeholder="Country"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label for="pincode" class="block text-sm font-medium text-gray-700">Pincode</label>
-                        <input type="text" id="pincode" name="pincode" placeholder="Address pincode"
-                            class="w-full px-4 py-2 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="absolute flex ietms-center bottom-3 right-6 text-sm space-x-3">
-                        <button type="submit" id="newuserbutton"
-                            class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third 
-                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
-                            Save
-                        </button>
-                    </div>
-                </form>
+
+                </div>
             </div>
         </main>
     </div>
-    <script src="./static/js/global.js"></script>
+
     <script>
-        const access_token = $.cookie("access_token");
-        if (!access_token)
-            window.location.href = 'login.html'
-        $(function () {
-            let userName = $.cookie("user_name")
+        let MyProfileData
+        function initFun() {
             try {
-              fetch(`${DomainURL}/search/filter`, {
-                method: "POST",
-                body: JSON.stringify({
-                    "module_type": "user",
-                    "module_field": "user_name",
-                    "field_data": userName
+                fetch(`${DomainURL}/my/profile`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET",
                 })
-            })
-                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                .then(data => {
-                    if (data.status) {
-                        $("#newuserprofile #email").val(data.data.email)
-                    }
-                    else {
-                        $.removeCookie("access_token")
-                        $.removeCookie("user_name")
-                        window.location.reload()
-                    }
-                })  
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            MyProfileData = data.user
+                            // console.log(MyProfileData)
+                            $(`#content #section-profile span#user_name`).text(MyProfileData.user_name)
+                            $(`#content #section-profile span#email`).text(MyProfileData.email)
+                            profileDataExtraction(MyProfileData.profile, "section-profile")
+                            bankDataExtraction(MyProfileData.bank, "section-bank")
+                            certificateDataExtraction(MyProfileData.file, "section-certificate")
+                            educationDataExtraction(MyProfileData.education, "section-education")
+                        }
+                    })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                showAlertMessage("warning", "API error", error)
             }
-            
+        }
+
+        $(document).ready(function () {
+            initFun()
+            $("#usermain .menu-item").click(function () {
+                $("#usermain .menu-item").removeClass("font-bold text-blue-600")
+                $(this).addClass("font-bold text-blue-600")
+
+                let section = $(this).attr("data-section")
+                if(section === "docs"){
+                    onboardDocs()
+                }
+                $("#usermain .section").hide()
+                $(`#usermain #section-${section}`).show()
+            })
+            $("#usermain .section").hide()
+            $(`#usermain #section-profile`).show()
         })
-        $(document).on("submit", "#newuserprofile", function (e) {
-            e.preventDefault()
-            let formData = new FormData(this)
-            let data = {}
-            formData.forEach((value, key) => { data[key] = value })
+
+        function onboardDocs() {
             try {
-                fetch(`${DomainURL}/tempary/user/profile`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${access_token}`
-                },
-                body: JSON.stringify(data)
-            })
-                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                .then(data => {
-                    if (data.status) {
-                        window.location.href = 'index.html'
-                    }
-                    else {
-                        showAlertMessage("error","Error",data.message)
-                    }
+                fetch(`${DomainURL}/my/onboard`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET",
                 })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            docsDataExtraction(data.onboard,"section-docs",false)
+                        }else{
+                            showAlertMessage("warning", "API error", data.message)
+                        }
+                    })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                showAlertMessage("warning", "API error", error)
             }
-            
-        })
+        }
+
+
     </script>
 
 

@@ -50,6 +50,7 @@
                     <button class="tab-link text-gray-600 hover:text-blue-600 pb-2"
                         data-target="certificate">Certificate</button>
                     <button class="tab-link text-gray-600 hover:text-blue-600 pb-2" data-target="bank">Bank</button>
+                    <button class="tab-link text-gray-600 hover:text-blue-600 pb-2" data-target="docs">Docs</button>
                 </div>
 
                 <div id="targetContent" class="overflow-auto h-full">
@@ -115,11 +116,14 @@
         function addEducation() {
             const container = document.getElementById('education-container');
             const div = document.createElement('div');
-            div.className = "border rounded-lg p-4 w-full";
+            div.className = "border rounded-lg p-4 w-full relative";
             div.innerHTML = `
+                <div class="absolute right-4">
+                    <i class="fa-solid fa-trash cursor-pointer deleted-add-section" data-section="education"></i>
+                </div>
                 <input type="hidden" name="EducationID" id="${divID}_EducationID" value="0" />
-                ${floatingInputTag("text",divID+"_institution","institution","Institution")}
                 ${floatingInputTag("text",divID+"_degree","degree","Degree")}
+                ${floatingInputTag("text",divID+"_institution","institution","Institution")}                
                 <div class="flex items-center gap-2 mb-3">
                     <div class="grid grid-cols-2 gap-6">
                         <select class="mt-5 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
@@ -130,8 +134,8 @@
                         ${floatingInputTag("text",divID+"_percentage","percentage","Percentage")}
                     </div>
                     <div class="grid grid-cols-2 gap-6 mt-4">
-                        ${floatingInputTag("date",divID+"_start_year","start_year","Start year"," ")}
-                        ${floatingInputTag("date",divID+"_end_year","end_year","End year")}
+                        ${SelectionTag(divID+"_start_year","start_year","Start year","--",true,years)}
+                        ${SelectionTag(divID+"_end_year","end_year","End year",currentYear,true,years)}
                         <span id="${divID}_yearErrorMessage" class="text-xs text-red-400"></span>
                     </div>
                 </div>
@@ -145,13 +149,22 @@
             divID += 1
         };
 
+        let years = []
+        let currentYear = new Date().getFullYear();
+        for(let i = currentYear; i >=1990; i--){
+            years.push(`${i}`)
+        }
+
         // Certificate
         let fileDivID = 2
         function addCertificate() {
             const container = document.getElementById('certificate-container');
             const div = document.createElement('div');
-            div.className = 'border rounded-lg grid grid-cols-1 gap-4 p-3';
+            div.className = 'border rounded-lg p-3 relative';
             div.innerHTML = `
+                <div class="absolute right-4">
+                    <i class="fa-solid fa-trash cursor-pointer deleted-add-section" data-section="certificate"></i>
+                </div>
                 <input type="hidden" name="FileID" id="${fileDivID}_FileID" value="0">
                 ${floatingInputTag("text",fileDivID+"_name","name","Certificate Name")}
                 ${floatingFileInputTag(fileDivID+'_file', 'file', 'Upload Certificate')}
@@ -166,6 +179,17 @@
         // $(document).ready(function () {
         //     $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
         // });
+
+        $(document).on("click","i.deleted-add-section",function(){
+            let parent = $(this).parent().parent();
+            let section = $(this).data("section")
+            if(section === "education"){
+                divID -= 1
+            }else if(section === "certificate"){
+                fileDivID -= 1
+            }
+            parent.remove()
+        })
 
         function OpenConfirmForm() {
             $("#ConfirmForm").removeClass("hidden")
@@ -186,6 +210,7 @@
                 }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
+                            console.log(data.onboard)
                             MyOnboardDetails = data.onboard
                         } else {
                             showAlertMessage("error","Onboard","Error to fetch details. " +data?.message)
@@ -213,7 +238,8 @@
                     .then(data => {
                         if (data.status) {
                             showAlertMessage("success","Form submition","your profile form details submited successfully, wait for approvels")
-                            setTimeout(() =>ButtonDisable(true),1000)
+                            setTimeout(() =>window.location.reload(),1000)
+                            
                         } else {
                             showAlertMessage("error","Form submition","Error to submit form " +data?.message)
                         }

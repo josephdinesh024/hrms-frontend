@@ -5,13 +5,7 @@
     </form>
 </div>
 
-<div class="absolute bottom-6 right-12">
-    <button onclick="OpenConfirmForm()"
-        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third 
-                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
-        Submit
-    </button>
-</div>
+
 
 <script>
     $(function () {
@@ -65,14 +59,14 @@
                             }
 
                         } else {
-                            console.log(data.message)
+                            showAlertMessage("warning", "Employee profile", data.message)
                         }
                     })
             } catch (error) {
                 showAlertMessage("warning", "API error", error)
             }
 
-            if (MyOnboardDetails.correction_marked) {
+            if (MyOnboardDetails?.correction_marked) {
                 setTimeout(() => MarkCorrection(), 500)
             }
         }

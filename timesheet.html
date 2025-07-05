@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HRMS Timesheet</title>
+    <title>HRMS TimeSheet</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
-    <script src=".//static/js/theme.js"></script>
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/profileAction.js"></script>
+    <script src="./static/js/global.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -32,106 +34,100 @@
         <!-- Header -->
         <div id="header"></div>
 
-        <main class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+        <main id="main" class="p-6 overflow-y-scroll h-[90vh] space-y-2">
             <h2
                 class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 Time Sheet & Attendance
             </h2>
-            <div id="action" class="space-x-5 text-textPrimary mt-6 p-2">
-                <button id="timesheet" class="text-black"><i class="fa-solid fa-calendar-check"></i>
-                    <span>Timesheet</span></button>
-                <button id="timeOff" class=""><i class="fa-solid fa-calendar-days"></i> <span>Time-off
-                        request</span></button>
-                <button id="timePolicy" class=""><i class="fa-solid fa-calendar-week"></i> <span>Time-off
-                        policy</span></button>
-                <button id="timeSpecial" class=""><i class="fa-solid fa-calendar-week"></i> <span>Time-off special
-                        policy</span></button>
-            </div>
             <hr>
-            <div id="contents"></div>
-        </main>
+            <div id="contents">
+                <div class="w-full min-h-full bg-white shadow-md rounded-lg overflow-hidden flex">
+                    <!-- Sidebar -->
+                    <div class="max-w-1/4 min-w-fit bg-gray-50 p-6 border-r">
+                        <!-- <h3 class="font-semibold bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent p-3"
+                            id="employeeFullName">
+                            aes000
+                        </h3>
+                        <div id="profile_image" class="flex-1 justify-items-center mb-2">
+                            <img src="https://ui-avatars.com/api/?name=aes000" alt="Avatar"
+                                class="w-20 h-20 rounded-full shadow">
+                        </div>
+                        <div id="employeeStatus" class="text-center w-full mb-8 cursor-pointer menu-item"
+                            data-section="status">
 
-        <div id="editPanel"
-            class="fixed right-0 top-0 z-20 h-full w-[550px] overflow-auto bg-white shadow-lg transform translate-x-full transition-transform duration-300 ease-in-out p-6">
-            <div class="mt-16">
-                <button id="closePanel" class="font-bold">X</button>
-                <div id="editContent">
+                        </div> -->
+                        <ul class="space-y-4 text-sm text-gray-700">
+                            <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="all">All
+                            </li>
+                            <li class="menu-item cursor-pointer" data-section="timesheet">Time sheet</li>
+                            <li class="menu-item cursor-pointer" data-section="leave">Leave</li>
+                            <li class="menu-item cursor-pointer" data-section="entry">New entry</li>
+                        </ul>
+                    </div>
 
+                    <!-- Content -->
+                    <div id="section-content" class="p-8 w-full">
+                        <div id="section-all" class="section">
+                            <h2 class="text-lg font-semibold mb-6">Attendance Details</h2>
+                        </div>
+                        <div id="section-timesheet" class="section">
+                            <h2 class="text-lg font-semibold mb-6">TimeSheet Details</h2>
+                        </div>
+                        <div id="section-leave" class="section">
+                            <h2 class="text-lg font-semibold mb-6">Leave Details</h2>
+                        </div>
+                        <div id="section-entry" class="section w-full">
+                            <h2 class="text-lg font-semibold mb-6">New Entry Section</h2>
+                            <div class="w-full"></div>
+                        </div>
+                        <div class="loaded-data w-full">
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    <script src=".//static/js/global.js"></script>
     <script>
-        $("#contents").load("./componnet/timesheet/timesheet.html")
-        $("button#timesheet").on("click", function () {
-            $("#editPanel #editContent").empty()
-            $("#contents").empty()
-            closePanel()
-            $("#contents").load("./componnet/timesheet/timesheet.html")
-        })
-        $("button#timeOff").on("click", function () {
-            $("#editPanel #editContent").empty()
-            $("#contents").empty()
-            closePanel()
-            $("#contents").load("./componnet/timesheet/timeOff.html")
-        })
-        $("button#timePolicy").on("click", function () {
-            $("#editPanel #editContent").empty()
-            $("#contents").empty()
-            closePanel()
-            $("#contents").load("./componnet/timesheet/timePolicy.html")
-        })
-        $("button#timeSpecial").on("click", function () {
-            $("#editPanel #editContent").empty()
-            $("#contents").empty()
-            closePanel()
-            $("#contents").load("./componnet/timesheet/timeSpecial.html")
-        })
-
-        $(document).on("click", "#action button", function () {
-            let selectedStatus = $(this).attr("id")
-            $("#action button").each(function () {
-                if (selectedStatus != $(this).attr("id")) {
-                    $(this).removeClass("text-black")
-                } else
-                    $(this).addClass("text-black")
-            })
-        })
-
-        // editPanel open
-        function openEditPanel() {
-            $("#editPanel").removeClass("translate-x-full")
-            $("#editPanel #editContent").empty()
-
-        }
+        // $("#contents").load("./componnet/timesheet/attendance.html")
 
         $(document).ready(function () {
-            const access = JSON.parse($.cookie("my_access"))
-            // timesheet
-            // if ("timesheet" in access && access["timesheet"].includes("read")) {
-            //     $("button#timesheet").removeClass("hidden")
-            // } else {
-            //     $("button#timesheet").addClass("hidden")
-            //     window.location.href = "onboard.html"
-            // }
-            // time-off
-            // if ("timeoff" in access && access["timeoff"].includes("read")) {
-            //     $("button#timeOff").removeClass("hidden")
-            // } else {
-            //     $("button#timeOff").addClass("hidden")
-            // }
-            // time-off policy
-            if ("timeoffpolicy" in access && access["timeoffpolicy"].includes("read") && (access["timeoffpolicy"].includes("create") || access["timeoffpolicy"].includes("edit"))) {
-                $("button#timePolicy").removeClass("hidden")
-                $("button#timeSpecial").removeClass("hidden")
-            } else {
-                $("button#timeSpecial").addClass("hidden")
-                $("button#timePolicy").addClass("hidden")
+        $("#main .menu-item").click(function () {
+            $("#main .menu-item").removeClass("font-bold text-blue-600")
+            $(this).addClass("font-bold text-blue-600")
+
+            let section = $(this).attr("data-section")
+            $("#main .section").hide()
+            $(`#main #section-${section}`).show()
+            $(`#main #section-content .loaded-data`).show()
+            // loading("section-"+section)
+            closeModal()
+            switch(section){
+                case "all":
+                    renderCalendar("")
+                    break
+                case "timesheet":
+                    renderCalendar("timesheet")
+                    break
+                case "leave":
+                    renderCalendar("leave")
+                    break
+                case "entry":
+                    $(`#main #section-content .loaded-data`).hide()
+                    break
             }
-            
         });
+
+        $("#main .section").hide()
+        $(`#main #section-all`).show()
+        loading()
+        $(`#main #section-content #section-entry div`).load("./componnet/timesheet/timesheet.html")
+        
+        function loading(section){
+            $(`#main #section-content .loaded-data`).load("./componnet/timesheet/attendance.html")
+            setTimeout(()=>initAttendFun(),200)
+        }
+    })
 
     </script>
 

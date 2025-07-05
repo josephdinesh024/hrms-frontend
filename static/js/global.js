@@ -1,9 +1,9 @@
 const access_token = $.cookie("access_token");
 if (!access_token)
-        window.location.href = 'login.html'
+    window.location.href = 'login.html'
 
 const scripts = [
-    
+
     "./static/js/confic.js",
     "./static/js/util.js"
 ];
@@ -16,39 +16,39 @@ const styles = [
 
 styles.forEach(href => loadCSS(href));
 
-async function AccessCheck(){
+async function AccessCheck() {
     try {
-        fetch(`${DomainURL}/my/access`,{
-            method : "GET",
+        fetch(`${DomainURL}/my/access`, {
+            method: "GET",
             headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-        }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-        .then(data =>{
-            if(data.status){
-                $.cookie("my_access",JSON.stringify(data.access)) 
-                $.cookie("my_status",data.my_status) 
-                if([0,5,6].includes(data.my_status) && !window.location.pathname.split("/").pop().includes("onboard.html"))
-                    window.location.href = "onboard.html"
-            }else{
-                $.removeCookie("access_token")
-                window.location.reload()
-            }
-        })
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${access_token}`
+            },
+        }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+            .then(data => {
+                if (data.status) {
+                    $.cookie("my_access", JSON.stringify(data.access))
+                    $.cookie("my_status", data.my_status)
+                    if ([0, 5, 6].includes(data.my_status) && !window.location.pathname.split("/").pop().includes("onboard.html"))
+                        window.location.href = "onboard.html"
+                } else {
+                    $.removeCookie("access_token")
+                    window.location.reload()
+                }
+            })
     } catch (error) {
-        showAlertMessage("warning","API error", error)
+        showAlertMessage("warning", "API error", error)
     }
-    setTimeout(()=>{AccessCheck()},50000)
+    setTimeout(() => { AccessCheck() }, 50000)
 }
 
-setTimeout(()=>{AccessCheck()},500)
-
-
-$(document).ready(function(){
-    $("#sidebar").load("sidebar.html")
-    $("#header").load("header.html")
-});
+setTimeout(() => {
+    $(document).ready(function () {
+        AccessCheck()
+        $("#sidebar").load("sidebar.html")
+        $("#header").load("header.html")
+    });
+}, 100)
 
 
 const userName = $.cookie("user_name");
@@ -73,18 +73,18 @@ $(document).on("input", "input#search", function () {
     document.getElementById("searchresult").innerHTML = ''
     var query = $(this).val()
     try {
-       fetch(`${DomainURL}/search?q=${query}`, {
-        // headers: {
-        //     "Content-Type": "application/json",
-        //     Authorization: `Bearer ${access_token}`
-        // },
-        method: "GET"
-    })
-        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-        .then(data => {
-            if (data.status) {
-                data.data.forEach(element => {
-                    $("#searchresult").append(`
+        fetch(`${DomainURL}/search?q=${query}`, {
+            // headers: {
+            //     "Content-Type": "application/json",
+            //     Authorization: `Bearer ${access_token}`
+            // },
+            method: "GET"
+        })
+            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+            .then(data => {
+                if (data.status) {
+                    data.data.forEach(element => {
+                        $("#searchresult").append(`
                         <tr class="border-b bg-gray-200 hover:bg-gray-50 transition">
                                 <td class="p-4">${element.user.user_name}</td>
                                 <td class="p-4">${element.user.email}</td>
@@ -95,11 +95,11 @@ $(document).on("input", "input#search", function () {
                                 </td>
                             </tr>
                     `)
-                })
-            }
-        }); 
+                    })
+                }
+            });
     } catch (error) {
-        showAlertMessage("warning","API error", error)
+        showAlertMessage("warning", "API error", error)
     }
 })
 
@@ -117,9 +117,9 @@ $(function () {
     })
     $(document).on("click", "button#logoutbutton", function () {
         $.removeCookie("access_token")
-        $.removeCookie("my_access") 
-        $.removeCookie("my_status") 
-        $.removeCookie("user_name") 
+        $.removeCookie("my_access")
+        $.removeCookie("my_status")
+        $.removeCookie("user_name")
         window.location.reload()
     })
 })
@@ -158,30 +158,30 @@ function showAlertMessage(type, title, message, autoClose = true, duration = 500
     const id = `AlertMessage-${Date.now()}`;
 
     const config = {
-      success: {
-        icon: "✅",
-        bg: "bg-green-100",
-        border: "border-l-4 border-green-600",
-        text: "text-green-900"
-      },
-      error: {
-        icon: "❌",
-        bg: "bg-red-100",
-        border: "border-l-4 border-red-600",
-        text: "text-red-900"
-      },
-      warning: {
-        icon: "⚠️",
-        bg: "bg-yellow-100",
-        border: "border-l-4 border-yellow-600",
-        text: "text-yellow-900"
-      },
-      info: {
-        icon: "ℹ️",
-        bg: "bg-blue-100",
-        border: "border-l-4 border-blue-600",
-        text: "text-blue-900"
-      }
+        success: {
+            icon: "✅",
+            bg: "bg-green-100",
+            border: "border-l-4 border-green-600",
+            text: "text-green-900"
+        },
+        error: {
+            icon: "❌",
+            bg: "bg-red-100",
+            border: "border-l-4 border-red-600",
+            text: "text-red-900"
+        },
+        warning: {
+            icon: "⚠️",
+            bg: "bg-yellow-100",
+            border: "border-l-4 border-yellow-600",
+            text: "text-yellow-900"
+        },
+        info: {
+            icon: "ℹ️",
+            bg: "bg-blue-100",
+            border: "border-l-4 border-blue-600",
+            text: "text-blue-900"
+        }
     };
 
     const toast = `
@@ -198,10 +198,10 @@ function showAlertMessage(type, title, message, autoClose = true, duration = 500
     $('#AlertMessageContainer').append(toast);
 
     if (autoClose) {
-      setTimeout(() => {
-        $(`#${id}`).fadeOut(700, function() {
-          $(this).remove();
-        });
-      }, duration);
+        setTimeout(() => {
+            $(`#${id}`).fadeOut(700, function () {
+                $(this).remove();
+            });
+        }, duration);
     }
-  }
+}

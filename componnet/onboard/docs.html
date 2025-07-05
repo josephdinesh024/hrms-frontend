@@ -1,0 +1,251 @@
+<div class="max-w-2xl mx-auto text-sm" id="tab-docs">
+    <h2 class="text-xl font-semibold text-gray-800 mb-6">Onboard Documents</h2>
+    <div class="mb-6">
+        <button onclick="toggleNote()" class="text-blue-600 hover:underline flex items-center space-x-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z" />
+            </svg>
+            <span>Note: How to complete document steps?</span>
+        </button>
+        <div id="noteBox" class="mt-2 hidden bg-blue-50 border border-blue-300 text-blue-700 p-3 rounded">
+            <ol class="list-decimal ml-5 space-y-1">
+                <li>Download the document using the link</li>
+                <li>Print & sign the document</li>
+                <li>Scan and upload the signed copy</li>
+                <li>For Terms, also check the acceptance box</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Terms & Conditions -->
+    <form class="mb-5 border p-4 rounded-lg shadow-sm bg-gray-50" id="terms-condition">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-medium text-gray-700">Terms & Conditions</span>
+            <button onclick="FileDownload('/download/terms')"
+                class="text-blue-600 hover:underline text-sm">Download</button>
+        </div>
+
+        <div id="inputArea"></div>
+
+
+        <div class="text-right mt-2">
+            <button type="button" id="submitTerms"
+                class="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                Save Terms
+            </button>
+        </div>
+    </form>
+
+    <!-- Offer Letter -->
+    <form class="mb-5 border p-4 rounded-lg shadow-sm bg-gray-50" id="offer-letter">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-medium text-gray-700">Offer Letter</span>
+            <button onclick="FileDownload('/download/offer')"
+                class="text-blue-600 hover:underline text-sm">Download</button>
+        </div>
+
+        <div id="inputArea"></div>
+
+        <div class="text-right">
+            <button type="button" id="submitOffer"
+                class="px-3 py-1.5 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition">
+                Save Offer
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="absolute bottom-6 right-12">
+    <button onclick="OpenConfirmForm()"
+        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
+        Submit
+    </button>
+</div>
+
+<script>
+    function toggleNote() {
+        const box = document.getElementById("noteBox");
+        box.classList.toggle("hidden");
+    }
+
+    $(function () {
+        $(document).ready(function () {
+            let termsURL
+            let offerURL
+            let OnboardData
+            function initFun() {
+                try {
+                    fetch(`${DomainURL}/my/onboard`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                    }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            if (data.status) {
+                                // console.log(data.onboard)
+                                OnboardData = data.onboard
+                                OnboardData.file.forEach((item) => {
+                                    if (item.type == "term_condition")
+                                        termsURL = item
+                                    else if (item.type?.includes("offer"))
+                                        offerURL = item
+                                });
+                                $("#terms-condition #inputArea").html(`
+                                    <input type="hidden" name="FileID" id="1_FileID" value="${termsURL?.id || 0}">
+                                    ${floatingFileInputTag('terms', 'file', 'Upload terms docs', termsURL?.file_path.split("/").pop(), required = termsURL?.file_path ? false : true)}
+                                    ${termsURL?.file_path ? `
+                                    <span onclick="FilePreviewURL('${termsURL?.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span> <br>` : ""}
+                                    <label class="inline-flex items-center mt-2">
+                                        <input type="checkbox" id="termsAccept" ${OnboardData?.term_accepted && "checked"} name="terms_accept" class="mr-2">
+                                        <span class="text-gray-600">I accept the terms & conditions</span>
+                                    </label>
+                                `);
+                                $("#offer-letter #inputArea").html(`
+                                    <input type="hidden" name="FileID" id="1_FileID" value="${offerURL?.id || 0}">
+                                    ${floatingFileInputTag('offer', 'file', 'Upload offer docs', offerURL?.file_path.split("/").pop(), offerURL?.file_path ? false : true)}
+                                    ${offerURL?.file_path ? `
+                                    <span onclick="FilePreviewURL('${offerURL?.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>` : ""}
+                                `);
+                            } else {
+                                showAlertMessage("error", "Onboard", "Error to fetch details. " + data?.message)
+                            }
+                        })
+                } catch (error) {
+                    showAlertMessage("warning", "API error", error)
+                }
+
+                if(MyOnboardDetails?.correction_marked){
+                    setTimeout(()=>MarkCorrection(),500)
+                }
+            }
+            initFun();
+
+            $("#terms-condition #inputArea").html(`
+                <input type="hidden" name="FileID" id="1_FileID" value="0">
+                ${floatingFileInputTag('terms', 'file', 'Upload terms docs', "", true)}
+                <label class="inline-flex items-center mt-2">
+                    <input type="checkbox" id="termsAccept"  name="terms_accept" class="mr-2">
+                    <span class="text-gray-600">I accept the terms & conditions</span>
+                </label>
+            `);
+            $("#offer-letter #inputArea").html(`
+                <input type="hidden" name="FileID" id="1_FileID" value="0">
+                ${floatingFileInputTag('offer', 'file', 'Upload offer docs', "", true)}
+            `);
+
+            $(document).on("click", "#terms-condition button#submitTerms", async function (e) {
+                let invalidFields = $("form#terms-condition:invalid");
+                if (invalidFields?.length) {
+                    showAlertMessage("warning", "Employee profile", "Fill required fields to continue.")
+                } else {
+                    let form = new FormData()
+                    let data = $("#terms-condition #inputArea")
+                    let ID = data.find("input[name=FileID]").val()
+                    let fileData = data.find("input[name=file]")[0].files[0]
+                    let termAccept = data.find("input[name=terms_accept]").is(":checked")
+                    let nameData = userName
+                    form.append("module_type", "user_onboardings")
+                    form.append("type", "term_condition")
+                    form.append("name", nameData + "_terms")
+                    form.append("file", fileData)
+
+                    let { flag, resp } = await uploadFileData(ID, form)
+                    if (flag) {
+                        $(`#terms-condition #inputArea #FileID`).val(resp.id)
+                        if (resp.module_id == OnboardData.id) {
+                            let nwData = {
+                                "term_sent": true,
+                                "term_accepted": termAccept,
+                            }
+                            UpdateOnboardDetails(OnboardData.id, nwData)
+                        } else {
+                            showAlertMessage("warning", "Employee profile", "Terms docs upload get wrong. contract admin")
+                        }
+                    }
+                }
+
+            });
+
+            $(document).on("click", "#offer-letter button#submitOffer", async function (e) {
+                let invalidFields = $("form#offer-letter:invalid");
+                if (invalidFields?.length) {
+                    showAlertMessage("warning", "Employee profile", "Fill required fields to continue.")
+                } else {
+                    let form = new FormData()
+                    let data = $("#offer-letter #inputArea")
+                    let ID = data.find("input[name=FileID]").val()
+                    let fileData = data.find("input[name=file]")[0].files[0]
+                    let nameData = userName
+                    form.append("module_type", "user_onboardings")
+                    form.append("type", "offer_letter")
+                    form.append("name", nameData + "_offer")
+                    form.append("file", fileData)
+
+                    let { flag, resp } = await uploadFileData(ID, form)
+                    if (flag) {
+                        $(`#terms-condition #inputArea #FileID`).val(resp.id)
+                        if (resp.module_id == OnboardData.id) {
+                            let nwData = {
+                                "offer_sent": true,
+                            }
+                            UpdateOnboardDetails(OnboardData.id, nwData)
+                        } else {
+                            showAlertMessage("warning", "Employee profile", "Terms docs upload get wrong. contract admin")
+                        }
+                    }
+                }
+            });
+
+        });
+
+
+        function UpdateOnboardDetails(ID, data) {
+            try {
+                fetch(`${DomainURL}/user/onboard/${ID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "PUT",
+                    body: JSON.stringify(data)
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status == 1) {
+
+                            // showAlertMessage("success", "Employee Onboard", `${data.onboard.user.user_name} onboard status is updated.`)
+                        } else if (data.status == 2) {
+                            showAlertMessage("warning", "Employee Onboard", data.message)
+                        } else {
+                            showAlertMessage("error", "Employee Onboard", data.message)
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+        };
+
+
+        // Mark Correction  function
+        function MarkCorrection(){
+            let MyDocs = MyOnboardDetails?.correction_note.docs
+            // console.log(MyDocs)
+            let arr = Object.keys(MyDocs)
+            if(arr.length){
+                arr.forEach(key=>{
+                    if(key == "offer-letter" && MyOnboardDetails.offer_sent){
+                        $(`form#${key}`).addClass("border-red-400")
+                    }else if(MyDocs[key] == false && key != "offer-letter"){
+                        $(`form#${key}`).addClass("border-red-400")
+                    }
+                })
+            }
+        };
+
+    })
+</script>

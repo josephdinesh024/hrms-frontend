@@ -1,8 +1,8 @@
 <!-- Certificate Section -->
 
-<div id="tab-certificate" class="tab-section">
+<form id="tab-certificate" class="tab-section">
     
-</div>
+</form>
 
 
 <script>
@@ -57,7 +57,7 @@
                 showAlertMessage("warning","API error", error)
             }
 
-            if(MyOnboardDetails.correction_marked){
+            if(MyOnboardDetails?.correction_marked){
                 setTimeout(()=>MarkCorrection(),500)
             }
         }
@@ -65,19 +65,24 @@
 
         // $(document).off("submit", "form#tab-certificate");
         $(document).on("click", "#tab-certificate button#saveCertificateDetails", async function (e) {
-            let childrens = $("#certificate-container").children()
-            for(let i=0; i<childrens.length; i++){
-                let form = new FormData()
-                let data = childrens[i]
-                let ID = $(data).find("input[name=FileID]").val()
-                let nameData = $(data).find("input[name=name]").val()
-                let fileData = $(data).find("input[name=file]")[0].files[0]
-                form.append("module_type", "users")
-                form.append("type", "certificate")
-                form.append("name", nameData)
-                form.append("file", fileData)
-                UploadFiles(ID,form,i)
-            }        
+            let invalidFields = $("form:invalid");
+            if(invalidFields?.length){
+                showAlertMessage("warning","Employee profile","Fill required fields to continue.")
+            }else{
+                let childrens = $("#certificate-container").children()
+                for(let i=0; i<childrens.length; i++){
+                    let form = new FormData()
+                    let data = childrens[i]
+                    let ID = $(data).find("input[name=FileID]").val()
+                    let nameData = $(data).find("input[name=name]").val()
+                    let fileData = $(data).find("input[name=file]")[0].files[0]
+                    form.append("module_type", "users")
+                    form.append("type", "certificate")
+                    form.append("name", nameData)
+                    form.append("file", fileData)
+                    UploadFiles(ID,form,i)
+                } 
+            }       
         })
 
         async function UploadFiles(ID,form,index){

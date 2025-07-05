@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Recruitment</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+    <script src="./static/js/profileAction.js"></script>
+    <script src="./static/js/global.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+
+    <div id="sidebar"></div>
+    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main class="p-6 overflow-y-scroll overflow-x-hidden h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Employee Recruitment
+            </h2>
+            <!-- <div class="flex justify-end">
+                <button id="AddNewForm" onclick="OpenNewEmployeeForm()"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+                    Employee</button>
+            </div> -->
+            <hr>
+            <div id="contents" class="w-full min-h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
+                <div class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
+                    <button id="AddNewForm" onclick="OpenNewEmployeeForm()"
+                        class="font-medium hover:font-bold hover:text-blue-600">Add
+                        Employee</button>
+                    <div class="flex gap-2 items-center text-md px-2">
+                        <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                        <span id="countMessage">5 of 10</span>
+                        <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="w-full">
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700 text-left">
+                                <th class="p-4 border-b">Employee ID</th>
+                                <th class="p-4 border-b">Email</th>
+                                <th class="p-4 border-b">Stage</th>
+                                <!-- <th class="p-4 border-b">Phone number</th> -->
+                                <th class="p-4 border-b">Employee Status</th>
+                                <th class="p-4 border-b">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="actionContainer" class="m-6">
+                <div id="personal_verified" class="hidden flex-1 justify-items-center">
+                    <div class="w-full min-h-full max-w-6xl bg-white shadow-md rounded-lg overflow-hidden flex">
+                        <!-- Sidebar -->
+                        <div class="max-w-1/4 min-w-1/6 bg-gray-50 p-6 border-r">
+                            <h3 class="font-semibold bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent p-3"
+                                id="employeeFullName">
+                                aes000
+                            </h3>
+                            <div id="profile_image" class="flex-1 justify-items-center mb-2">
+                                <img src="https://ui-avatars.com/api/?name=aes000" alt="Avatar"
+                                    class="w-20 h-20 rounded-full shadow">
+                            </div>
+                            <ul class="space-y-4 text-sm text-gray-700">
+                                <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="profile">
+                                    Profile</li>
+                                <li class="menu-item cursor-pointer" data-section="education">Education</li>
+                                <li class="menu-item cursor-pointer" data-section="bank">Bank</li>
+                                <li class="menu-item cursor-pointer" data-section="certificate">Certificates</li>
+                                <li class="menu-item cursor-pointer" data-section="docs">Docs</li>
+                            </ul>
+                        </div>
+
+                        <!-- Content -->
+                        <div id="content" class="w-3/4 p-8">
+                            <div id="section-profile" class="section">
+                                <label>
+                                    <input type="checkbox" class="check-parent-field hidden" data-field="profile">
+                                    <i class="fa-regular fa-circle-check text-md"></i>
+                                    <span class="text-lg font-semibold mb-6"> Personal Details</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="col-span-2">
+                                        <h4>Full Name</h4>
+                                        <div class="flex justify-between w-3/4 gap-4 mt-3">
+                                            <label class="text-textPrimary border-b-2 w-full">
+                                                <input type="checkbox" class="check-field" data-parent="profile"
+                                                    data-field="first_name">
+                                                <span id="first_name">First
+                                                    Name</span>
+                                            </label>
+                                            <label class="text-textPrimary border-b-2 w-full">
+                                                <input type="checkbox" class="check-field" data-parent="profile"
+                                                    data-field="last_name">
+                                                <span id="last_name">Last
+                                                    Name</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Employee ID</h4>
+                                        <span id="user_name" class="text-textPrimary">aes000</span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Email</h4>
+                                        <span id="email" class="text-textPrimary">aes000@gmail.com</span>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Phone</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="phone">
+                                            <span id="phone" class="text-textPrimary">996******4</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Date of Birth</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="dob">
+                                            <span id="dob" class="text-textPrimary">dd/mm/yyyy</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Gender</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="gender">
+                                            <span id="gender" class="text-textPrimary">gender</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Address</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="address">
+                                            <span id="address" class="text-textPrimary">address</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">City</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="city">
+                                            <span id="city" class="text-textPrimary">city</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">State</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="state">
+                                            <span id="state" class="text-textPrimary">state</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Country</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="country">
+                                            <span id="country" class="text-textPrimary">country</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">PinCode</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="profile"
+                                                data-field="pincode">
+                                            <span id="pincode" class="text-textPrimary">pincode</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- EDUCATION  details -->
+                            <div id="section-education" class="section">
+                                <label>
+                                    <input type="checkbox" class="check-parent-field hidden" data-parent="education"
+                                        data-field="education">
+                                    <i class="fa-regular fa-circle-check text-md"></i>
+                                    <span class="text-lg font-semibold mb-6">Education Details</span>
+                                </label>
+                                <div id="inner-container" class="w-full divide-y space-y-6">
+                                    <div class="grid grid-cols-2 gap-6 items-start text-sm">
+                                        <div class="border-b-2 w-3/4">
+                                            <h4 class="mb-3">Degree</h4>
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="education"
+                                                    data-field="degree">
+                                                <span id="degree" class="text-textPrimary">degree</span>
+                                            </label>
+                                        </div>
+                                        <div class="border-b-2 w-3/4">
+                                            <h4 class="mb-3">Institution Name</h4>
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="education"
+                                                    data-field="institution">
+                                                <span id="institution" class="text-textPrimary">school / college</span>
+                                            </label>
+                                        </div>
+                                        <div class="border-b-2 w-2/6 col-span-2">
+                                            <h4 class="mb-3">Percentage</h4>
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="education"
+                                                    data-field="percentage">
+                                                <span id="percentage" class="text-textPrimary">mark</span>
+                                            </label>
+                                        </div>
+                                        <div class="border-b-2 w-3/4">
+                                            <h4 class="mb-3">Start Year</h4>
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="education"
+                                                    data-field="start_year">
+                                                <span id="start_year" class="text-textPrimary">yyyy</span>
+                                            </label>
+                                        </div>
+                                        <div class="border-b-2 w-3/4">
+                                            <h4 class="mb-3">End Year</h4>
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="education"
+                                                    data-field="end_year">
+                                                <span id="end_year" class="text-textPrimary">yyyy</span>
+                                            </label>
+                                        </div>
+                                        <div class="w-3/4">
+                                            <h4 class="mb-3">Education Doc</h4>
+                                            <div id="file_image" class="text-textPrimary cursor-pointer">
+                                                <img src="" alt="education" class="w-20 h-20">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CERTIFICATE  details -->
+                            <div id="section-certificate" class="section">
+                                <label>
+                                    <input type="checkbox" class="check-parent-field hidden" data-parent="certificate"
+                                        data-field="certificate">
+                                    <i class="fa-regular fa-circle-check text-md"></i>
+                                    <span class="text-lg font-semibold mb-6">Certificates Details</span>
+                                </label>
+                                <div id="inner-container" class="w-full divide-y space-y-6">
+                                    <div class="grid grid-cols-2 gap-6 items-start">
+                                        <div class="border-b-2 w-3/4">
+                                            <h4 class="mb-3">Certificate Name</h4>
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="certificate"
+                                                    data-field="name">
+                                                <span id="name" class="text-textPrimary">name</span>
+                                            </label>
+                                        </div>
+                                        <div class="w-3/4">
+                                            <h4 class="mb-3">Certificate Doc</h4>
+                                            <span id="file_image" class="text-textPrimary cursor-pointer">
+                                                <img src="" alt="certificate" class="w-20 h-20">
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BANK details -->
+                            <div id="section-bank" class="section">
+                                <label>
+                                    <input type="checkbox" class="check-parent-field hidden" data-parent="bank"
+                                        data-field="bank">
+                                    <i class="fa-regular fa-circle-check text-md"></i>
+                                    <span class="text-lg font-semibold mb-6">Bank Details</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-6 items-start">
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Account Hold Name</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="bank"
+                                                data-field="holder_name">
+                                            <span id="holder_name" class="text-textPrimary">myaccount</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Bank Name</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="bank"
+                                                data-field="bank_name">
+                                            <span id="bank_name" class="text-textPrimary">bank name</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Account Number</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="bank"
+                                                data-field="account_number">
+                                            <span id="account_number" class="text-textPrimary">996******4</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">IFSC code</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="bank"
+                                                data-field="ifsc_code">
+                                            <span id="ifsc_code" class="text-textPrimary">xyz000021</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-b-2 w-3/4">
+                                        <h4 class="mb-3">Branch Name</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="bank"
+                                                data-field="branch">
+                                            <span id="branch" class="text-textPrimary">loaction</span>
+                                        </label>
+                                    </div>
+                                    <div class=" w-3/4">
+                                        <h4 class="mb-3">Passbook Image</h4>
+                                        <div id="file_image" class="text-textPrimary" onclick="">
+                                            <img src="" alt="passbook" class="w-20 h-20 cursor-pointer">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DOCUMENTS  -->
+                            <div id="section-docs" class="section">
+                                <label>
+                                    <input type="checkbox" class="check-parent-field hidden" data-parent="docs"
+                                        data-field="docs">
+                                    <i class="fa-regular fa-circle-check text-md"></i>
+                                    <span class="text-lg font-semibold mb-6">docss Details</span>
+                                </label>
+                                <div id="inner-container" class="w-full">
+                                    <div class="grid grid-cols-1 gap-6 items-start" id="terms_condition">
+                                        <h2 class="text-lg font-bold">Terms & Conditions</h2>
+                                        <div class="border-b-2 w-1/2">
+                                            <label>
+                                                <input type="checkbox" disabled>
+                                                <span id="name" class="text-textPrimary">Terms Accepted</span>
+                                            </label>
+                                        </div>
+                                        <div class="w-fit border-b-2 mb-4">
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="docs"
+                                                    data-field="terms-condition">
+                                                <span class="mb-3">Terms Doc</span>
+                                            </label>
+                                            <span id="file_image" class="text-textPrimary cursor-pointer">
+                                                <img src="" alt="terms" class="w-20 h-20">
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="grid grid-cols-1 gap-6 mt-4 " id="offer_letter">
+                                        <h2 class="text-lg font-bold">Offer Letter</h2>
+                                        <div class="w-fit border-b-2">
+                                            <label>
+                                                <input type="checkbox" class="check-field" data-parent="docs"
+                                                    data-field="offer-letter">
+                                                <span class="mb-3">Offer Doc</span>
+                                            </label>
+                                            <span id="file_image" class="text-textPrimary cursor-pointer">
+                                                <img src="" alt="offer" class="w-20 h-20">
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Button to Submit -->
+                    <div class="w-full flex justify-end">
+                        <button id="correctionMarked" class="mt-4 px-4 py-2 bg-red-400 text-white rounded">Make
+                            Correction</button>
+                        <button id="nextStepVerification"
+                            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hidden">Approve and Onboard
+                            employee</button>
+                    </div>
+                </div>
+
+                <div id="final" class="w-1/2 min-w-96 hidden">
+
+                </div>
+                <div class="w-full flex justify-end">
+                    <button id="closeVerification" class="mt-4 px-4 py-2 bg-gray-300 rounded">Close</button>
+                </div>
+            </div>
+        </main>
+
+        <div id="NewEmployeeForm"
+            class="fixed inset-0 z-50 w-full h-full bg-black bg-opacity-50 grid content-center justify-center hidden">
+            <div class="w-96 h-max bg-white text-sm p-6 rounded-lg shadow-md space-y-4">
+                <h3 class="font-bold">New Employee form</h3>
+                <form id="employeeForm">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label>Email</label>
+                            <input type="email" id="email" placeholder="email" name="email"
+                                class="border-b border-gray-300 px-3 py-2 w-full focus:outline-none focus:border-b-2 focus:border-blue-400" />
+                        </div>
+                        <div>
+                            <label>Role</label>
+                            <select type="role" id="role" name="role"
+                                class="border-b border-gray-300 px-3 py-2 w-full focus:outline-none focus:border-b-2 focus:border-blue-400">
+
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="flex justify-end gap-4 pt-12">
+                        <button type="submit"
+                            class="py-2 px-4 font-medium border border-blue-300 rounded-lg">Save</button>
+                        <button type="button" onclick="CancelNewEmployeeForm()"
+                            class="py-2 px-4 font-medium border hover:border-blue-300 rounded-lg">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        setTimeout(() => $(function () {
+            $(document).ready(function () {
+                let access = JSON.parse($.cookie("my_access"))
+                if (!("user" in access)) {
+                    window.location.href = "index.html"
+                }
+            });
+            try {
+                let employee = []
+                let page = parseInt(urlParams.get("page")) || 1
+                let paseSize = PAGESIZE
+                let TotalCount = 0
+                let selectedEmp
+                let selectedID = urlParams.get("onboard_id")
+                let onboardDetial
+                function initFetch() {
+                    selectedEmp = null
+                    onboardDetial = null
+                    try {
+                        fetch(`${DomainURL}/user/onboard?page_size=${paseSize}&page=${page}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "GET"
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                // console.log(data)
+                                if (data.status) {
+                                    $("#contents tbody").empty()
+                                    data.onboard.forEach((element, index) => {
+                                        $("#contents tbody").append(`
+                                <tr id="${index}" target-id="${element.id}" target-user-id="${element.user_id}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
+                                    <td class="p-4">${capitalizeFirstLetter(element.user.user_name)}</td>
+                                    <td class="p-4">${element.user.email}</td>
+                                    <td class="p-4">
+                                        ${!element.personal_verified ? "Profile verification"
+                                                : element.term_sent && !element.offer_sent ? "Terms & Condition"
+                                                    : element.offer_sent && !element.status ? "Offer Letter"
+                                                        : "Final"}
+                                    </td>
+                                    <td class="p-4">
+                                        ${StatusColourCode(element.user.status)}
+                                    </td>
+                                    <td class="p-4">
+                                        ${element.status ? `<span class="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Onboarded</span>`
+                                                : `<span class="inline-block px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Waiting</span>`}
+                                    </td>
+                                </tr>
+                            `)
+                                    });
+
+                                    TotalCount = data.total_count
+                                    var total = (page - 1) * paseSize
+                                    $("#countMessage").text(`${total + data.onboard.length} of ${TotalCount}`)
+                                }
+                            });
+                    } catch (error) {
+                        showAlertMessage("warning", "API error", error)
+                    }
+                };
+
+                $(document).on("click", "button#previous", function () {
+                    if (page != 1) {
+                        page -= 1
+                        initFetch()
+                    }
+                })
+
+                $(document).on("click", "button#next", function () {
+                    let check = TotalCount - (paseSize * page)
+                    if (check > 0) {
+                        page += 1
+                        initFetch()
+                    }
+                })
+
+                if (selectedID) {
+                    getOnboardDetials(selectedID)
+                    $("#contents").hide()
+                    $("#actionContainer").show()
+                } else {
+                    initFetch()
+                    $("#contents").show()
+                    $("#actionContainer").hide()
+                }
+
+                // Role name extract
+                function roleName(access) {
+                    for (let item of access) {
+                        if (item["module_type"] === "role" && item["status"] === 1) {
+                            var name = item["module"]["name"]
+                            return capitalizeFirstLetter(name)
+                        }
+                    }
+                    return "--"
+                };
+
+                $(document).on("click", "#contents tbody .selectedList", function () {
+                    let ID = $(this).attr("target-id")
+                    window.location.href = `?page=${page}&onboard_id=${ID}`
+                })
+
+                function getOnboardDetials(ID) {
+                    try {
+                        fetch(`${DomainURL}/user/onboard/${ID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "GET"
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    onboardDetial = data.onboard
+                                    if (!onboardDetial.personal_verified) {
+                                        $("#actionContainer #personal_verified").show()
+                                        empByID(onboardDetial.user_id)
+                                        docsDataExtraction(onboardDetial, "section-docs", true)
+                                    }
+                                    else if (onboardDetial.status) {
+                                        $("#actionContainer #final").show()
+                                        $("#actionContainer #final").append(`
+                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-md text-green-600"></i> Personal
+                                                Detail</h3>
+                                            <div class="border-l border-green-600 min-h-8 ml-2"></div>
+                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Terms &
+                                                Condition</h3>
+                                            <div class="border-l border-green-600 min-h-8 ml-2 p-4">
+                                                ${onboardDetial.file.map((elm, i) => {
+                                            if (elm.type == "term_condition") {
+                                                return `<span onclick="FilePreviewURL('${elm.file_path}')" class="text-sm text-blue-400 cursor-pointer">Terms doc ${elm.file_path.split("/").pop()}</span>`
+                                            }
+                                        }).join("<br>")}
+                                            </div>
+                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Offer Litter</h3>
+                                            <div class="border-l border-green-600 min-h-8 ml-2 p-4">
+                                                ${onboardDetial.file.map((elm, i) => {
+                                            if (elm.type.includes("offer")) {
+                                                return `<span onclick="FilePreviewURL('${elm.file_path}')" class="text-sm text-blue-400 cursor-pointer">Offer doc ${elm.file_path.split("/").pop()}</span>`
+                                            }
+                                        }).join("<br>")}
+                                            </div>
+                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Completed</h3>
+                                        `)
+                                    }
+
+                                } else {
+                                    showAlertMessage("error", "Employee Onboard", data.message)
+                                }
+                            })
+                    } catch (error) {
+                        showAlertMessage("warning", "API error", error)
+                    }
+                }
+
+                function empByID(ID) {
+                    try {
+                        fetch(`${DomainURL}/user/${ID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "GET"
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    // console.log(data)
+                                    selectedEmp = data.user[0]
+                                    empStatus = selectedEmp.status
+                                    // console.log(selectedEmp)
+                                    $(`#content #section-profile span#user_name`).text(selectedEmp.user_name)
+                                    $(`#content #section-profile span#email`).text(selectedEmp.email)
+                                    $(`#selectedEmployee div#employeeStatus`).html(StatusColourCode(empStatus))
+                                    $("#section-status select#status").val(empStatus)
+                                    profileDataExtraction(selectedEmp.profile, "section-profile")
+                                    bankDataExtraction(selectedEmp.bank, "section-bank")
+                                    certificateDataExtraction(selectedEmp.file, "section-certificate", true)
+                                    educationDataExtraction(selectedEmp.education, "section-education", true)
+                                } else {
+                                    showAlertMessage("error", "Employee", error)
+                                }
+                            })
+                    } catch (error) {
+                        showAlertMessage("warning", "API error", error)
+                    }
+                };
+
+                $("#actionContainer .menu-item").click(function () {
+                    $("#actionContainer .menu-item").removeClass("font-bold text-blue-600")
+                    $(this).addClass("font-bold text-blue-600")
+
+                    let section = $(this).attr("data-section")
+                    $("#actionContainer .section").hide()
+                    $(`#actionContainer #section-${section}`).show()
+                })
+                $("#actionContainer .section").hide()
+                $(`#actionContainer #section-profile`).show()
+
+                // Close function
+                $(document).on("click", "button#closeVerification", function () {
+                    clearSelectedData()
+                });
+                function clearSelectedData() {
+                    initFetch()
+                    $("#contents").show()
+                    $("#actionContainer").hide()
+                }
+
+                // Check condition
+                $(document).on("change", "input.check-field", function () {
+
+                    if (!($(this).is(":checked"))) {
+                        let parent = $(this).attr("data-parent")
+                        ParentIcon(parent, false)
+                    }
+                    CheckList()
+                });
+                $(document).on("change", "input.check-parent-field", function () {
+                    let field = $(this).attr("data-field")
+                    if ($(this).is(":checked"))
+                        $(`#section-${field} input.check-field`).prop("checked", true)
+                    else
+                        $(`#section-${field} input.check-field`).prop("checked", false)
+
+                    $(this).parent().find("i").toggleClass("text-green-600")
+                    CheckList()
+                })
+
+                function CheckList() {
+                    let flag = true
+                    let ch = $("input.check-field")
+                    let parentList = "profile"
+                    for (let i = 0; i < ch.length; i++) {
+                        let dataParent = $(ch[i]).attr("data-parent")
+                        if (parentList != dataParent) {
+                            ParentIcon(parentList, true)
+                            parentList = dataParent
+                        }
+                        if (!($(ch[i]).is(":checked"))) {
+                            flag = false
+                            break
+                        }
+                    }
+                    if (flag) {
+                        $("button#correctionMarked").hide()
+                        $("button#nextStepVerification").show()
+                    } else {
+                        $("button#correctionMarked").show()
+                        $("button#nextStepVerification").hide()
+                    }
+                    ParentIcon(parentList, flag)
+                }
+
+                function ParentIcon(parent, flag) {
+                    if (flag) {
+                        $(`#section-${parent} input.check-parent-field`).prop("checked", true)
+                        $(`#section-${parent} label i`).addClass("text-green-600")
+                    } else {
+                        $(`#section-${parent} input.check-parent-field`).prop("checked", false)
+                        $(`#section-${parent} label i`).removeClass("text-green-600")
+                    }
+                }
+
+                // Correction btn
+                $(document).on("click", "button#correctionMarked", function () {
+                    let data = { profile: {}, education: [], file: [], bank: {}, docs: {} }
+                    let flag = true
+                    // PROFILE
+                    $(`#actionContainer #section-profile input.check-field`).each(function (ch) {
+                        if (!($(this).is(":checked"))) {
+                            data.profile[$(this).attr("data-field")] = false
+                            flag = false
+                        }
+                    })
+                    // EDUCATION
+                    $(`#actionContainer #section-education #inner-container`).find("div.grid").each((index, elm) => {
+                        let ch = $(elm).find(".check-field")
+                        if (!(data.education[index]))
+                            data.education.push({})
+
+                        ch.each(function () {
+                            if (!($(this).is(":checked"))) {
+                                data.education[index][$(this).attr("data-field")] = false
+                                flag = false
+                            }
+                        });
+
+                    })
+                    // FILE
+                    $(`#actionContainer #section-certificate #inner-container`).find("div.grid").each((index, elm) => {
+                        let ch = $(elm).find(".check-field")
+                        if (!(data.file[index]))
+                            data.file.push({})
+                        ch.each(function () {
+                            if (!($(this).is(":checked"))) {
+                                data.file[index][$(this).attr("data-field")] = false
+                                flag = false
+                            }
+                        });
+                    })
+                    // BANK
+                    $(`#actionContainer #section-bank input.check-field`).each(function (ch) {
+                        if (!($(this).is(":checked"))) {
+                            data.bank[$(this).attr("data-field")] = false
+                            flag = false
+                        }
+                    })
+                    // DOCS
+                    $(`#actionContainer #section-docs input.check-field`).each(function (ch) {
+                        if (!($(this).is(":checked"))) {
+                            data.docs[$(this).attr("data-field")] = false
+                            flag = false
+                        }
+                    })
+
+                    if (flag) {
+                        let newDetails = {
+                            "personal_verified": true,
+                            "correction_marked": false,
+                            "correction_note": {}
+                        }
+                        UpdateOnboardDetails(selectedID, newDetails)
+                    } else {
+                        let newDetails = {
+                            "personal_verified": false,
+                            "correction_marked": true,
+                            "correction_note": data
+                        }
+                        UpdateOnboardDetails(selectedID, newDetails)
+                        UpdateEmployeeStatus(onboardDetial.user_id, 6)
+                    }
+                    // console.log(data)
+                });
+
+                // Personal Next btn
+                $(document).on("click", "button#nextStepVerification", function () {
+                    let newDetails = {
+                        "personal_verified": true,
+                        "correction_marked": false,
+                        "correction_note": {},
+                        "status": true,
+                    }
+
+                    UpdateOnboardDetails(selectedID, newDetails)
+                    UpdateEmployeeStatus(onboardDetial.user_id, 1)
+                })
+
+
+                function UpdateOnboardDetails(ID, data) {
+                    try {
+                        fetch(`${DomainURL}/user/onboard/${ID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "PUT",
+                            body: JSON.stringify(data)
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status == 1) {
+                                    showAlertMessage("success", "Employee Onboard", `${data.onboard.user.user_name} onboard status is updated.`)
+                                    clearSelectedData()
+                                } else if (data.status == 2) {
+                                    showAlertMessage("warning", "Employee Onboard", data.message)
+                                } else {
+                                    showAlertMessage("error", "Employee Onboard", data.message)
+                                }
+                            })
+                    } catch (error) {
+                        showAlertMessage("warning", "API error", error)
+                    }
+                };
+
+                function UpdateEmployeeStatus(ID, status) {
+                    try {
+                        fetch(`${DomainURL}/user/status/${ID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "PUT",
+                            body: JSON.stringify({
+                                "status": status
+                            })
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    showAlertMessage("success", "Employee", "Employee Status updated")
+                                } else {
+                                    showAlertMessage("Error", "Employee", data.message)
+                                }
+                            })
+                    } catch (error) {
+                        showAlertMessage("warning", "API error", error)
+                    }
+                }
+
+                // FILE UPLOAD SECTION
+                $(document).on("click", "#actionContainer button#saveDoc", async function (e) {
+                    let childrens = $("#doc-container").children()
+                    let targetData = $(this).attr("target-data")
+                    for (let i = 0; i < childrens.length; i++) {
+                        let form = new FormData()
+                        let data = childrens[i]
+                        let ID = $(data).find("input[name=FileID]").val()
+                        let nameData = $(data).find("input[name=name]").val()
+                        let fileData = $(data).find("input[name=file]")[0].files[0]
+                        form.append("module_type", "user_onboardings")
+                        form.append("type", targetData)
+                        form.append("name", nameData)
+                        form.append("file", fileData)
+                        UploadFiles(selectedID, ID, form, i)
+                    }
+                })
+
+                async function UploadFiles(ID, fileID, form, index) {
+                    try {
+                        fetch(`${DomainURL}/user/onboard/file/${ID}${fileID != "0" ? "/" + fileID : ""}`, {
+                            headers: {
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: fileID != 0 ? "PUT" : "POST",
+                            body: form
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    // getOnboardDetials(ID)
+                                    showAlertMessage("success", "Employee profile", "Certificate details saved")
+                                } else {
+                                    showAlertMessage("error", "Employee profile", data.message)
+                                }
+                            });
+                    } catch (error) {
+                        showAlertMessage("warning", "API error", error)
+                    }
+                };
+
+
+            } catch (error) {
+                showAlertMessage("warning", "Page error", `${error} referesh page. try again`)
+            }
+        })
+            , 500)
+
+        function OpenNewEmployeeForm() {
+            $("#NewEmployeeForm").removeClass("hidden")
+            try {
+                fetch(`${DomainURL}/role?page_size=50`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            data.roles.forEach(element => {
+                                $("#NewEmployeeForm form#employeeForm #role").append(`
+                                <option value="${element.id}">${element.name}</option>
+                            `)
+                            });
+                        }
+                    })
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+        function CancelNewEmployeeForm() {
+            $("#NewEmployeeForm").addClass("hidden")
+        }
+
+        $(document).on("submit", "#NewEmployeeForm form#employeeForm", function (e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            console.log("form submited", {
+                "email": formData.get("email"),
+                "role_id": parseInt(formData.get("role"))
+            })
+            try {
+                fetch(`${DomainURL}/user/quick/user`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
+                        "email": formData.get("email"),
+                        "role_id": parseInt(formData.get("role"))
+                    })
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            showAlertMessage("success", "User create", "new employee created and employeeId:" + data.user.user_name)
+                            CancelNewEmployeeForm()
+                            initFetch()
+                        } else
+                            showAlertMessage("error", "User create", data.message)
+                    })
+            } catch (error) {
+                showAlertMessage("warning", "API error", error)
+            }
+        })
+
+    </script>
+</body>
+
+</html>

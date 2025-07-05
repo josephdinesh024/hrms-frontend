@@ -1,113 +1,66 @@
-<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
-    <div class="flex items-center gap-3">
-        <h3 class="font-medium" id="totalCount">Employee</h3>
-        <div class="flex gap-2 items-center text-md px-2">
-            <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
-            <span id="countMessage">5 of 10</span>
-            <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
-        </div>
-    </div>
-    <!-- <div>
-        <button id="AddNewForm" onclick="OpenNewEmployeeForm()" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
-        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
-            Employee</button>
-    </div> -->
-</div>
-<hr>
-<div id="employeeCardList">
-    <table class="w-full border-collapse text-xs">
-        <thead>
-            <tr class="bg-gray-100 text-gray-700 text-left">
-                <th class="p-4 border-b">Employee ID</th>
-                <th class="p-4 border-b">Full Name</th>
-                <th class="p-4 border-b">Role</th>
-                <th class="p-4 border-b">Email</th>
-                <th class="p-4 border-b">Phone number</th>
-                <th class="p-4 border-b">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-
-        </tbody>
-    </table>
-</div>
-
-<div id="employeeDetails"
-    class="fixed inset-0 bg-black bg-opacity-50 flex-1 content-center z-50  employee-container hidden">
-
-</div>
-
-<!-- Edit Modal -->
-<div id="edit-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-    <div class="bg-white mt-10 p-6 rounded-lg w-full max-w-3xl">
-        <h2 class="text-lg font-bold mb-4">Edit Employee</h2>
-        <form id="edit-form" class="grid grid-cols-2 gap-4">
-            <input type="hidden" id="user-id">
-
-            <div><label>First Name</label><input type="text" id="first_name" name="first_name" class="input" /></div>
-            <div><label>Last Name</label><input type="text" id="last_name" name="last_name" class="input" /></div>
-            <div><label>Email</label><input type="email" id="email" class="input" disabled /></div>
-            <div><label>Phone</label><input type="text" id="phone" name="phone" class="input" /></div>
-            <div><label>Date of Birth</label><input type="date" id="dob" name="dob" class="input" /></div>
-            <div>
-                <label>Gender</label>
-                <select id="gender" name="gender" class="input">
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option selected value="other">Others</option>
-                </select>
+<div id="employeeList" class="employee-container w-full h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
+    <div id="filterAction" class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-end">
+            <div class="flex gap-2 items-center text-md px-2">
+                <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                <span id="countMessage">5 of 10</span>
+                <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
             </div>
-            <div><label>Address</label><input type="text" id="address" name="address" class="input" /></div>
-            <div><label>City</label><input type="text" id="city" name="city" class="input" /></div>
-            <div><label>State</label><input type="text" id="state" name="state" class="input" /></div>
-            <div><label>Country</label><input type="text" id="country" name="country" class="input" /></div>
-            <div><label>Pincode</label><input type="text" id="pincode" name="pincode" class="input" /></div>
-        </form>
-        <div class="mt-4 flex justify-end">
-            <button type="submit" id="saveEdit" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-            <button id="closeEditPopup" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
-        </div>
+    </div>
+    <hr>
+    <div id="employeeCardList" class="w-full">
+        <table class="w-full border-collapse text-xs">
+            <thead>
+                <tr class="bg-gray-100 text-gray-700 text-left">
+                    <th class="p-4 border-b">Employee ID</th>
+                    <th class="p-4 border-b">Full Name</th>
+                    <th class="p-4 border-b">Role</th>
+                    <th class="p-4 border-b">Email</th>
+                    <th class="p-4 border-b">Phone number</th>
+                    <th class="p-4 border-b">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Modal -->
-<div id="attendanceModal" class="fixed inset-0 bg-black bg-opacity-30 hidden justify-center items-center z-50">
-  <div class="bg-white w-80 p-6 rounded-lg shadow-xl relative">
-    <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-black">✖</button>
-    <h3 class="text-lg font-semibold mb-2">Attendance Details</h3>
-    <p id="modalDate" class="text-sm text-gray-600 mb-2"></p>
-    <p id="modalStatus" class="text-base font-medium"></p>
-  </div>
+<div id="selectedEmployee" class="flex-1 w-full justify-items-center employee-container">
+
 </div>
+
 
 <script>
     $(function () {
+
         let employee = []
-        let page = 1
+        let page = urlParams.get("page") || 1
         let paseSize = PAGESIZE
         let TotalCount = 0
+        let selectedID = urlParams.get("employee_id")
 
         function initFetch() {
             $("#editPanel #editContent").empty()
             closePanel()
             try {
                 fetch(`${DomainURL}/user?page_size=${paseSize}&page=${page}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${access_token}`
-                },
-                method: "GET"
-            })
-                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                .then(data => {
-                    // console.log(data)
-                    if (data.status) {
-                        $("#employeeCardList tbody").empty()
-                        employee = data.user
-                        TotalCount = data.total_count
-                        if (employee.length)
-                            employee.forEach((element, index) => {
-                                $("#employeeCardList tbody").append(`
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#employeeCardList tbody").empty()
+                            employee = data.user
+                            TotalCount = data.total_count
+                            if (employee.length)
+                                employee.forEach((element, index) => {
+                                    $("#employeeCardList tbody").append(`
                                 <tr id="${index}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
                                     <td class="p-4">${capitalizeFirstLetter(element.user_name)}</td>
                                     <td class="p-4">${capitalizeFirstLetter(element.profile.first_name + " " + element.profile.last_name || "--")}</td>
@@ -120,52 +73,24 @@
                                 </tr>
                             `)
 
-                            });
+                                });
                             var total = (page - 1) * paseSize
                             $("#countMessage").text(`${total + employee.length} of ${TotalCount}`)
-                    }
-                });
+                        }
+                    });
 
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                showAlertMessage("warning", "API error", error)
             }
-            
-            //   fetch(`${DomainURL}/appraisal/category/2`, {
-            //     headers: {
-            //       "Content-Type": "application/json",
-            //       Authorization: `Bearer ${access_token}`
-            //     },
-            //     method: "GET"
-            //   })
-            //     .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-            //     .then(data => {
-            //       // console.log(data)
-            //       if (data.status) {
-            //         categories = data.category.category
-            //       }
-            //     });
-
-            //   fetch(`${DomainURL}/role?page_size=50`, {
-            //     headers: {
-            //       "Content-Type": "application/json",
-            //       Authorization: `Bearer ${access_token}`
-            //     },
-            //     method: "GET"
-            //   })
-            //     .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-            //     .then(data => {
-            //       if (data.status) {
-            //         // console.log(data)
-            //         data.roles.forEach(element => {
-            //           // if (element.active)
-            //           $("#formModal #role_id").append(`<option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>`)
-            //         })
-            //       }
-            //     })
         }
-
-        initFetch()
-
+        $(".employee-container").hide()
+        if (selectedID) {
+            $("#selectedEmployee").load("./componnet/employee/emp-details.html")
+            $("#selectedEmployee").show()
+        } else {
+            $("#employeeList").show()
+            initFetch()
+        }
         // Role name extract
         function roleName(access) {
             for (let item of access) {
@@ -192,451 +117,99 @@
             }
         })
 
-        // Selected employee
-        let selectedEmp
-        let selectedProfile
-        function SelectedEmployee(ID){
-            selectedEmp = employee.find(item => item.id == ID)
-            selectedProfile = selectedEmp.profile
-            // console.log(selectedEmp,selectedProfile)
-            $("#employeeDetails").removeClass("hidden")
-            $("#edit-modal").addClass("hidden")
-
-            $("#employeeDetails").html(`
-                <div class="max-w-5xl mx-auto mt-10 bg-white p-6 rounded-xl shadow-lg">
-                    <div class="w-full flex justify-end -mt-4"><button id="closeEmployeeDetails" class="font-bold cursor-pointer">X</button></div>
-                    
-                    <div class="flex items-center justify-between border-b pb-4 mb-6">
-                        <div class="flex items-center space-x-4">
-                            <img src="https://ui-avatars.com/api/?name=${selectedProfile.first_name}+${selectedProfile.last_name}" alt="Avatar" class="w-16 h-16 rounded-full shadow">
-                            <div>
-                                <h2 class="text-2xl font-semibold text-gray-800">${capitalizeFirstLetter(selectedProfile.first_name + " " + selectedProfile.last_name || "--")}</h2>
-                                <p class="text-sm text-gray-500">${roleName(selectedEmp.access)}</p>
-                            </div>
-                        </div>
-                        <button id="openEditPopup"
-                            class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Edit</button>
-                    </div>
-
-                    <div class="tabs flex space-x-4 border-b mb-4">
-                        <button class="tab-button active" data-tab="profile">Profile</button>
-                        <button class="tab-button" data-tab="access">Access</button>
-                        <button class="tab-button" data-tab="appraisal">Appraisal</button>
-                        <button class="tab-button" data-tab="attendance">Attendance</button>
-                    </div>
-
-                    <div id="profile" class="tab-content h-96 overflow-auto">
-                        ${MyProfile()}                        
-                    </div>
-                    <!-- Other Tab Content -->
-                    <div id="access" class="tab-content hidden">Access Tab Content</div>
-                    <div id="appraisal" class="tab-content hidden">Appraisal Tab Content</div>
-                    <div id="attendance" class="tab-content hidden">
-                        <div class="p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-semibold" id="monthYearLabel">Attendance</h2>
-                                <div class="space-x-2">
-                                <button onclick="changeMonth(-1)" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">◀</button>
-                                <button onclick="changeMonth(1)" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">▶</button>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-7 gap-2 text-center font-semibold">
-                                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-                            </div>
-
-                            <div id="calendar-grid" class="grid grid-cols-7 gap-2 mt-2">
-                                <!-- Calendar dates go here -->
-                            </div>
-
-                            <!-- Legend -->
-                            <div class="mt-6 text-sm">
-                                <div class="flex items-center gap-2 mb-1">
-                                <div class="w-4 h-4 bg-green-400 rounded-full"></div> Worked
-                                </div>
-                                <div class="flex items-center gap-2 mb-1">
-                                <div class="w-4 h-4 bg-yellow-400 rounded-full"></div> Half Day / Permission
-                                </div>
-                                <div class="flex items-center gap-2 mb-1">
-                                <div class="w-4 h-4 bg-red-400 rounded-full"></div> Leave
-                                </div>
-                                <div class="flex items-center gap-2">
-                                <div class="w-4 h-4 bg-gray-300 rounded-full"></div> No Entry
-                                </div>
-                            </div>
-                            </div>
-                    </div>
-                </div>
-             `)
-            const tabButtons = document.querySelectorAll('#employeeDetails .tab-button');
-            const tabContents = document.querySelectorAll('#employeeDetails .tab-content');
-
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    tabButtons.forEach(b => b.classList.remove('active'));
-                    tabContents.forEach(tc => tc.classList.add('hidden'));
-
-                    btn.classList.add('active');
-                    const tab = btn.getAttribute('data-tab');
-                    document.getElementById(tab).classList.remove('hidden');
-                });
-            });
-            calenderInit()
-        };
-
-        function MyProfile(){
-            const profileContent = `
-                    <div class="space-y-10">
-                
-                <!-- Employee Info Section -->
-                <div id="profileSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700 SectionDetails">
-                    <div>
-                        <h4 class="font-medium text-gray-900">Employee ID</h4>
-                        <p>${capitalizeFirstLetter(selectedEmp.user_name)}</p>
-                    </div>
-                    <div>
-                        <h4 class="font-medium text-gray-900">Email</h4>
-                        <p>${selectedEmp.email}</p>
-                    </div>
-                    <div>
-                        <h4 class="font-medium text-gray-900">Phone</h4>
-                        <p>${selectedProfile.phone || "--"}</p>
-                    </div>
-                    <div>
-                        <h4 class="font-medium text-gray-900">Department</h4>
-                        <p>--</p>
-                    </div>
-                    <div>
-                        <h4 class="font-medium text-gray-900">Joining Date</h4>
-                        <p>${new Date(selectedEmp.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <div class="relative">
-                        <h4 class="font-medium text-gray-900">Status</h4>
-                        ${StatusColourCode(selectedEmp.status)}
-                        <button class="font-bold text-xs" id="employeeStatusChange"><i class="fas fa-chevron-down"></i></button>
-                        <div class="absolute w-20 mt-1 bg-white shadow-lg rounded-lg font-medium text-xs hidden" id="employeeStatusList">
-                        <h5 data-value="1" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected rounded-t-lg">${statusNames[1]}</h5>
-                        <h5 data-value="2" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[2]}</h5>
-                        <h5 data-value="7" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[7]}</h5>
-                        <h5 data-value="5" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[5]}</h5>
-                        <h5 data-value="6" class="p-2 border-b-2 cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[6]}</h5>
-                        <h5 data-value="0" class="p-2 rounded-b-lg cursor-pointer hover:bg-blue-400 hover:text-white employeeStatusListSelected">${statusNames[0]}</h5>
-                        </div>
-                    </div>
-                    <div class="mt-6">
-                        <h4 class="font-medium text-gray-900 mb-2">Address</h4>
-                        <p class="text-sm text-gray-700">
-                        ${selectedProfile.address}<br>
-                        ${selectedProfile.city},${selectedProfile.state}-${selectedProfile.pincode}<br>
-                        ${selectedProfile.country}
-                        </p>
-                    </div>
-                </div>            
-                <!-- Education Section -->
-                <div id="educationSection" class="hidden text-sm text-gray-700 w-fit SectionDetails">
-                    ${MyEducation(selectedEmp.education)}
-                </div>
-                <!-- Certificate Section -->
-                <div id="certificateSection" class="hidden text-sm text-gray-700 w-fit SectionDetails">
-                    ${MyCertificate(selectedEmp.file)}
-                </div>
-                <!-- Bank Section -->
-                <div id="bankSection" class="hidden text-sm text-gray-700 SectionDetails">
-                    ${MyBankDetails(selectedEmp.bank)}
-                </div>
-            <div class="space-y-2">
-                <button data-target="profileSection" class="text-sm font-medium w-full text-start space-y-2 SectionToggel hidden"><hr> <h6>Profile</h6></button>
-                <button data-target="educationSection" class="text-sm font-medium w-full text-start space-y-2 SectionToggel"><hr> <h6> Education </h6></button>
-                <button data-target="certificateSection" class="text-sm font-medium w-full text-start space-y-2 SectionToggel"><hr> <h6> Certificate </h6></button>
-                <button data-target="bankSection" class="text-sm font-medium w-full text-start space-y-2 SectionToggel"><hr> <h6> Bank </h6></button>
-            </div>
-            </div>
-
-                    `
-            return profileContent
-        };
-        
-        $(document).on("click","#employeeDetails button.SectionToggel",function(){
-            let dataSection = $(this).attr("data-target")
-            $("#employeeDetails .SectionDetails").each(function(){$(this).addClass("hidden")})
-            $("#employeeDetails button.SectionToggel").each(function(){
-                if(dataSection == $(this).attr("data-target")){
-                    $(this).addClass("hidden")
-                }else{
-                    $(this).removeClass("hidden")
-                }
-            })
-            $(`#employeeDetails #${dataSection}`).removeClass("hidden")
-        })
-
-
-        function MyEducation(education){
-            let Content = []
-            education.forEach(item=>{
-                Content.push(`
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border rounded-lg my-4 p-6">
-                        <div>
-                            <h4 class="font-medium text-gray-900">Institution</h4>
-                            <p>${item.institution}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">Degree</h4>
-                            <p>${item.degree}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">${item.mark_type}</h4>
-                            <p>${item.percentage}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">Start year</h4>
-                            <p>${item.start_year}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">Start year</h4>
-                            <p>${item.end_year}</p>
-                        </div>
-                    </div>
-                `)
-            });
-
-            return Content.join("") || "--"
-        }
-        function MyBankDetails(bank){
-            let Content = []
-                Content.push(`
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h4 class="font-medium text-gray-900">Account Holder Name</h4>
-                            <p>${bank.holder_name || "--"}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">Account Number</h4>
-                            <p>${bank.account_number || "--"}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">Bank Name</h4>
-                            <p>${bank.bank_name || "--"}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900">IFSC Code</h4>
-                            <p>${bank.ifsc_code || "--"}</p>
-                        </div>
-                    </div>
-                `);
-
-            return Content.join("") || "--"
-        }
-
-        function MyCertificate(files){
-            let Content = []
-            files.forEach(item=>{
-                if(item.type == "certificate")
-                    Content.push(`
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border rounded-lg my-4 p-6">
-                            <div>
-                                <h4 class="font-medium text-gray-900">Certificate name</h4>
-                                <p>${item.name}</p>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-900">Certificate</h4>
-                                <span onclick="FilePreviewURL('${item.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>
-                            </div>
-                            
-                        </div>
-                    `)
-            });
-
-            return Content.join("") || "--"
-        }
-
-        $(document).on("click","#employeeDetails #employeeStatusChange",function(){
-            if ($("#employeeDetails #employeeStatusList").is(":visible")){
-                $("#employeeDetails #employeeStatusList").addClass("hidden")
-            }else{
-                $("#employeeDetails #employeeStatusList").removeClass("hidden")
-            }
-        })
-
-        $(document).on("click","#employeeDetails #employeeStatusList .employeeStatusListSelected",function(){
-            try {
-                fetch(`${DomainURL}/user/status/${selectedEmp.id}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-                    method: "PUT",
-                    body: JSON.stringify({
-                        "status":parseInt($(this).attr("data-value"))
-                    })
-                })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data =>{
-                        if(data.status){
-                            showAlertMessage("success","Employee","Employee Status updated")
-                            initFetch()
-                            setTimeout(()=>{SelectedEmployee(selectedEmp.id)},500)
-                        }else{
-                            showAlertMessage("Error","Employee",data.message)
-                        }
-                    })
-            } catch (error) {
-                showAlertMessage("warning","API error", error)
-            }
-        })
-
         $(document).on("click", "#employeeCardList tbody tr.selectedList", function () {
-            SelectedEmployee(employee[$(this).attr("id")].id)
-
+            // SelectedEmployee(employee[$(this).attr("id")].id)
+            let ID = employee[$(this).attr("id")].id
+            window.location.href = `?employee_id=${ID}&page=${page}`
         });
 
-// Edit profile data
-        $(document).on("click", "#employeeDetails #openEditPopup", function () {
-            document.getElementById('edit-modal').classList.remove('hidden');
-            $("#edit-modal #edit-form #email").val(selectedEmp.email)
-            // $("#edit-modal #edit-form #status").val(selectedEmp.status)
-            // console.log(selectedProfile)
-            Object.keys(selectedProfile).forEach((key)=>{
-                $(`#edit-modal #edit-form #${key}`).val(selectedProfile[key] || "--")
-            })
-            $("#employeeDetails").addClass("hidden")
-            
-            $(document).ready(function () {
-                $(".floating-label input").each(function () {
-                    toggleLabel($(this));
-                });
-            });
-        });
-
-        $(document).on("click", "#employeeDetails #closeEmployeeDetails", function () {
-            $("#employeeDetails").addClass("hidden")
-        });
-
-        $(document).on("click", "#closeEditPopup", function () {
-            document.getElementById('edit-modal').classList.add('hidden');
-        });
-
-        $(document).on("click", "#saveEdit", function () {
-            $("#edit-modal #edit-form").submit()
-        })
-        $(document).off("submit", "#edit-modal #edit-form");
-        $(document).on("submit", "#edit-modal #edit-form", function (e) {
-            e.preventDefault();
-            let formData = new FormData(this)
-            let profileData = {}
-            formData.forEach((val,key)=>{
-                profileData[key] = val
-            })
-            try {
-                fetch(`${DomainURL}${selectedProfile.id ? "/user/profile/"+selectedProfile.id :"/user/quick/user/profile/"+selectedEmp.id}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-                    method: selectedProfile.id ? "PUT" : "POST",
-                    body: JSON.stringify(profileData)
-                })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data =>{
-                        if(data.status){
-                            showAlertMessage("success","Employee","Profile updated")
-                            initFetch()
-                            setTimeout(()=>{SelectedEmployee(selectedEmp.id)},500)
-                        }else{
-                            showAlertMessage("error","Employee",data.message)
-                        }
-                    })
-            } catch (error) {
-                showAlertMessage("warning","API error", error)
-            }
-            // document.getElementById('edit-modal').classList.add('hidden');
-        })
     })
 
-    function calenderInit(){
-  let currentMonth = new Date().getMonth();
-  let currentYear = new Date().getFullYear();
+    function calenderInit() {
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
 
-  const attendanceData = {
-    '2025-05-01': 'worked',
-    '2025-05-02': 'half',
-    '2025-05-03': 'leave',
-    '2025-05-05': 'worked',
-    '2025-05-07': 'half',
-    // Add more
-  };
+        const attendanceData = {
+            '2025-06-01': 'worked',
+            '2025-06-02': 'half',
+            '2025-06-03': 'leave',
+            '2025-06-06': 'worked',
+            '2025-06-07': 'half',
+            // Add more
+        };
 
-  function renderCalendar() {
-    const calendar = document.getElementById("calendar-grid");
-    calendar.innerHTML = "";
+        function renderCalendar() {
+            const calendar = document.getElementById("calendar-grid");
+            calendar.innerHTML = "";
 
-    const label = document.getElementById("monthYearLabel");
-    const monthName = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" });
-    label.textContent = `Attendance - ${monthName} ${currentYear}`;
+            const label = document.getElementById("monthYearLabel");
+            const monthName = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" });
+            label.textContent = `Attendance - ${monthName} ${currentYear}`;
 
-    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-    for (let i = 0; i < firstDay; i++) {
-      calendar.innerHTML += `<div></div>`;
-    }
+            for (let i = 0; i < firstDay; i++) {
+                calendar.innerHTML += `<div></div>`;
+            }
 
-    for (let day = 1; day <= totalDays; day++) {
-      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const status = attendanceData[dateStr] || 'none';
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const status = attendanceData[dateStr] || 'none';
 
-      let bgColor = 'bg-gray-200', label = 'No Entry';
-      if (status === 'worked') bgColor = 'bg-green-400', label = 'Worked Full Day';
-      else if (status === 'half') bgColor = 'bg-yellow-400', label = 'Half Day / Permission';
-      else if (status === 'leave') bgColor = 'bg-red-400', label = 'Leave';
+                let bgColor = 'bg-gray-200', label = 'No Entry';
+                if (status === 'worked') bgColor = 'bg-green-400', label = 'Worked Full Day';
+                else if (status === 'half') bgColor = 'bg-yellow-400', label = 'Half Day / Permission';
+                else if (status === 'leave') bgColor = 'bg-red-400', label = 'Leave';
 
-      calendar.innerHTML += `
+                calendar.innerHTML += `
         <div onclick="showModal('${dateStr}', '${label}')" 
              class="h-10 flex items-center justify-center ${bgColor} rounded cursor-pointer text-white font-medium hover:opacity-90">
           ${day}
         </div>`;
+            }
+        }
+
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        function showModal(date, status) {
+            document.getElementById('modalDate').textContent = `Date: ${date}`;
+            document.getElementById('modalStatus').textContent = `Status: ${status}`;
+            document.getElementById('attendanceModal').classList.remove('hidden');
+            document.getElementById('attendanceModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('attendanceModal').classList.remove('flex');
+            document.getElementById('attendanceModal').classList.add('hidden');
+        }
+
+        renderCalendar();
     }
-  }
-
-  function changeMonth(direction) {
-    currentMonth += direction;
-    if (currentMonth < 0) {
-      currentMonth = 11;
-      currentYear--;
-    }
-    if (currentMonth > 11) {
-      currentMonth = 0;
-      currentYear++;
-    }
-    renderCalendar();
-  }
-
-  function showModal(date, status) {
-    document.getElementById('modalDate').textContent = `Date: ${date}`;
-    document.getElementById('modalStatus').textContent = `Status: ${status}`;
-    document.getElementById('attendanceModal').classList.remove('hidden');
-    document.getElementById('attendanceModal').classList.add('flex');
-  }
-
-  function closeModal() {
-    document.getElementById('attendanceModal').classList.remove('flex');
-    document.getElementById('attendanceModal').classList.add('hidden');
-  }
-
-  renderCalendar();
-}
 
 </script>
 
 <script>
-    $(function(){
+    $(function () {
         // floatingInputTag(type,id,name,labelName,value="",required=true,disabled)
-        $(document).ready(function(){
+        $(document).ready(function () {
             $("#edit-modal #edit-form").html(`
-                ${floatingInputTag("text","first_name","first_name","First Name")}
-                ${floatingInputTag("text","last_name","last_name","Last Name")}
-                ${floatingInputTag("text","email","email","Email","",false,true)}
-                ${floatingInputTag("number","phone","phone","Phone")}
-                ${floatingInputTag("text","dob","dob","Date of Birth")}
+                ${floatingInputTag("text", "first_name", "first_name", "First Name")}
+                ${floatingInputTag("text", "last_name", "last_name", "Last Name")}
+                ${floatingInputTag("text", "email", "email", "Email", "", false, true)}
+                ${floatingInputTag("number", "phone", "phone", "Phone")}
+                ${floatingInputTag("text", "dob", "dob", "Date of Birth")}
                 <div class="w-64 mt-4">
                     <label class="w-full text-sm text-blue-500">Gender</label>
                     <select id="gender" name="gender" class="w-full border-b-2 border-gray-300 bg-transparent text-sm pb-1 focus:outline-none focus:border-blue-500">
@@ -645,11 +218,11 @@
                         <option value="female">Female</option>
                     </select>
                 </div>
-                ${floatingInputTag("text","address","address","Address")}
-                ${floatingInputTag("text","city","city","City")}
-                ${floatingInputTag("text","state","state","State")}
-                ${floatingInputTag("text","country","country","Country")}
-                ${floatingInputTag("text","pincode","pincode","Pincode")}
+                ${floatingInputTag("text", "address", "address", "Address")}
+                ${floatingInputTag("text", "city", "city", "City")}
+                ${floatingInputTag("text", "state", "state", "State")}
+                ${floatingInputTag("text", "country", "country", "Country")}
+                ${floatingInputTag("text", "pincode", "pincode", "Pincode")}
             `)
         })
     })

@@ -5,4 +5,4 @@ const DomainURL = "https://hrms-api-s8dh.onrender.com"
 // Permission Modules
 const modules = ["user","access","timesheet","timeoffpolicy","appraisal","appraisalform","role","team","request","permission","management","onboard"]
 
-const PAGESIZE = 8
+const PAGESIZE = 1

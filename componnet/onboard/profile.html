@@ -9,9 +9,29 @@
         // floatingInputTag(type,id,name,labelName,value)
         $("form#tab-profile").html(`
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex pl-4">
+                    <label class="cursor-pointer relative">
+                        <div class="w-24 h-24 rounded-full overflow-hidden border border-gray-300 shadow">
+                            <img id="profileImage" 
+                                src="" 
+                                alt="Profile" 
+                                class="object-cover w-full h-full">
+                        </div>
+                        <input type="file" id="uploadInput" class="hidden" accept="image/*">
+                        <input type="hidden" id="fileID" value="0">
+                    </label>
+                    <div class="toggle flex items-start gap-2 w-fit h-fit hidden" id="removeImage">
+                        <i class="fa-solid fa-user-xmark cursor-pointer"></i>
+                        <div class="flex items-center hidden" id="toggle-message">
+                            <i class="fa-solid fa-caret-left text-gray-500 "></i>
+                            <span class="text-white text-xs bg-gray-500  p-1 rounded-lg">Undo</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${floatingInputTag("text", "email", "email", "Email", "", false, true)}
                 ${floatingInputTag("text", "first_name", "first_name", "First Name")}
                 ${floatingInputTag("text", "last_name", "last_name", "Last Name")}
-                ${floatingInputTag("text", "email", "email", "Email", "", false, true)}
                 ${floatingInputTag("number", "phone", "phone", "Phone")}
                 ${floatingInputTag("date", "dob", "dob", "Date of Birth")}
                 <div class="w-64 mt-5">
@@ -45,9 +65,10 @@
                     .then(data => {
                         if (data.status) {
                             $(`#tab-profile #email`).val(data.user.email);
-                            Object.keys(data.user.profile).forEach(key => {
+                            Object.keys(data.user.profile).forEach((key) => {
                                 $(`#tab-profile #${key}`).val(data.user.profile[key]);
                             });
+                            SetProfileImage(data.user.profile.profile_image)
                         } else {
                             showAlertMessage("error", "Profile", data.message)
                         }
@@ -58,11 +79,44 @@
 
 
             setTimeout(() => {
-                if (MyOnboardDetails.correction_marked)
+                if (MyOnboardDetails?.correction_marked)
                     MarkCorrection()
             }, 500)
         };
 
+        let MyProfileURL = "./static/image/profile-default.png"
+        let newProfileImg = null
+        let newURL
+        async function SetProfileImage(params) {
+            let image = params
+            if (image.id) {
+                MyProfileURL = await FilePreviewURL(image.file_path,false) 
+                $(`#tab-profile input#fileID`).val(image.id)
+            }
+            $(`#tab-profile img#profileImage`).prop("src", `${MyProfileURL}`)
+        }
+        
+        $(document).on("change","form#tab-profile #uploadInput",function(){
+            let file = $(this)[0].files[0]
+            if(file.name){
+                newProfileImg = file
+                newURL = URL.createObjectURL(file)
+                $(`#tab-profile img#profileImage`).prop("src", `${newURL}`)
+                $(`#tab-profile div#removeImage`).removeClass("hidden")
+            }else{
+                showAlertMessage("info", "Employee profile", "Error to extract image.")
+            }
+        })
+
+        $(document).on("click","div#removeImage i", function(){
+            $(`#tab-profile img#profileImage`).prop("src", `${MyProfileURL}`)
+            newProfileImg = null
+            URL.revokeObjectURL(newURL)
+            $("form#tab-profile #uploadInput").val("")
+            $(this).parent().addClass("hidden")
+        })
+
+        // Form Sumbit
         $(document).ready(function () {
             initFun();
             $(document).off("submit", "form#tab-profile");
@@ -86,6 +140,7 @@
                         .then(data => {
                             if (data.status) {
                                 showAlertMessage("success", "Employee profile", "profile saved")
+                                UploadProfileImage()
                             } else {
                                 showAlertMessage("error", "Employee profile", data.message)
                             }
@@ -93,8 +148,31 @@
                 } catch (error) {
                     showAlertMessage("warning", "API error", error)
                 }
+
             });
         });
+
+        function UploadProfileImage(){
+            if(newProfileImg){
+                let form = new FormData()
+                let ID = $("#tab-profile input#fileID").val()
+                let fileData = $(`#tab-profile input#uploadInput`)[0].files[0]
+                let nameData = userName
+                form.append("module_type", "user_profiles")
+                form.append("type", "profile")
+                form.append("name", nameData + "_profile")
+                form.append("file", fileData)
+
+                uploadFileData(ID, form , "Employee profile updated")
+            }
+        }
+
+        // Toggle function
+        $("div.toggle").mouseenter(function(){
+            $(this).find("#toggle-message").removeClass("hidden")
+        }).mouseleave(function(){
+            $(this).find("#toggle-message").addClass("hidden")
+        })
 
         // Mark Correction  function
         function MarkCorrection() {
