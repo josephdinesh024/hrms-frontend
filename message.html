@@ -159,7 +159,7 @@
 
         // connect websocket
         function connectWS() {
-            ws = new WebSocket(`ws${URLs}/ws/${access_token}`);
+            ws = new WebSocket(`${URLs}/ws/${access_token}`);
             ws.onmessage = (e) => {
                 let msg = JSON.parse(e.data);
                 if (msg.sender_id == currentChat && currentUser != currentChat) {
