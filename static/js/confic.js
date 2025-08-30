@@ -1,5 +1,5 @@
 
-const DomainURL = "https://hrms-api-s8dh.onrender.com/" 
+const DomainURL = "https://hrms-api-s8dh.onrender.com" 
 // const DomainURL = "http://localhost:8080"
 
 // Permission Modules
