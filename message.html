@@ -80,6 +80,7 @@
         let offset = 0;
         let limit = 20;
         let ws;
+        let URLs
 
         function loadChatList() {
             $.ajax({
@@ -158,7 +159,7 @@
 
         // connect websocket
         function connectWS() {
-            ws = new WebSocket(`ws://localhost:8080/ws/${access_token}`);
+            ws = new WebSocket(`ws${URLs}/ws/${access_token}`);
             ws.onmessage = (e) => {
                 let msg = JSON.parse(e.data);
                 if (msg.sender_id == currentChat && currentUser != currentChat) {
@@ -212,6 +213,7 @@
         });
 
         $(document).ready(function () {
+            URLs = DomainURL.replace("https","ws")
             currentUser = parseInt($.cookie("id"))
             loadChatList();
             connectWS();
