@@ -12,7 +12,6 @@
 </head>
 
 <body class="flex justify-center gap-6 bg-gray-100 p-10">
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="w-1/2 mx-auto bg-white p-6 rounded-lg shadow">
         <div class="grid grid-cols-2 justify-evently gap-3 text-sm text-textPrimary font-bold py-2 relative">
@@ -59,12 +58,8 @@
         </div>
     </div>
 
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <script>
-        var access_token = $.cookie("access_token")
-        if (!access_token)
-            window.location.href = 'login.html'
-
         let questions = [];
         let formCode
         let formTitle
@@ -75,6 +70,7 @@
 
         if (appraisalId && reviewId)
             try {
+                ProgressLoading(true)
                 fetch(`${DomailURL}/appraisal/${appraisalId}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -82,7 +78,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -97,12 +93,14 @@
                             $("h3#email").text(data.appraisal.user.email)
                             $("h3#phone").text(data.appraisal.user.profile.phone)
                         } else {
-                            showAlertMessage("error","Error",data.message)
+                            showAlertMessage("error", "Error", data.message)
                         }
+                        ProgressLoading(false)
                     });
 
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
 
         else
@@ -153,6 +151,7 @@
                 $("input#description").focus()
             else
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomailURL}/manage/request/${reviewId}`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -161,17 +160,19 @@
                         method: "PUT",
                         body: JSON.stringify(reviewData)
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
-                                showAlertMessage("success","Success","Review updated")
+                                showAlertMessage("success", "Success", "Review updated")
                                 window.location.href = "request.html"
                             }
                             else
-                                showAlertMessage("error","Error",data.message)
+                                showAlertMessage("error", "Error", data.message)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
 
         })

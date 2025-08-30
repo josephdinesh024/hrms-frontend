@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Appraisal</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src=".//static/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+    <script src="./static/js/confic.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+
+    <div id="sidebar-empty">
+        <aside
+            class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out">
+            <div class="px-4 pt-2 min-w-16 w-full">
+                <img src="./static/image/alcor_logo.png" class="bg-cover w-12" />
+            </div>
+        </aside>
+    </div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+        <div class="flex-1 content-center justify-items-center h-[90vh] overflow-auto">
+            <div class="w-1/2 h-2/4 bg-white p-6 flex-1 content-center rounded-lg shadow-md relative"
+                id="question-container">
+                <h1 class="text-textPrimary text-center">Form Not Found</h1>
+            </div>
+            <div class="w-1/2 flex justify-end gap-8 mt-6">
+                <button id="previous" class="page-btn" data-quest=0>Previous</button>
+                <button id="next" class="page-btn" data-quest=0>Next</button>
+            </div>
+        </div>
+    </div>
+    <div id="ConfirmForm"
+        class="fixed inset-0 z-50 w-full h-full bg-black bg-opacity-50 grid content-center justify-center hidden">
+        <div class="w-max h-40 bg-white text-sm p-6 rounded-lg shadow-md">
+            <h3 class="font-bold">Confirm to submit</h3>
+            <h4 class="font-medium text-textPrimary">You can make change after submittion</h4>
+            <div class="flex justify-end gap-4 mt-6">
+                <button onclick="SubmitConfirmForm()"
+                    class="py-3 px-6 font-medium border border-blue-300 rounded-lg">Yes</button>
+                <button onclick="CancelConfirmForm()"
+                    class="py-3 px-6 font-medium border hover:border-blue-300 rounded-lg">No</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // $("#targetContent").load("./componnet/Appraisal/profile.html")
+        let Token
+        let length
+        let TextLimit = 200
+        let newData
+        $(document).ready(function () {
+            try {
+                Token = urlParams.get("token")
+            } catch (error) {
+                showAlertMessage("warning", "Server", "Reload the page. " + error)
+            }
+            if (Token)
+                setTimeout(() => initFetch(Token), 500)
+            else
+                showAlertMessage("warning", "Appraisal Form", "Missing form token")
+
+            $("div button").addClass("py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500")
+            // ShowQuestion(0)
+            // length = $("#question-container").length + 1
+        });
+
+        $(document).on("click", "div button#previous", function () {
+            let ID = $(this).data("quest")
+            if (ID > 0) {
+                ID -= 1;
+                ShowQuestion(ID)
+            }
+        });
+        $(document).on("click", "div button#next", function () {
+            let ID = $(this).data("quest") 
+            let elm = $(`#question-container #${ID} textarea`)
+            newData = AppraisalFormQuestion
+            let val = elm.val()
+            if (!(ID == length) && val.length < TextLimit) { //!elm.val().trim()
+                showAlertMessage("warning", "Appraisal Form", `Please fill your answer and its should contains atleast ${TextLimit} word.`)
+                elm.focus()
+            } else if (ID < length) {
+                ID += 1;
+                ShowQuestion(ID)
+                newData = newData.map(item => {
+                        if (elm.attr("id") == item["index"])
+                            item["answer"] = val
+                        return item
+                    });
+                SaveData(newData,"")
+            }
+        });
+
+        $(document).on("keyup click change","textarea",function(){
+            let ID = $(this).attr("id");
+            let textLn = $(this).val().trim().length
+            $(this).closest("div").find(`#${ID}-length`).text(textLn)
+        })
+
+        function ShowQuestion(ID) {
+            $(".page-btn").data("quest", ID)
+            $("#question-container .questions").hide()
+            $(`#question-container #${ID}`).show();
+            if (ID == length) {
+                $("div button#next").text("Submit")
+                $("div button#next").attr("onclick", "OpenConfirmForm()")
+            } else {
+                $("div button#next").text("Next")
+                $("div button#next").attr("onclick", false)
+            }
+        }
+
+        function OpenConfirmForm() {
+            $("#ConfirmForm").removeClass("hidden")
+        }
+
+        function CancelConfirmForm() {
+            $("#ConfirmForm").addClass("hidden")
+        }
+
+        let AppraisalFormQuestion
+        function initFetch(token) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/appraisal/testform?token=${token}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status == 1) {
+                            AppraisalFormQuestion = data.form.question
+                            $("#question-container").empty()
+                            $("#question-container").append(`
+                            <h1 class="absolute inset-6 text-xl font-semibold h-fit">${data.form.title}</h1>
+                            `);
+                            let formQuestion = AppraisalFormQuestion
+                            if(data?.appraisal?.id)
+                                formQuestion = data?.appraisal?.answer
+                            formQuestion.forEach((item, i) => {
+                                $("#question-container").append(`
+                                    <div class="text-base font-medium questions" id="${i}" data-index="${item.index}">
+                                        <h3>${i + 1}) ${item.question}</h3>
+                                        <textarea id="${item.index}" minlength="${TextLimit}" rows="6" name="answer" 
+                                            placeholder="Enter your response..." class="w-full border-b-2 focus:outline-none text-sm mt-8"
+                                            >${item?.answer || ""}</textarea>
+                                        <h5 id="${item.index}-length" class="text-xs text-textPrimary text-end w-full">${item?.answer?.length || 0}</h5>
+                                    </div>
+                                `)
+                            });
+                            $("#question-container").append(`
+                                <div class="text-base font-medium questions" id="${AppraisalFormQuestion.length}">
+                                    <h3>Final Feedback</h3>
+                                    <textarea id="feedback" name="description" rows="6" placeholder="Enter your feedback here..." class="w-full border-b-2 focus:outline-none text-sm mt-8"></textarea>
+                                </div>
+                            `)
+                            ShowQuestion(0)
+                            length = AppraisalFormQuestion.length
+                            // console.log(AppraisalFormQuestion)
+                        } else if(data.status == 2 ){
+                            showAlertMessage("warning", "Appraisal",data?.message)
+                            setTimeout(()=>window.location.href = "index.html",1000)
+                        }else {
+                            showAlertMessage("error", "Appraisal", "Error to fetch details. " + data?.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+
+        function SubmitConfirmForm() {
+            let answers = $("#question-container [name=answer]")
+            let flag = true
+            let newData = AppraisalFormQuestion
+            for (let i = 0; i < answers.length; i++) {
+                let a = $(answers[i])
+                let val = a.val()
+                let parent = a.parent()
+                if (val == "") {
+                    ShowQuestion(parent.attr("id"))
+                    a.focus()
+                    showAlertMessage("warning", "Appraisal Form", "Fill all details.")
+                    CancelConfirmForm()
+                    break
+                } else {
+                    newData = newData.map(item => {
+                        if (a.attr("id") == item["index"])
+                            item["answer"] = val
+                        return item
+                    })
+                }
+            }
+            let description = $("#question-container textarea#feedback").val().trim()
+            // console.log(newData,description)
+            if (flag)
+                SaveData(newData,description,true)
+            // $("#ConfirmForm").addClass("hidden")
+            CancelConfirmForm()
+        }
+
+        function SaveData(newData,description,submited=false){
+            try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/appraisal?token=${Token}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        body: JSON.stringify({
+                            "answer": newData,
+                            description,
+                            submited
+                        })
+                    }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            if (data.status && submited) {
+                                showAlertMessage("success", "Form submition", "Appraisal form submited successfully.")
+                                setTimeout(() => window.location.href = "index.html", 1000)
+
+                            } else if(data.status == 0 ) {
+                                showAlertMessage("error", "Form submition", "Error to submit form.\n" + data?.message)
+                            }
+                            ProgressLoading(false)
+                        })
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
+        }
+    </script>
+
+</body>
+
+</html>

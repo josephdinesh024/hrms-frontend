@@ -1,31 +1,4 @@
-
-<!-- <div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
-    <div class="flex items-center gap-3">
-        <h3 class="font-medium" id="totalCount">Special Policies</h3>
-        <div class="text-xs bg-gray-100 p-1" id="status">
-            <button id="all" class="p-3 font-medium bg-white">All </button>
-            <button id="active" class="p-3 font-medium">Active </button>
-            <button id="deactive" class="p-3 font-medium">Deactive </button>
-        </div>
-    </div>
-    <div>
-        <button id="AddNewPolicy" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
-        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add Policy</button>
-    </div>
-</div>
-<hr> -->
-
-<div class="font-semibold text-xl p-6 flex content-between">
-    <p>Leave special Policy</p>
-    <div>
-        <button id="AddNewSpecialPolicy"
-            class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
-                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
-            Special Policy</button>
-    </div>
-</div>
-
-<div id="specialPolicyCardList" class="mb-4">
+<div id="specialPolicyCardList" class="mb-4 cardLists">
     <table class="w-full border-collapse text-xs">
         <thead>
             <tr class="bg-gray-100 text-gray-700 text-left">
@@ -37,92 +10,173 @@
             </tr>
         </thead>
         <tbody>
-            
+
         </tbody>
     </table>
 </div>
-<div id="specialPolicyEditPanel" class="hidden p-5">
+<div id="specialPolicyEditPanel" class="hidden p-5 policy-details">
+    <form id="specialPolicyForm">
+        <div class="grid md:grid-cols-2">
+            <div class="relative mt-6 w-64 floating-label">
+                <label for="role_id" class="w-full text-sm text-blue-500">
+                    Role
+                </label>
+                <select
+                    class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                    id="role_id" name="role_id">
+                    <option value="--">--</option>
+                </select>
+            </div>
 
+            <div class="relative mt-6 floating-label">
+                <input type="text" id="name" name="name" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="name"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Name
+                </label>
+            </div>
+            <div class="relative mt-6 w-64 floating-label">
+                <label for="leave_type" class="w-full text-sm text-blue-500">
+                    Leave Type
+                </label>
+                <select
+                    class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                    id="leave_type" name="leave_type">
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                </select>
+            </div>
+
+            <div class="relative mt-6 floating-label">
+                <input type="number" id="max_leaves" name="max_leaves" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="max_leaves"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Max leave
+                </label>
+            </div>
+            <div class="relative mt-6 floating-label">
+                <input type="number" id="tenure_required" name="tenure_required" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="tenure_required"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Tenure Months
+                </label>
+            </div>
+
+            <div class="relative mt-6 floating-label">
+                <input type="text" id="description" name="description"
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="description"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Description
+                </label>
+            </div>
+            <div class="relative mt-6 w-64 floating-label">
+                <label for="status" class="w-full text-sm text-blue-500">
+                    Policy Status
+                </label>
+                <select
+                    class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                    id="policyStatus" name="active">
+                    <option value="true">Active</option>
+                    <option value="false">Deactive</option>
+                </select>
+            </div>
+
+            <div class="my-4 col-span-2">
+                <button type="submit"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Submit</button>
+            </div>
+        </div>
+    </form>
 </div>
 
 <script>
-    $(function(){    
-    let page = 1
-    let paseSize = PAGESIZE
-    let TotalCount = 0    
-    let policy = []
-    let policyStatus = ""
-    let roleList = []
-    function initFetch(){
-        $("#editPanel #editContent").empty()
-        closePanel()
-        try {
-           fetch(`${DomainURL}/timesheet/special?active=${policyStatus}`,{
-                headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access_token}`
-            },
-            method: "GET"
-        })
-        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-        .then(data =>{
-            // console.log(data)
-            if(data.status){
-                $("#specialPolicyCardList tbody").empty()
-                policy = data.special_policy
-                policy.forEach((element,index) => {
-                    $("#specialPolicyCardList tbody").append(`
-                        <tr id="${index}" class="border-b hover:bg-gray-50 transition selectedList">
+    $(function () {
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        let policy = []
+        let policyStatus = ""
+        let roleList = []
+        let specialID
+        function initFetch() {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/role?page_size=50`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            // console.log(data)
+                            data.roles.forEach(element => {
+                                // if (element.active)
+                                $("#specialPolicyEditPanel form [name=role_id]").append(`<option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>`)
+                                roleList.push(`<option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>`)
+                            })
+                        }
+                        ProgressLoading(false)
+                    });
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/timesheet/special?active=${policyStatus}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#specialPolicyCardList tbody").empty()
+                            policy = data.special_policy
+                            policy.forEach((element, index) => {
+                                $("#specialPolicyCardList tbody").append(`
+                        <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList">
                             <td class="p-4">${capitalizeFirstLetter(element.role.name)}</td>
                             <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
                             <td class="p-4">${element.max_leaves}</td>
                             <td class="p-4">${element.tenure_required}</td>
-                            <td class="p-4">${
-                                !element.active? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> Deactive </span>`:
-                                `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> Active </span>`
-                            }</td>
+                            <td class="p-4">${!element.active ? `<span class="px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md"> Deactive </span>` :
+                                        `<span class="px-3 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-md"> Active </span>`
+                                    }</td>
                         </tr>
                     `)
-                    
-                });
 
-                TotalCount = data.total_count
-                var total = (page - 1) * paseSize
-                $("#special-countMessage").text(`${total + data.special_policy.length} of ${TotalCount}`)
+                            });
+
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#special-countMessage").text(`${total + data.special_policy.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
-        });
-         
-        } catch (error) {
-            showAlertMessage("warning","API error", error)
-        }
-        
-        try {
-           fetch(`${DomainURL}/role?page_size=50`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${access_token}`
-                },
-                method: "GET"
-            })
-            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-            .then(data => {
-                if (data.status) {
-                    // console.log(data)
-                    data.roles.forEach(element => {
-                        // if (element.active)
-                            roleList.push(`<option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>`)
-                    })
-                }
-            });
-        } catch (error) {
-            showAlertMessage("warning","API error", error)
-        }
-        
-    }
 
-    initFetch()
+        }
 
-    $(document).on("click", "button#special-previous", function () {
+        initFetch()
+
+        $(document).on("click", "button#special-previous", function () {
             if (page != 1) {
                 page -= 1
                 initFetch()
@@ -137,152 +191,115 @@
             }
         })
 
-    $(document).on("click","#filterAction #status button",function(){
-        let selectedStatus = $(this).attr("id")
-        $("#filterAction button").each(function(){
-            if(selectedStatus != $(this).attr("id")){
-                $(this).removeClass("bg-white")
-            }else
-                $(this).addClass("bg-white")
-        })
-        policyStatus = selectedStatus == "all" ? "": selectedStatus
-        initFetch()
-    })
 
-    $(document).on("click", "#AddNewSpecialPolicy", function () {
-            policyID = 0
+        $(document).on("click", "#AddNewSpecialPolicy", function () {
+            specialID = 0
             $("#specialPolicyEditPanel").show()
+            $("#specialPolicyEditPanel form")[0].reset()
             $("#specialPolicyCardList").hide()
-            $("#specialPolicyEditPanel").empty()
-            $("#specialPolicyEditPanel").append(`
-        <h1 class="text-xl font-semibold mt-3">Add new policy</h1>
-        ${formDatas}
-        <div class="grid col-span-2 content-end p-3 mt-3">
-                <div class="flex justify-end gap-6">
-                    <button type="submit" id="newPolicySubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
-                </div>
-            </div>
-            </form>
-    `)  
-    $("#specialPolicyEditPanel form [name=role_id]").append(roleList.join(""))
+            $("#specialPolicyEditPanel #policyStatus").parent().hide()
+
+        });
+
+        $(document).on("click", "#specialPolicyCardList tbody .selectedList", function () {
+            window.location.href = "?special_id=" + $(this).data("id")
         })
 
-    let datas
-    $(document).on("click","#specialPolicyCardList tbody .selectedList",function(){
-        let index = $(this).attr("id")
-        datas = policy[index]
-         policyID = datas.id
-            $("#specialPolicyEditPanel").show()
-            $("#specialPolicyCardList").hide()
-            $("#specialPolicyEditPanel").empty()
-            $("#specialPolicyEditPanel").append(`
-        <h1 class="text-xl font-semibold mt-3">Add new policy</h1>
-        ${formDatas}
-        <div class="mt-5 statusDiv">
-        </div>
-        <div class="grid col-span-2 content-end p-3 mt-3">
-                <div class="flex justify-end gap-6">
-                    <button type="submit" id="newPolicySubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
-                </div>
-            </div>
-            </form>
-    `)  
-    $("#specialPolicyEditPanel form [name=role_id]").append(roleList.join(""))
-           Object.keys(datas).forEach(key =>{
-                $(`#specialPolicyEditPanel form [name=${key}]`).val(datas[key])
-           });
-           $("#specialPolicyEditPanel div.statusDiv").append(`
-           
-            <label class="w-full text-sm text-blue-500" for="policyType">Policy status</label>
-            <select id="policyStatus" name="active" class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500">
-                <option ${datas.active && "selected"} value="true">Active</option>
-                <option ${!datas.active && "selected"} value="false">Deactive</option>
-            </select>
-        `)
-    })
+        $(document).ready(function () {
+            specialID = SelectedSpecialID || 0
+            if (SelectedSpecialID) {
+                SelectedSpecialPolicy(SelectedSpecialID)
+                $(".policy-details").show()
+                $(".cardLists").hide()
+            }
+        })
 
-    // let policyID = 0
-    // $(document).on("click","#editPanel #editContent #editIcon",function(){
-    //     let prt = $(this).parent().parent()
-    //     if(prt.find("form").length){
-    //         policyID = 0
-    //         $("#editPanel #editContent #specialPolicyForm #role_id").empty()
-    //         prt.find("form#specialPolicyForm").remove()
-    //     }else{
-    //         $("#editPanel #editContent").append(formDatas)
-    //         $(document).ready(function(){
-    //             policyID = datas.id
-    //             $("#editPanel #editContent #specialPolicyForm").addClass("grid grid-cols-2")
-    //             $("#editPanel #editContent #specialPolicyForm #policyName").val(datas.name)
-    //             $("#editPanel #editContent #specialPolicyForm #policyType").val(datas.leave_type)
-    //             $("#editPanel #editContent #specialPolicyForm #maxLeave").val(datas.max_leaves)
-    //             $("#editPanel #editContent #specialPolicyForm #tenureMonth").val(datas.tenure_required)
-    //             $("#editPanel #editContent #specialPolicyForm #policyReason").val(datas.description)
-    //             $("#editPanel #editContent #specialPolicyForm #role_id").append(roleList.join(""))
-    //             $("#editPanel #editContent #specialPolicyForm #role_id").val(datas.role.id)
-    //             $("#editPanel #editContent #specialPolicyForm #tenureMonth").parent().after(`
-    //                 <div class="text-xs m-3 font-medium space-y-3">
-    //                     <label for="policyType">Policy status</label>
-    //                     <select id="policyStatus" name="active" class="w-full p-2 border rounded-lg">
-    //                         <option ${datas.active && "selected"} value="true">Active</option>
-    //                         <option ${!datas.active && "selected"} value="false">Deactive</option>
-    //                     </select>
-    //                 </div>
-    //             `)
-    //         })
-    //     }
-    // })
+        function SelectedSpecialPolicy(ID) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/timesheet/special/${ID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            pol = data.special_policy
 
-    $(document).off("submit", "#specialPolicyEditPanel #specialPolicyForm");    
-    $(document).on("submit","#specialPolicyEditPanel #specialPolicyForm",function(e){
-        e.preventDefault()
-        let formData = new FormData(this);
-        let data = {}
-        let flag = true
-        formData.forEach((v,k)=>{
-            if (k == "active"){
-                data[k] = v == "true" ? true :false
-            }else if (["leave_type","role_id"].includes(k) && v == "--"){
+                            Object.keys(pol).forEach(key => {
+                                $(`#specialPolicyEditPanel form [name=${key}]`).val(pol[key])
+                            });
+                            $("#specialPolicyEditPanel #policyStatus").parent().show()
+                            $("#specialPolicyEditPanel #policyStatus").val(pol["active"] ? "true" : "false")
+                        } else {
+                            showAlertMessage("warning", "Leave Policy", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+
+        };
+
+        $(document).off("submit", "#specialPolicyEditPanel #specialPolicyForm");
+        $(document).on("submit", "#specialPolicyEditPanel #specialPolicyForm", function (e) {
+            e.preventDefault()
+            let formData = new FormData(this);
+            let data = {}
+            let flag = true
+            formData.forEach((v, k) => {
+                if (k == "active") {
+                    data[k] = v == "true" ? true : false
+                } else if (["leave_type", "role_id"].includes(k) && v == "--") {
                     flag = false
-                    showAlertMessage("warning","Leave Policy","Leave type should not be empty.")
-            }
-            else if (["max_leaves","tenure_required","role_id"].includes(k)){
-                data[k] = parseInt(v)
-            }
-            else
-                data[k]= v
-        })
-        // console.log(data) 
-        if(flag)
-        try {
-            fetch(`${DomainURL}/timesheet/special${policyID ? "/"+policyID:''}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${access_token}`
-                },
-                method: policyID ? "PUT" :"POST",
-                body: JSON.stringify(data)
+                    showAlertMessage("warning", "Leave Policy", "Leave type or Role should not be empty.")
+                }
+                else if (["max_leaves", "tenure_required", "role_id"].includes(k)) {
+                    data[k] = parseInt(v)
+                }
+                else
+                    data[k] = v
             })
-                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                .then(data => {
-                    console.log(data)
-                    if (data.status) {
-                        showAlertMessage("success","Time policy",policyID?"Updated special policy ":"Added new special policy")
-                        initFetch()
-                        $("#specialPolicyEditPanel").hide()
-                        $("#specialPolicyCardList").show()
-                    } else {
-                        showAlertMessage("error","Time policy",data.message)
-                    }
-                }); 
-        } catch (error) {
-            showAlertMessage("warning","API error", error)
-        }
-             
-    })
-    
+            // console.log(data) 
+            if (flag)
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/timesheet/special${specialID ? "/" + specialID : ''}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: specialID ? "PUT" : "POST",
+                        body: JSON.stringify(data)
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            console.log(data)
+                            if (data.status) {
+                                showAlertMessage("success", "Time policy", specialID ? "Updated special policy " : "Added new special policy")
+                                initFetch()
+                                $("#specialPolicyEditPanel").hide()
+                                $("#specialPolicyCardList").show()
+                            } else {
+                                showAlertMessage("error", "Time policy", data.message)
+                            }
+                            ProgressLoading(false)
+                        });
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
 
-    let formDatas = `<form id="specialPolicyForm" class="w-5/6 grid md:grid-cols-2 gap-5">
+        })
+
+
+        let formDatas = `<form id="specialPolicyForm" class="w-5/6 grid md:grid-cols-2 gap-5">
             <div class="mt-5">
                 <label class="w-full text-sm text-blue-500">Role</label>
                 <select class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
@@ -292,47 +309,12 @@
                     
                 </select>
             </div>
-            ${floatingInputTag("text","name","name","Policy Name","")}
-            ${SelectionTag("leave_type","leave_type","Policy Type","",true,options=["paid","unpaid"])}
-            ${floatingInputTag("number","max_leaves","max_leaves","Max Leave","")}
-            ${floatingInputTag("number","tenure_required","tenure_required","Tenure Months","")}
-            ${floatingInputTag("text","description","description","Description","",false)}
+            ${floatingInputTag("text", "name", "name", "Policy Name", "")}
+            ${SelectionTag("leave_type", "leave_type", "Policy Type", "", true, options = ["paid", "unpaid"])}
+            ${floatingInputTag("number", "max_leaves", "max_leaves", "Max Leave", "")}
+            ${floatingInputTag("number", "tenure_required", "tenure_required", "Tenure Months", "")}
+            ${floatingInputTag("text", "description", "description", "Description", "", false)}
             `
-    // let formDatas = `<form id="specialPolicyForm">
-    //         <div class="text-xs m-3 font-medium space-y-3">
-    //             <label for="policyType">Role</label>
-    //             <select id="role_id" name="role_id" class="w-full p-2 border rounded-lg">
-    //             </select>
-    //         </div>
-    //         <div class="text-xs m-3 font-medium space-y-3">
-    //             <label for="policyName">Policy name</label>
-    //             <input type="search" id="policyName" name="name" required class="border p-2 w-full rounded-lg" placeholder="name" />
-    //         </div>
-    //         <div class="text-xs m-3 font-medium space-y-3">
-    //             <label for="policyType">Policy type</label>
-    //             <select id="policyType" name="leave_type" class="w-full p-2 border rounded-lg">
-    //                 <option value="paid">Paid</option>
-    //                 <option value="unpaid">Unpaid</option>
-    //             </select>
-    //         </div>
-    //         <div class="text-xs m-3 font-medium space-y-3">
-    //             <label for="maxLeave">Max leave</label>
-    //             <input type="number" id="maxLeave" name="max_leaves" required class="w-full p-2 border rounded-lg" placeholder="leaves"/>
-    //         </div>
-    //         <div class="text-xs m-3 font-medium space-y-3">
-    //             <label for="tenureMonth">Tenure months</label>
-    //             <input type="number" id="tenureMonth" name="tenure_required" class="w-full p-2 border rounded-lg" placeholder="no of month"/>
-    //         </div>
-    //         <div class="text-xs m-3 font-medium space-y-3">
-    //             <label for="policyReason">Time off Reason</label>
-    //             <input type="text" id="policyReason" name="description" class="p-2 border w-full min-h-16 text-start" placeholder="reason" />
-    //         </div>
-    //         <div class="grid content-end p-3 mt-3">
-    //             <div class="flex justify-end gap-6">
-    //                 <button type="submit" id="newPolicySubmitBtn" class="border p-3 text-sm border-blue-200 rounded-lg">Submit</button>
-    //             </div>
-    //         </div>
-    //     </form>`
-    
+
     })
 </script>

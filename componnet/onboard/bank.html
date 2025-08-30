@@ -13,7 +13,7 @@
         <div id="bank-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="hidden" id="bank_id" value="0" />
             ${floatingInputTag("text", "holder_name", "holder_name", "Account Holder Name")}
-            ${floatingInputTag("text", "account_number", "account_number", "Account Number")}
+            ${floatingInputTag("number", "account_number", "account_number", "Account Number")}
             ${floatingInputTag("text", "bank_name", "bank_name", "Bank Name")}
             ${floatingInputTag("text", "ifsc_code", "ifsc_code", "IFSC Code")}
             ${floatingInputTag("text", "branch", "branch", "Branch Name")}
@@ -28,6 +28,7 @@
         let UserBank = []
         function initFun() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/bank`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -46,7 +47,7 @@
                                     $("#bank-form #bank-container").append(`
                                     <input type="hidden" id="bank_id" value="${item.id}" />
                                     ${floatingInputTag("text", "holder_name", "holder_name", "Account Holder Name", value = item.holder_name)}
-                                    ${floatingInputTag("text", "account_number", "account_number", "Account Number", value = item.account_number)}
+                                    ${floatingInputTag("number", "account_number", "account_number", "Account Number", value = item.account_number)}
                                     ${floatingInputTag("text", "bank_name", "bank_name", "Bank Name", value = item.bank_name)}
                                     ${floatingInputTag("text", "ifsc_code", "ifsc_code", "IFSC Code", value = item.ifsc_code)}
                                     ${floatingInputTag("text", "branch", "branch", "Branch Name", value = item.branch)}
@@ -61,8 +62,10 @@
                         } else {
                             showAlertMessage("warning", "Employee profile", data.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
 
@@ -82,6 +85,7 @@
             // console.log(item)
 
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/bank${ID != "0" ? "/" + ID : ""}`, {
                     headers: {
                         Authorization: `Bearer ${access_token}`
@@ -104,8 +108,10 @@
                         } else {
                             showAlertMessage("error", "Employee profile", data.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         });
@@ -117,7 +123,10 @@
             let arr = Object.keys(MyBank)
             if (arr.length) {
                 arr.forEach(key => {
-                    $(child[0]).find(`[name=${key}]`).addClass("border-red-400")
+                    if(key == "file")
+                        $(child[0]).find(`[name=upload_file]`).parent().find("div").addClass("border-red-400")
+                    else
+                        $(child[0]).find(`[name=${key}]`).addClass("border-red-400")
                 })
             }
         }

@@ -1,0 +1,223 @@
+<div class="flex w-full mb-8">
+    <div id="travel" class="method w-full transform transition-transform duration-300 ease-in-out">
+        <form id="newTravelForm" class="grid md:grid-cols-2">
+            <div class="relative mt-6 w-64 floating-label">
+                <label for="travel_type" class="w-full text-sm text-blue-500">
+                    Travel Type *
+                </label>
+                <select
+                    class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                    id="travel_type" name="travel_type">
+                    <option value="domestic">Domestic</option>
+                    <option value="international">International</option>
+                </select>
+            </div>
+            <div class="relative mt-6 w-64 floating-label">
+                <label for="country" class="w-full text-sm text-blue-500">
+                    Country *
+                </label>
+                <select
+                    class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                    id="country" name="country">
+                </select>
+            </div>
+            <div class="relative mt-6 floating-label">
+                <input type="date" id="start_date" name="start_date" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="start_date"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Start Date *
+                </label>
+            </div>
+            <div class="relative mt-6 floating-label">
+                <input type="date" id="end_date" name="end_date" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="end_date"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    End Date *
+                </label>
+            </div>
+
+            <div class="relative mt-6 floating-label">
+                <input type="text" id="purpose" name="purpose" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="purpose"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Travel Purpose *
+                </label>
+            </div>
+            <div class="relative mt-6 floating-label">
+                <input type="text" id="transport" name="transport" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="transport"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Transport *
+                </label>
+            </div>
+            <div class="relative mt-6 w-64 min-h-20 floating-label-file international">
+                <label
+                    class="w-full absolute left-0 pt-4 text-sm text-gray-500 transition-all duration-200 cursor-pointer peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Country visa <i class="fa-solid fa-cloud-arrow-up px-1"></i>*
+                    <input type="file" id="country_visa" name="country_visa" class="peer hidden" required
+                        accept=".pdf,image/*" />
+                    <h6 id="filename" class="text-gray-900 text-sm border-b-2 w-full py-2"></h6>
+                </label>
+
+            </div>
+            <div class="relative mt-6 w-64 min-h-20 floating-label-file international">
+                <label
+                    class="w-full absolute left-0 pt-4 text-sm text-gray-500 transition-all duration-200 cursor-pointer peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Passport <i class="fa-solid fa-cloud-arrow-up px-1"></i>*
+                    <input type="file" id="passport" name="passport" class="peer hidden" required
+                        accept=".pdf,image/*" />
+                    <h6 id="filename" class="text-gray-900 text-sm border-b-2 w-full py-2"></h6>
+                </label>
+
+            </div>
+            <div class="relative mt-6 w-64 min-h-20 floating-label-file">
+                <label
+                    class="w-full absolute left-0 pt-4 text-sm text-gray-500 transition-all duration-200 cursor-pointer peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Attachment <i class="fa-solid fa-cloud-arrow-up px-1"></i>*
+                    <input type="file" id="attachment" name="attachment" class="peer hidden" required
+                        accept=".pdf,image/*" />
+                    <h6 id="filename" class="text-gray-900 text-sm border-b-2 w-full py-2"></h6>
+                </label>
+
+            </div>
+
+            <div class="col-span-2">
+                <button type="submit"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $(document).ready(function () {
+            let now = new Date
+            now.setDate(now.getDate() + 1)
+            let today = now.toISOString().split("T")[0];
+            let forms = $("#travel #newTravelForm");
+            forms.find("[name=start_date]").prop("min", today)
+            forms.find("[name=end_date]").prop("min", today)
+            forms.find("[name=country]").append(`
+                ${CountryNames.map(name =>{
+                    return `<option value="${name}">${name}</option>`
+                }).join("")}
+            `)
+            FileView("domestic")
+        });
+
+        $(document).on("change blur", "#travel #newTravelForm input[type=file]", function () {
+            let parent = $(this).parent()
+            parent.find("h6#filename").text($(this)[0]?.files[0]?.name || "")
+            parent.addClass("text-blue-600")
+        });
+
+        $(document).on("change", "#travel #newTravelForm #travel_type", function () {
+            let val = $(this).val()
+            FileView(val)
+        });
+
+        $(document).on("click", "#travel #newTravelForm button[type=submit]", function () {
+            let invalidFields = $("form:invalid");
+            if (invalidFields?.length) {
+                showAlertMessage("warning", "Employee profile", "Fill all required* fields to continue.")
+            }
+        });
+
+        $(document).on("submit", "#travel #newTravelForm", function (e) {
+            e.preventDefault()
+            let formData = new FormData(this);
+            let data = {}
+            data["country"] = formData.get("country")
+            data["travel_type"] = formData.get("travel_type")
+            data["start_date"] = new Date(formData.get("start_date")).getTime()
+            data["end_date"] = new Date(formData.get("end_date")).getTime()
+            data["purpose"] = formData.get("purpose")
+            data["transport"] = formData.get("transport")
+            let File = []
+            if (data.travel_type == "international") {
+                File.push(FormFiles(formData.get("country_visa"), "visa", "country_visa"))
+                File.push(FormFiles(formData.get("passport"), "passport", "passport"))
+            }
+
+            File.push(FormFiles(formData.get("attachment"), "travel", "attachment"))
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/travel/request`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify(data)
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success", "Travel Request", "new travel request is add.")
+                            $(this)[0].reset()
+                            File.forEach(form => UploadAttachment(data.travel.id, form))
+                            setTimeout(() => window.location.reload, 1000)
+                        } else {
+                            showAlertMessage("error", "Travel Request", data.message);
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+
+        });
+
+        function FormFiles(file, type, name) {
+            let form = new FormData()
+            form.append("module_type", "travel_requests")
+            form.append("type", type)
+            form.append("name", name)
+            form.append("file", file)
+            return form
+        }
+
+        function FileView(type) {
+            if (type === "international") {
+                $("div.international").show()
+                $("div.international input").prop("required", true)
+            }
+            else {
+                $("div.international").hide()
+                $("div.international input").prop("required", false)
+            }
+        }
+
+        async function UploadAttachment(ID, form) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/travel/request/attachment/${ID}`, {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: form
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            // showAlertMessage("success", "Travel Request", ".")
+                        } else {
+                            showAlertMessage("error", "Travel Request", data.message);
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+    })
+</script>

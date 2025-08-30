@@ -11,7 +11,7 @@
     <!-- Custom Tailwind Theme -->
     <script src="./static/js/theme.js"></script>
     <script src="./static/js/profileAction.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -28,7 +28,6 @@
 
 <body class="flex bg-background w-screen">
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
@@ -83,17 +82,19 @@
                                 <input type="search"
                                     class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
                                     id="employee_id" name="employee_id" placeholder="Employee ID or Email" />
-                                <div class="bg-white w-full rounded-lg shadow-lg border mt-1 max-h-40 divide-y-2 text-xs overflow-y-auto hidden" 
+                                <div class="bg-white w-full rounded-lg shadow-lg border mt-1 max-h-40 divide-y-2 text-xs overflow-y-auto hidden"
                                     id="employee_search_list">
-                                    
+
                                 </div>
                             </div>
                             <div class="md:w-1/2 flex justify-center gap-6 mb-4">
-                                <button id="search" class="actionBtn py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs
+                                <button id="search"
+                                    class="actionBtn py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs
                                     hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
                                     Search
                                 </button>
-                                <button id="reset" class="actionBtn py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs
+                                <button id="reset"
+                                    class="actionBtn py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs
                                     hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">
                                     Reset
                                 </button>
@@ -112,104 +113,108 @@
         // $("#contents").load("./componnet/timesheet/attendance.html")
 
         $(document).ready(function () {
-        // $("#main .menu-item").click(function () {
-        //     $("#main .menu-item").removeClass("font-bold text-blue-600")
-        //     $(this).addClass("font-bold text-blue-600")
+            // $("#main .menu-item").click(function () {
+            //     $("#main .menu-item").removeClass("font-bold text-blue-600")
+            //     $(this).addClass("font-bold text-blue-600")
 
-        //     let section = $(this).attr("data-section")
-        //     $("#main .section").hide()
-        //     $(`#main #section-${section}`).show()
-        //     $(`#main #section-content .loaded-data`).show()
-        //     // loading("section-"+section)
-        //     closeModal()
-        //     switch(section){
-        //         case "timesheet":
-        //             renderCalendar("timesheet")
-        //             break
-        //         case "leave":
-        //             renderCalendar("leave")
-        //             break
-        //     }
-        // });
+            //     let section = $(this).attr("data-section")
+            //     $("#main .section").hide()
+            //     $(`#main #section-${section}`).show()
+            //     $(`#main #section-content .loaded-data`).show()
+            //     // loading("section-"+section)
+            //     closeModal()
+            //     switch(section){
+            //         case "timesheet":
+            //             renderCalendar("timesheet")
+            //             break
+            //         case "leave":
+            //             renderCalendar("leave")
+            //             break
+            //     }
+            // });
 
-        // $("#main .section").hide()
-        // $(`#main #section-timesheet`).show()
-        $(`#main #section-content .loaded-data`).load("./componnet/timesheet/attendance.html")
-        $(`#main #section-content .loaded-data`).hide()
-        
-        let SelectedID = null
-        $("#main #section-content button.actionBtn").prop("disabled",true)
-        $("#main #section-content button.actionBtn").addClass("cursor-not-allowed")
-
-        $(document).on("click change keyup","#main #section-content #employee_id",function(){
-            $("#main #section-content #employee_search_list").show()
-            let txt = $(this).val();
-            EmployeeSearch(txt)
-        });
-        $(document).on("blur","#main #section-content #employee_id",function(){
-            setTimeout(()=>$("#main #section-content #employee_search_list").hide(),500)
-        });
-        
-        $(document).on("click","#main #section-content .selected-list",function(){
-            SelectedID = $(this).data("id")
-            $("#main #section-content button.actionBtn").prop("disabled",false)
-            $("#main #section-content button.actionBtn").removeClass("cursor-not-allowed")
-            $("#main #section-content #employee_id").val($(this).data("name"))
-            $("#main #section-content #employee_search_list").hide()
-        });
-
-        $(document).on("click","#main #section-content button#search",function(){
-            if(SelectedID){
-                initAttendFun(SelectedID)
-                $(`#main #section-content .loaded-data`).show()
-                $(this).prop("disabled",true)
-                $(this).addClass("cursor-not-allowed")
-            }
-            else
-                showAlertMessage("info","Employee TimeSheet","Select employee Id to search.")
-        });
-        $(document).on("click","#main #section-content button#reset",function(){
-            SelectedID = null
-            $("#main #section-content button.actionBtn").prop("disabled",true)
-            $("#main #section-content button.actionBtn").addClass("cursor-not-allowed")
-            $("#main #section-content #employee_id").val("")
+            // $("#main .section").hide()
+            // $(`#main #section-timesheet`).show()
+            $(`#main #section-content .loaded-data`).load("./componnet/timesheet/attendance.html")
             $(`#main #section-content .loaded-data`).hide()
-        });
 
-        async function EmployeeSearch(text) {
-            try {
-                fetch(`${DomainURL}/search/name?module=user&q=${text}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-                    method: "GET"
-                })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        // console.log(data)
-                        if (data.status) {
-                            $("#main #section-content #employee_search_list").empty()
-                            if (data?.data?.length)
-                                data.data.forEach(item => {
-                                    $("#main #section-content #employee_search_list").append(`
-                                        <div class="p-2 cursor-pointer selected-list ${item.id == SelectedID ? "bg-blue-300":"hover:bg-blue-100"}" data-id="${item.id}" data-name="${item.user_name}">
+            let SelectedID = null
+            $("#main #section-content button.actionBtn").prop("disabled", true)
+            $("#main #section-content button.actionBtn").addClass("cursor-not-allowed")
+
+            $(document).on("click change keyup", "#main #section-content #employee_id", function () {
+                $("#main #section-content #employee_search_list").show()
+                let txt = $(this).val();
+                EmployeeSearch(txt)
+            });
+            $(document).on("blur", "#main #section-content #employee_id", function () {
+                setTimeout(() => $("#main #section-content #employee_search_list").hide(), 500)
+            });
+
+            $(document).on("click", "#main #section-content .selected-list", function () {
+                SelectedID = $(this).data("id")
+                $("#main #section-content button.actionBtn").prop("disabled", false)
+                $("#main #section-content button.actionBtn").removeClass("cursor-not-allowed")
+                $("#main #section-content #employee_id").val($(this).data("name"))
+                $("#main #section-content #employee_search_list").hide()
+            });
+
+            $(document).on("click", "#main #section-content button#search", function () {
+                if (SelectedID) {
+                    initAttendFun(SelectedID)
+                    $(`#main #section-content .loaded-data`).show()
+                    $(this).prop("disabled", true)
+                    $(this).addClass("cursor-not-allowed")
+                }
+                else
+                    showAlertMessage("info", "Employee TimeSheet", "Select employee Id to search.")
+            });
+            $(document).on("click", "#main #section-content button#reset", function () {
+                SelectedID = null
+                $("#main #section-content button.actionBtn").prop("disabled", true)
+                $("#main #section-content button.actionBtn").addClass("cursor-not-allowed")
+                $("#main #section-content #employee_id").val("")
+                $(`#main #section-content .loaded-data`).hide()
+            });
+
+            async function EmployeeSearch(text) {
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/search/name?module=user&q=${text}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "GET"
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                $("#main #section-content #employee_search_list").empty()
+                                if (data?.data?.length)
+                                    data.data.forEach(item => {
+                                        $("#main #section-content #employee_search_list").append(`
+                                        <div class="p-2 cursor-pointer selected-list ${item.id == SelectedID ? "bg-blue-300" : "hover:bg-blue-100"}" data-id="${item.id}" data-name="${item.user_name}">
                                             <h5>${capitalizeFirstLetter(item.user_name)}</h5>
                                             <h6>${capitalizeFirstLetter(item.profile.first_name)} ${capitalizeFirstLetter(item.profile.last_name)}</h6>
                                         </div>                                        
                                     `);
-                                });
-                            else
-                                $("#main #section-content #employee_search_list").append(`
+                                    });
+                                else
+                                    $("#main #section-content #employee_search_list").append(`
                                 <span>No record </span>
                                 `)
-                        }
-                    });
-            } catch (error) {
-                showAlertMessage("warning","API error", error)
+                            }
+                            ProgressLoading(false)
+                        });
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
             }
-        } 
-    })
+        
+        })
 
     </script>
 

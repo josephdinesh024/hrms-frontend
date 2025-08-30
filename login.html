@@ -13,18 +13,16 @@
             font-family: 'Work Sans', sans-serif;
         }
     </style>
-    <script src="./static/js/theme.js"> </script>
-    <script src="./static/js/global.js"></script>
-    <script src="./static/js/confic.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script src="./static/js/confic.js"></script>
+    <script src="./static/js/theme.js"> </script>
 </head>
 
-<body >
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
+<body>
     <div class="pl-7 py-5 min-w-16 w-full bg-gray-100">
-        <img src="./static/image/alcor_logo.png" class="bg-cover w-12"/>
+        <img src="./static/image/alcor_logo.png" class="bg-cover w-12" />
     </div>
     <div class="flex items-center justify-center min-h-screen bg-gray-100">
         <div class="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
@@ -44,23 +42,24 @@
                     <!-- <a href="#" class="absolute right-3 top-9 text-sm text-pink-500 hover:underline">Forgot Password?</a> -->
                 </div>
 
-                <div class="mb-2 flex items-center">
-                    <input type="checkbox" id="remember"
+                <div class="mb-3 flex items-center px-1 text-xs">
+                    <input type="checkbox" id="showpass" onchange="showPassword(this.checked)"
                         class="w-4 h-4 text-pink-500 border-gray-300 rounded focus:ring-pink-400">
-                    <label for="remember" class="ml-2 text-sm text-gray-700">Keep me signed in</label>
+                    <label for="showpass" class="ml-2 text-gray-700">Show password</label>
                 </div>
 
                 <div class="mb-4">
                     <p id="error" class="text-xs text-red-600"></p>
                 </div>
                 <div class="flex justify-center">
-                    <button type="submit" id="login"
+                    <button type="submit"
                         class="w-1/2 py-2 text-white bg-gradient-to-r from-primary from-5% to-blue-800 rounded-md hover:bg-pink-600">
                         Login
                     </button>
                 </div>
             </form>
-            <div class="flex w-full justify-center mt-3 text-sm text-blue-400"><a href="passwordgen.html">forgot password ?
+            <div class="flex w-full justify-center mt-3 text-sm text-blue-400"><a href="passwordgen.html">forgot
+                    password ?
                 </a></div>
         </div>
     </div>
@@ -75,10 +74,12 @@
             $('#password').on('keyup', function (e) {
                 password = e.target.value
             })
-
+            let nextURL = window.location.href.split("/").pop()
+            nextURL =  nextURL.includes("?next=") ? nextURL.split("?next=").pop() : ""
             $('form#login').on('submit', function (e) {
                 e.preventDefault()
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/login`, {
                         method: "post",
                         body: JSON.stringify({
@@ -86,16 +87,19 @@
                             password
                         })
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data?.status === 1) {
                                 $('#error').text(data?.message)
                                 $.cookie("access_token", data.access_token,)  //{ expires: 3600*60, domain:'127.0.0.1' }
                                 $.cookie("user_name", data.user.user_name)
+                                $.cookie("id", data.user.id)
+                                AccessCheck(data.access_token)
+                                showAlertMessage("success", "Employee Loging", "Login successfully.")
                                 if (data.user.status == 1)
-                                    window.location.href = 'index.html'
-                                else if ([0,5,6].includes(data.user.status))
-                                    setTimeout(() => { window.location.href = "onboard.html" }, 400)
+                                    setTimeout(() => { window.location.href = nextURL != "" ? nextURL : 'index.html' }, 1000)                                    
+                                else if ([0, 5, 6].includes(data.user.status))
+                                    setTimeout(() => { window.location.href = "onboard.html" }, 1000)
                                 // console.log(data)
                             } else if (data.status === 2) {
                                 $('#error').text(data?.message)
@@ -107,13 +111,49 @@
                                 $('#error').text(data?.message)
                             }
                             // console.log(data)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
 
             });
         })
+
+        function showPassword(checked){
+            if(checked)
+                $("form #password").prop("type","text")
+            else
+                $("form #password").prop("type","password")
+        }
+
+        async function AccessCheck(accessToken) {
+        try {
+            ProgressLoading(true)
+            fetch(`${DomainURL}/my/access`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`
+                },
+            }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                .then(data => {
+                    if (data.status) {
+                        $.cookie("my_access", JSON.stringify(data.access))
+                        $.cookie("my_status", data.my_status)
+                        $("#sidebar").load("sidebar.html")
+                    } else {
+                        $.removeCookie("access_token")
+                        window.location.reload()
+                    }
+                    ProgressLoading(false)
+                })
+        } catch (error) {
+            ProgressLoading(false)
+            showAlertMessage("warning", "API error", error)
+        }
+    }
     </script>
 </body>
 

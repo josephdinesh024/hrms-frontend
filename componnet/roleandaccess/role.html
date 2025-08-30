@@ -1,20 +1,15 @@
-<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
-    <div class="flex items-center gap-3">
-        <h3 class="font-medium" id="totalCount">Roles</h3>
-        <div class="flex gap-2 items-center text-md px-2">
-            <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
-            <span id="countMessage">5 of 10</span>
-            <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
-        </div>
-    </div>
-    <div>
-        <button id="AddNewForm" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
-        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
-            Role</button>
+<div id="filterAction" class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
+    <button id="AddNewForm"
+        class="text-sm font-medium hover:font-bold hover:text-blue-600">
+        <i class="fa-solid fa-plus"></i> Add Role
+    </button>
+    <div class="flex gap-2 items-center text-md px-2">
+        <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+        <span id="countMessage">5 of 10</span>
+        <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
     </div>
 </div>
-<hr>
-<div id="roleCardList">
+<div id="roleCardList" class="w-full">
     <table class="w-full border-collapse text-xs">
         <thead>
             <tr class="bg-gray-100 text-gray-700 text-left">
@@ -38,8 +33,9 @@
         let page = 1
         let paseSize = PAGESIZE
         let TotalCount = 0
-        function initFun() {
+        function initFetch() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/role?page=${page}&page_size=${paseSize}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -47,7 +43,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $("#roleCardList tbody").empty()
@@ -56,7 +52,7 @@
                             roleDatas.forEach((item, index) => {
                                 subPermission(item.permission)
                                 $("#roleCardList tbody").append(`
-                            <tr id="${index}" class="border-b hover:bg-slate-50 transition SelectedList">
+                            <tr id="${index}" class="border-b hover:bg-slate-50 transition cursor-pointer SelectedList">
                                 <td class="p-4">${capitalizeFirstLetter(item.name)}</td>
                                 <td class="p-4">${permissionName.join(", ") || "--"}</td>
                                 <td class="p-4">${PermissionCount}</td>
@@ -68,12 +64,15 @@
                             var total = (page - 1) * paseSize
                             $("#countMessage").text(`${total + roleDatas.length} of ${TotalCount}`)
                         }
+                        ProgressLoading(false)
                     });
 
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/permission`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -81,23 +80,25 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             permissionDatas = data.permissions
                         }
+                        ProgressLoading(false)
                     });
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
 
         }
-        initFun()
+        initFetch()
 
         $(document).on("click", "button#previous", function () {
             if (page != 1) {
                 page -= 1
-                init()
+                initFetch()
             }
         })
 
@@ -105,7 +106,7 @@
             let check = TotalCount - (paseSize * page)
             if (check > 0) {
                 page += 1
-                init()
+                initFetch()
             }
         })
 
@@ -143,7 +144,7 @@
                     </h1>
                     <div class="mx-6 flex flex-col">
                         <input id="permission_name" name="name" placeholder="Name" value="${selectedData.name || ""}"
-                            class="p-1 border-b focus:outline-none focus:border-blue-400">
+                            class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
                         <span class="text-xs text-red-600 ml-2" id="errorMessage"></span>
                     </div>
 
@@ -151,8 +152,8 @@
                         <h4 class="w-2/6" >Permissions : </h4>
                         <div id="permission" class="grid grid-flow-col max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
                             ${"permission" in selectedData ? selectedData.permission.map(item => {
-                PermissionDetails.selectedData.push(item.id)
-                return `
+                                PermissionDetails.selectedData.push(item.id)
+                                return `
                                         <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
                                             <h5>${capitalizeFirstLetter(item.name)}</h5>
                                             <button id="${item.id}" class="font-medium removePermission">
@@ -160,30 +161,33 @@
                                             </button>
                                         </div>
                                     `
-            }).join("") : ""}                            
+                            }).join("") : ""}                            
                         </div>
                     </div>
 
                     <hr>
                     <div id="permissionDerivation" class="mt-3 px-6 text-sm text-textPrimary font-bold w-full py-2">
                         <h3 class="mb-4">Permission Derivation</h3>
-                        <label class="text-black font-medium">Other permission : 
-                            <select id="otherPermission" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                        <label class="text-black font-medium">From Permission : 
+                            <select id="otherPermission" class="p-1 min-w-20     border-b-2 focus:outline-none focus:border-blue-400">
+                                <option value="">--</option>
                                 ${permissionDatas.map(item => {
-                return `
-                                    <option value="${item.id}">${item.name}</option>
-                                    `
-            }).join("")}
+                                    return `
+                                        <option value="${item.id}">${item.name}</option>
+                                        `
+                                }).join("")}
                             </select>
                         </label>
                         <br>
-                        <label class="text-black font-medium">Other role : 
-                            <select id="otherRole" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                        <label class="text-black font-medium">From Roles : 
+                            <select id="otherRole" class="p-1 min-w-20 border-b-2 focus:outline-none focus:border-blue-400">
+                                <option value="">--</option>
                                 ${roleDatas.map(item => {
-                return `
-                                    <option value="${item.id}">${item.name}</option>
-                                    `
-            }).join("")}
+                                    if(selectedData.id != item.id)
+                                    return `
+                                        <option value="${item.id}">${item.name}</option>
+                                        `
+                                }).join("")}
                             </select>
                         </label>
                     </div>
@@ -200,8 +204,9 @@
             `);
 
             $("#fixedEditPanel #functionBtn").html(`
-                <button id="saveEdit" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-                <button onclick="closeFixedEditPanel()" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+                <button id="saveEdit" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500 mr-2">Save</button>
+                <button onclick="closeFixedEditPanel()" class="bg-gray-50 hover:bg-gray-300 font-semibold text-xs py-2 px-8 shadow-sm shadow-third rounded-lg mr-2">Cancel</button>
             `)
 
             if ("permission" in selectedData)
@@ -235,7 +240,6 @@
                     permissionModuleList(key, permission[key], true)
                 }
             })
-
         }
 
         $(document).on("keyup", "#fixedEditPanel #editContent #permissionName #permission_name", function () {
@@ -263,106 +267,83 @@
                     ModulePermission(permission.permission)
                 })
             }
-            // Object.keys(perm.permission).forEach(key =>{
-            //     if(key in moduleData){
-            //         if(perm.permission[key].length == 4){
-            //             $(`#fixedEditPanel #editContent #permissionModules #modules .${key}Module`).parent().parent().remove()
-            //         }else{
-            //             let actions = moduleData[key] || []
-            //             perm.permission[key].forEach(action =>{
-            //                 if(actions.includes(action)){
-            //                     $(`#fixedEditPanel #editContent #permissionModules .${key}ModuleAction`).each(function(){
-            //                         let text = $(this).parent().find("span").text()
-            //                         if (text.toLocaleLowerCase() === action){
-            //                             $(this).prop("checked", false);
-            //                         }
-            //                     })
-            //                     actions = actions.filter(val => val != action)
-            //                     moduleData[key] = actions
-            //                 }
-            //             })
-            //         }
-            //     }
-            //     if(key in moduleData && moduleData[key].length == 0){
-            //         $(`#fixedEditPanel #editContent #permissionModules #modules .${key}Module`).parent().parent().remove()
-            //         delete moduleData[key]
-            //     }
-            // })
-
         });
         // Role Selected
         $(document).on("change", "#fixedEditPanel #permissionDerivation select#otherRole", function () {
             let RoleID = parseInt($(this).val())
-            let roleItem = roleDatas.find(val => val.id == RoleID);
-            roleItem.permission.forEach(item => {
-                if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
-                    PermissionDetails.newData.push(item.id)
-                    $("#fixedEditPanel #editContent #permission").append(`
-                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                            <span>${capitalizeFirstLetter(item.name)}</span>
-                            <button id="${item.id}" class="font-medium removePermission">
-                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                            </button>
-                        </div>
-                    `)
-                    ModulePermission(item.permission)
-                }
-                if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
-                    $("#fixedEditPanel #editContent #permission").append(`
-                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                            <span>${capitalizeFirstLetter(item.name)}</span>
-                            <button id="${item.id}" class="font-medium removePermission">
-                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                            </button>
-                        </div>
-                    `)
-                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
-                    ModulePermission(item.permission)
-                }
-            });
-
+            if(RoleID){
+                let roleItem = roleDatas.find(val => val.id == RoleID);
+                roleItem.permission.forEach(item => {
+                    if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
+                        PermissionDetails.newData.push(item.id)
+                        $("#fixedEditPanel #editContent #permission").append(`
+                            <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(item.name)}</span>
+                                <button id="${item.id}" class="font-medium removePermission">
+                                <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>
+                        `)
+                        ModulePermission(item.permission)
+                    }
+                    if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
+                        $("#fixedEditPanel #editContent #permission").append(`
+                            <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(item.name)}</span>
+                                <button id="${item.id}" class="font-medium removePermission">
+                                <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>
+                        `)
+                        PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
+                        ModulePermission(item.permission)
+                    }
+                });
+            }
         });
         // PermissionSelected
         $(document).on("change", "#fixedEditPanel #permissionDerivation select#otherPermission", function () {
             let ID = parseInt($(this).val())
-            let item = permissionDatas.find(val => val.id == ID);
-            if (!PermissionDetails.selectedData.includes(ID) && !PermissionDetails.newData.includes(ID)) {
-                PermissionDetails.newData.push(ID)
-                $("#fixedEditPanel #editContent #permission").append(`
-                    <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                        <span>${capitalizeFirstLetter(item.name)}</span>
-                        <button id="${item.id}" class="font-medium removePermission">
-                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                        </button>
-                    </div>
-                `)
-                ModulePermission(item.permission)
+            if(ID){
+                let item = permissionDatas.find(val => val.id == ID);
+                if (!PermissionDetails.selectedData.includes(ID) && !PermissionDetails.newData.includes(ID)) {
+                    PermissionDetails.newData.push(ID)
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    ModulePermission(item.permission)
+                }
+                if (PermissionDetails.selectedData.includes(ID) && PermissionDetails.deleteData.includes(ID)) {
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != ID)
+                    ModulePermission(item.permission)
+                }
             }
-            if (PermissionDetails.selectedData.includes(ID) && PermissionDetails.deleteData.includes(ID)) {
-                $("#fixedEditPanel #editContent #permission").append(`
-                    <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                        <span>${capitalizeFirstLetter(item.name)}</span>
-                        <button id="${item.id}" class="font-medium removePermission">
-                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                        </button>
-                    </div>
-                `)
-                PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != ID)
-                ModulePermission(item.permission)
-            }
-
         });
 
 
         $(document).on("click", "#fixedEditPanel #functionBtn button#saveEdit", function () {
             let name = $("#fixedEditPanel #editContent #permissionName #permission_name").val().toLocaleLowerCase();
             // let level = $("#editPanel #level").val() || 10
-            console.log(name)
+            // console.log(name)
             if (name == "" || (PermissionDetails.selectedData.length == PermissionDetails.deleteData.length && PermissionDetails.newData.length == 0)) {
                 $("#fixedEditPanel #editContent #permissionName #errorMessage").text("name or module empty")
             }
             else {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/role${selectedData.id ? "/" + selectedData.id : ''}`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -373,20 +354,21 @@
                             "name": name
                         })
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
                                 RolePermission(data.role.id)
-                                showAlertMessage("success","Role",selectedData.id ? "Role updated" : "Created successfully")
+                                showAlertMessage("success", "Role", selectedData.id ? "Role updated" : "Created successfully")
                             } else {
                                 closeFixedEditPanel()
-                                showAlertMessage("error","Role",data.message)
+                                showAlertMessage("error", "Role", data.message)
                             }
-
+                            ProgressLoading(false)
                         })
 
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
 
             }
@@ -397,6 +379,7 @@
             if (PermissionDetails.newData.length > 0) {
                 PermissionDetails.newData.forEach(id => {
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/setrolepermission`, {
                             headers: {
                                 Authorization: `Bearer ${access_token}`
@@ -407,16 +390,18 @@
                                 "permission_id": parseInt(id)
                             })
                         })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
-                                    showAlertMessage("success","Role","new role permission seted")
+                                    showAlertMessage("success", "Role", "new role permission seted")
                                 } else {
-                                    showAlertMessage("error","Role",data.message)
+                                    showAlertMessage("error", "Role", data.message)
                                 }
+                                ProgressLoading(false)
                             });
                     } catch (error) {
-                        showAlertMessage("warning","API error", error)
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
                     }
 
                 })
@@ -424,6 +409,7 @@
             if (PermissionDetails.deleteData.length > 0) {
                 PermissionDetails.deleteData.forEach(id => {
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/removerolepermission`, {
                             headers: {
                                 Authorization: `Bearer ${access_token}`
@@ -434,22 +420,24 @@
                                 "permission_id": parseInt(id)
                             })
                         })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
-                                    showAlertMessage("error","Role","deleted role permission")
+                                    showAlertMessage("error", "Role", "deleted role permission")
                                 } else {
-                                    showAlertMessage("error","Role",data.message)
+                                    showAlertMessage("error", "Role", data.message)
                                 }
+                                ProgressLoading(false)
                             });
                     } catch (error) {
-                        showAlertMessage("warning","API error", error)
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
                     }
 
                 })
             }
             setTimeout(() => {
-                initFun()
+                initFetch()
             }, 500)
             closeFixedEditPanel()
         }

@@ -1,0 +1,73 @@
+<div class="p-6">
+    <div id="newTemplateForm">
+
+    </div>
+    <div id="template-editor" class="text-sm"></div>
+    <div class="my-4 flex">
+                <button type="submit" onclick="SaveTemplate()"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+            </div>
+</div>
+
+<script>
+    $(function(){
+        let Template
+        $(document).ready(function(){
+            $("div#newTemplateForm").html(`
+                <h3 class="text-xl font-medium">Create a new template</h3>
+                <div class="w-72 mb-5">
+                    ${floatingInputTag("text", "name", "name", "Template Name")}
+                </div>
+                
+            `)
+            $("div#template-editor").load("./util/util.html")
+        });
+        TemplateInit()
+    })
+
+    function SaveTemplate(){
+        let nameTag = $("#newTemplateForm #name")
+        let nValue = nameTag.val()
+        let editTag = $("#template-editor #editor")
+        let html = editTag.text()
+        if(nValue == ""){
+            nameTag.focus()
+            showAlertMessage("error","Document Template","Template name should not empty.")
+        }else if(html == ""){
+            editTag.focus()
+            showAlertMessage("error","Document Template","Template content should not empty.")
+        }else{
+            let data = editTag.html()
+            html = data.includes("div") ? data : `<div>${data}</div>`
+            try{
+            ProgressLoading(true)
+                fetch(`${DomainURL}/document/template${SelectedID ? "/"+SelectedID : ""}`, {
+                    method: SelectedID ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
+                        "name": nValue,
+                        "html_text":html
+                    })
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success", "Document Template", "Document tempalte saved successfully")
+                            setTimeout(()=>window.location.href="?",1000)
+                        } else {
+                            showAlertMessage("error", "Document Template", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+    }
+</script>

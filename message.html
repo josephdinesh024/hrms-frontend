@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Chat</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/confic.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            background: #f0f2f5;
+        }
+    </style>
+    
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+
+    <div id="sidebar"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <div class="flex h-full">
+                <!-- Left Sidebar -->
+                <div class="w-1/4 border-r flex flex-col">
+                    <!-- Search -->
+                    <div class="p-3 border-b">
+                        <input type="search" id="searchUser" placeholder="Search employee..."
+                            class="w-full px-3 py-2 rounded-md border text-sm focus:outline-none" />
+                        <div class="bg-white w-full rounded-lg shadow-lg mt-1 max-h-40 divide-y-2 text-xs overflow-y-auto"
+                            id="employee_search_list">
+                                
+                        </div>
+                    </div>
+
+                    <!-- Chat List -->
+                    <div id="chat-list" class="flex-1 overflow-y-auto"></div>
+                </div>
+
+                <!-- Right Chat Window -->
+                <div class="flex-1 flex flex-col">
+                    <!-- Chat Header -->
+                    <div class="p-3 border-b flex items-center justify-between">
+                        <h2 id="chat-header" class="font-semibold text-gray-700">Select a chat</h2>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div id="messages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+                        <!-- Messages go here -->
+                    </div>
+
+                    <!-- Message Input -->
+                    <form class="p-3 border-t flex items-center gap-2">
+                        <input id="msg-input" type="text" placeholder="Type a message..." rows="3"
+                            class="flex-1 px-3 py-2 border max-h-20 rounded-lg focus:outline-none" />
+                        <button type="submit" id="send-btn"
+                            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        let currentUser = null  // logged-in user id
+        let currentChat = null;
+        let offset = 0;
+        let limit = 20;
+        let ws;
+
+        function loadChatList() {
+            $.ajax({
+                url: `${DomainURL}/message/chats`,
+                type: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                },
+                success: function (res) {
+                    $("#chat-list").empty();
+                    // console.log(res)
+                    res.chats.forEach(chat => {
+                        $("#chat-list").append(`
+                            <div class="p-2 border-b cursor-pointer chat-item w-full flex justify-between relative" data-id="${chat.user_id}" data-name="${chat?.user_name}">
+                                    <span>${chat?.user_name}</span>
+                                    <p class="text-xs text-gray-500 mr-4">${chat?.content.substring(0, 20)}</p>
+                                    <span class="absolute bottom-1 right-1 bg-red-600 text-white text-xs rounded-full px-1 ${chat?.unread_count && currentUser != chat?.user_id?"":"hidden"}">
+                                        ${chat?.unread_count}
+                                    </span>
+                            </div>
+                        `);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading chat list:", error);
+                }
+            });
+        }
+
+        function loadMessages(userId, reset = true) {
+            if (reset) {
+                offset = 0;
+                $("#messages").empty();
+            }
+            $.ajax({
+                url: `${DomainURL}/message/${userId}?offset=${offset}&limit=${limit}`,
+                type: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                },
+                success: function (res) {
+                    // console.log(res)
+                    for(let i=0;i<res.messages.length;i++){
+                        let m = res.messages[i]
+                        SectionMessage(m.content,m.created_at,m.sender_id == currentUser ? 'right' : 'left',m.sender_id == currentUser ? 'green' : 'gray')
+                    };
+
+                    offset += limit;
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading messages:", error);
+                }
+            });
+        }
+        
+        function MakeReadedMessages(userId) {
+            $.ajax({
+                url: `${DomainURL}/message/read/${userId}`,
+                type: 'PUT',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                },
+                success: function (res) {
+                    let chList = $(`.chat-item[data-id=${userId}]`);
+                    chList.find("span.absolute").text(0)
+                    chList.find("span.absolute").addClass("hidden")
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error to update messages:", error);
+                }
+            });
+        }
+
+        // connect websocket
+        function connectWS() {
+            ws = new WebSocket(`ws://localhost:8080/ws/${access_token}`);
+            ws.onmessage = (e) => {
+                let msg = JSON.parse(e.data);
+                if (msg.sender_id == currentChat && currentUser != currentChat) {
+                    SectionMessage(msg.content,msg.created_at,"left","gray",true)
+                    MakeReadedMessages(currentChat)
+                } else if(currentUser != currentChat) {
+                    // $(`.chat-item[data-id=${msg.sender_id}]`).append(`<span class="ml-2 text-xs bg-red-500 text-white px-1 rounded">new</span>`);
+                    let chList = $(`.chat-item[data-id=${msg.sender_id}]`);
+                    let count = parseInt(chList.find("span.absolute").text()) || 0
+                    chList.find("span.absolute").text(count + 1)
+                    chList.find("span.absolute").removeClass("hidden")
+                }
+            };
+        }
+
+        $(document).on("click", ".chat-item", function () {
+            currentChat = $(this).data("id");
+            $("#chat-header").text("Chat with " + $(this).data("name"));
+            loadMessages(currentChat, true);
+            MakeReadedMessages(currentChat)
+            EmployeeSearch("")
+            $("main input#searchUser").val("")
+            scrollDown()
+        });
+
+        $(document).on("submit","form",function (e) {
+            e.preventDefault();
+            let msg = $("#msg-input").val();
+            if (!msg) {
+                $("#msg-input").focus()
+                return
+            };
+            if(!currentChat){
+                showAlertMessage("error","Chat","Select a employee to chat")
+                return
+            }
+            ws.send(JSON.stringify({
+                sender_id: currentUser,
+                receiver_id: currentChat,
+                type: "text",
+                content: msg
+            }));
+            SectionMessage(msg,new Date(),"right","green",true)
+            $("#msg-input").val("");
+        });
+
+        $("#messages").on("scroll", function () {
+            if ($(this).scrollTop() === 0 && currentChat) {
+                loadMessages(currentChat, false);
+            }
+        });
+
+        $(document).ready(function () {
+            currentUser = parseInt($.cookie("id"))
+            loadChatList();
+            connectWS();
+
+            $(document).on("keyup change click blur", "main input#searchUser", function () {
+                let txt = $(this).val().trim()
+                EmployeeSearch(txt)
+            });
+        });
+
+        const container = $('#messages');
+        function scrollDown(){
+            container.animate({
+                scrollTop: container.prop("scrollHeight")
+                }, 1000);
+        }
+
+        function SectionMessage(msg,date,align,clr,ws=false) {
+            let section = formatDateSection(date)
+            let fdSec = document.getElementById(section)
+            if (fdSec) {
+                if(ws)
+                $(fdSec).append(`
+                    <div class="text-${align} mb-2">
+                        <div class="inline-block px-2 py-1 rounded bg-${clr}-200">
+                            <div class="flex gap-3 items-end">
+                                <p class="max-w-82 text-start">${msg}</p>
+                                <span class="text-xs text-textPrimary">
+                                    ${formatTime(date)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                else
+                $(fdSec).find("div.sticky").after(`
+                    <div class="text-${align} mb-2">
+                        <div class="inline-block px-2 py-1 rounded bg-${clr}-200">
+                            <div class="flex gap-3 items-end">
+                                <p class="max-w-82 text-start">${msg}</p>
+                                <span class="text-xs text-textPrimary">
+                                    ${formatTime(date)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            } else {
+                if(ws)
+                $("#messages").append(`
+                    <section id="${section}" class="relative">
+                        <div class="sticky top-0 z-10 bg-gray-100 text-sm text-gray-500 font-medium text-center p-2 my-2 mb-10 rounded-xl w-max mx-auto shadow-sm">
+                            ${section}
+                        </div>
+                        <div class="text-${align} mb-2">
+                            <div class="inline-block px-2 py-1 rounded bg-${clr}-200">
+                                <div class="flex gap-3 items-end">
+                                    <p class="max-w-82 text-start">${msg}</p>
+                                    <span class="text-xs text-textPrimary">
+                                        ${formatTime(date)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `);
+                else
+                $("#messages").prepend(`
+                    <section id="${section}" class="relative">
+                        <div class="sticky top-0 z-10 bg-gray-100 text-sm text-gray-500 font-medium text-center p-2 my-2 mb-10 rounded-xl w-max mx-auto shadow-sm">
+                            ${section}
+                        </div>
+                        <div class="text-${align} mb-2">
+                            <div class="inline-block px-2 py-1 rounded bg-${clr}-200">
+                                <div class="flex gap-3 items-end">
+                                    <p class="max-w-82 text-start">${msg}</p>
+                                    <span class="text-xs text-textPrimary">
+                                        ${formatTime(date)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `);
+            }
+        }
+        let SearchedUser
+        async function EmployeeSearch(text) {
+            if (text == "")
+                $("main #employee_search_list").empty()
+            else
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/search/name?module=user&q=${text}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "GET"
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                $("main #employee_search_list").empty()
+                                if (data?.data?.length) {
+                                    data.data.forEach((item, index) => {
+                                        $("main #employee_search_list").append(`
+                                        <div class="p-2 space-x-5 chat-item cursor-pointer" 
+                                            data-id="${item.id}" data-index="${index}" data-name="${item.user_name}">
+                                            <span>ID: ${capitalizeFirstLetter(item.user_name)}</span>
+                                            <span>Name: ${capitalizeFirstLetter(item.profile.first_name)} ${capitalizeFirstLetter(item.profile.last_name)}</span>
+                                        </div>                                        
+                                    `);
+                                    });
+                                    SearchedUser = data.data
+                                }
+                                else {
+                                    SearchedUser = []
+                                    $("main #employee_search_list").append(`
+                                        <span class="p-6">No record </span>
+                                    `)
+                                }
+                            }
+                            ProgressLoading(false)
+                        });
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,19 +1,36 @@
 <!-- Certificate Section -->
-
+<div class="mb-6 text-sm">
+        <h2 class="text-lg font-semibold">Certificate</h2>
+        <button onclick="toggleNote()" class="text-blue-600 hover:underline flex items-center space-x-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z" />
+            </svg>
+            <span>Note</span>
+        </button>
+        <div id="noteBox" class="mt-2 hidden text-blue-700 p-3">
+            <ul class="list-disc ml-5 space-y-1">
+                <li>Enter the Certificate name (e.g., AWS Certified, Diploma, Workshop).</li>
+                <li>Upload a scanned copy of the Certificate (PDF).</li>
+                <li>Make sure the certificate is valid, readable, and matches your name.</li>
+                <li>Upload only professional/academic certificates relevant to your profile.</li>
+            </ul>
+        </div>
+</div>
 <form id="tab-certificate" class="tab-section">
-    
+
 </form>
 
 
 <script>
     $(function () {
         $("#tab-certificate").html(`
-        <h2 class="text-lg font-semibold mb-4">Certificate</h2>
         <div id="certificate-container" class="space-y-4">
-            <div class="border rounded-lg grid grid-cols-1 gap-4 p-3">
+            <div class="border rounded-lg grid grid-cols-1 gap-4 p-3 certificate-details">
                 <input type="hidden" name="FileID" id="1_FileID" value="0">
-                ${floatingInputTag("text","1_name","name","Certificate Name")}
-                ${floatingFileInputTag('1_file', 'file', 'Upload Certificate')}
+                ${floatingInputTag("text", "1_name", "name", "Certificate Name")}
+                ${floatingFileInputTag('1_file', 'file', 'Upload Certificate',"",true,[".pdf"])}
             </div>
         </div>
         <button type="button" onclick="addCertificate()" class="mt-4 text-blue-600 hover:underline">+ Add More</button>
@@ -25,13 +42,14 @@
         let UserCertificate = []
         function initFun() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/file`, {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     },
                     method: "GET"
-                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -40,10 +58,10 @@
                                 $("#tab-certificate #certificate-container").empty()
                                 UserCertificate.forEach((item, index) => {
                                     $("#tab-certificate #certificate-container").append(`
-                                    <div class="border rounded-lg grid grid-cols-1 gap-4 p-3">
+                                    <div class="border rounded-lg grid grid-cols-1 gap-4 p-3 certificate-details">
                                         <input type="hidden" name="FileID" id="${index + 1}_FileID" value="${item.id}">
-                                        ${floatingInputTag("text",index+1+"_name","name","Certificate Name",value=item.name)}
-                                        ${floatingFileInputTag(index+1+'_file', 'file', 'Upload Certificate',item?.file_path.split("/").pop(),false)}
+                                        ${floatingInputTag("text", index + 1 + "_name", "name", "Certificate Name", value = item.name)}
+                                        ${floatingFileInputTag(index + 1 + '_file', 'file', 'Upload Certificate', item?.file_path.split("/").pop(), false,[".pdf"])}
                                         <span onclick="FilePreviewURL('${item.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>
                                     </div>
                                 `);
@@ -52,25 +70,27 @@
                                 $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
                             }
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
 
-            if(MyOnboardDetails?.correction_marked){
-                setTimeout(()=>MarkCorrection(),500)
+            if (MyOnboardDetails?.correction_marked) {
+                setTimeout(() => MarkCorrection(), 500)
             }
         }
         initFun()
 
-        // $(document).off("submit", "form#tab-certificate");
-        $(document).on("click", "#tab-certificate button#saveCertificateDetails", async function (e) {
+        $(document).off("click", "#tab-certificate button#saveCertificateDetails");
+        $(document).on("click", "#tab-certificate button#saveCertificateDetails",function (e) {
             let invalidFields = $("form:invalid");
-            if(invalidFields?.length){
-                showAlertMessage("warning","Employee profile","Fill required fields to continue.")
-            }else{
-                let childrens = $("#certificate-container").children()
-                for(let i=0; i<childrens.length; i++){
+            if (invalidFields?.length) {
+                showAlertMessage("warning", "Employee profile", "Fill required fields to continue.")
+            } else {
+                let childrens = $("#certificate-container div.certificate-details");
+                for (let i = 0; i < childrens.length; i++) {
                     let form = new FormData()
                     let data = childrens[i]
                     let ID = $(data).find("input[name=FileID]").val()
@@ -80,50 +100,55 @@
                     form.append("type", "certificate")
                     form.append("name", nameData)
                     form.append("file", fileData)
-                    UploadFiles(ID,form,i)
-                } 
-            }       
+                    UploadFiles(ID, form, i)
+                }
+            }
         })
 
-        async function UploadFiles(ID,form,index){
+        async function UploadFiles(ID, form, index) {
             try {
-                    fetch(`${DomainURL}/my/file${ID != "0" ? "/" + ID : ""}`, {
-                        headers: {
-                            Authorization: `Bearer ${access_token}`
-                        },
-                        method: ID != 0 ? "PUT" : "POST",
-                        body: form
-                    })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                        .then(data => {
-                            if (data.status) {
-                                $(`#tab-certificate #certificate-container #${index + 1}_FileID`).val(data.file.id)
-                                // console.log(data)
-                                showAlertMessage("success","Employee profile","Certificate details saved")
-                            } else {
-                                showAlertMessage("error","Employee profile",data.message)
-                            }
-                        });
-                } catch (error) {
-                    showAlertMessage("warning","API error", error)
-                }
+                ProgressLoading(true)
+                fetch(`${DomainURL}/my/file${ID != "0" ? "/" + ID : ""}`, {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: ID != 0 ? "PUT" : "POST",
+                    body: form
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            $(`#tab-certificate #certificate-container #${index + 1}_FileID`).val(data.file.id)
+                            // console.log(data)
+                            showAlertMessage("success", "Employee profile", "Certificate details saved")
+                        } else {
+                            showAlertMessage("error", "Employee profile", data.message)
+                        }
+                        ProgressLoading(false)
+                    });
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
         }
-    
+
         // Mark Correction  function
-        function MarkCorrection(){
+        function MarkCorrection() {
             let MyCertificate = MyOnboardDetails?.correction_note.file
             let child = $("#tab-certificate #certificate-container").children()
-                MyCertificate.forEach((crt,i) =>{
-                    let arr = Object.keys(crt)
-                    if(arr.length){
-                        arr.forEach(key=>{
-                            if(crt[key] == false){
-                                $(child[i]).find(`[name=${key}]`).addClass("border-red-400")
+            MyCertificate.forEach((crt, i) => {
+                let arr = Object.keys(crt)
+                if (arr.length) {
+                    arr.forEach(key => {
+                        if (crt[key] == false) {
+                            if(key == "file")
                                 $(child[i]).find(`[name=file]`).parent().find("div").addClass("border-red-400")
-                            }
-                        })
-                    }
-                })
+                            else
+                                $(child[i]).find(`[name=${key}]`).addClass("border-red-400")
+                        }
+                    })
+                }
+            })
         };
 
     });

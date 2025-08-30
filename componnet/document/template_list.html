@@ -1,0 +1,90 @@
+<!-- <div class="font-semibold text-xl p-6 flex content-between">
+    <p>Projects</p>
+</div> -->
+<div id="templateCardList" class="w-full mb-4">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Template Name</th>
+                <th class="p-4 border-b">Last Updated</th>
+                <th class="p-4 border-b">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        function initFetch() {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/document/template?page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#templateCardList tbody").empty()
+                            var Template = data.template
+                            Template.forEach((element, index) => {
+                                $("#templateCardList tbody").append(`
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition">
+                                <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
+                                <td class="p-4">${new Date(element.updated_at).toLocaleDateString()}</td>
+                                <td class="p-4 w-full flex gap-8">
+                                    <span class="text-blue-400 cursor-pointer" onclick="FileDownload('/document/template/preview/${element.id}')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Preview</span>
+                                    <span data-id="${element.id}" class="selectedList cursor-pointer"><i class="fa-solid fa-pencil"></i> Edit</span>
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#template-countMessage").text(`${total + Template.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#template-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#template-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
+
+
+        $(document).on("click", "#templateCardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?template_id=${ID}`
+        });
+
+    })
+</script>

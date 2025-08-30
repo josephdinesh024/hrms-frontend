@@ -1,23 +1,6 @@
-const access_token = $.cookie("access_token");
-if (!access_token)
-    window.location.href = 'login.html'
-
-const scripts = [
-
-    "./static/js/confic.js",
-    "./static/js/util.js"
-];
-
-scripts.forEach(src => loadScript(src));
-
-const styles = [
-    "./static/css/floatinput.css"
-];
-
-styles.forEach(href => loadCSS(href));
-
 async function AccessCheck() {
     try {
+        ProgressLoading(true)
         fetch(`${DomainURL}/my/access`, {
             method: "GET",
             headers: {
@@ -29,24 +12,27 @@ async function AccessCheck() {
                 if (data.status) {
                     $.cookie("my_access", JSON.stringify(data.access))
                     $.cookie("my_status", data.my_status)
+                    $("#sidebar").load("sidebar.html")
                     if ([0, 5, 6].includes(data.my_status) && !window.location.pathname.split("/").pop().includes("onboard.html"))
                         window.location.href = "onboard.html"
                 } else {
                     $.removeCookie("access_token")
                     window.location.reload()
                 }
+                ProgressLoading(false)
             })
     } catch (error) {
+        ProgressLoading(false)
         showAlertMessage("warning", "API error", error)
     }
     setTimeout(() => { AccessCheck() }, 50000)
+    setTimeout(() => { NotificationModule() }, 500)
 }
 
 setTimeout(() => {
     $(document).ready(function () {
-        AccessCheck()
-        $("#sidebar").load("sidebar.html")
         $("#header").load("header.html")
+        AccessCheck()
     });
 }, 100)
 
@@ -64,8 +50,8 @@ $(document).ready(function () {
         $("#searchresult").fadeOut(1000)
         if ($("input#search").val() == "")
             document.getElementById("searchresult").innerHTML = ''
-    })
-})
+    });
+});
 
 // Search
 
@@ -73,6 +59,7 @@ $(document).on("input", "input#search", function () {
     document.getElementById("searchresult").innerHTML = ''
     var query = $(this).val()
     try {
+        ProgressLoading(true)
         fetch(`${DomainURL}/search?q=${query}`, {
             // headers: {
             //     "Content-Type": "application/json",
@@ -99,22 +86,13 @@ $(document).on("input", "input#search", function () {
                 }
             });
     } catch (error) {
+        ProgressLoading(false)
         showAlertMessage("warning", "API error", error)
     }
 })
 
 // logout
 $(function () {
-    var popprofile = false
-    // $("div").on("click",function(){
-    //     if (popprofile)
-    //         popprofile = false
-    //     console.log("function click",popprofile)
-    // })
-    $(document).on("click", "#profilelogo", function (e) {
-        popprofile = !popprofile
-        popprofile ? $("#popuprofile").removeClass('hidden') : $("#popuprofile").addClass('hidden')
-    })
     $(document).on("click", "button#logoutbutton", function () {
         $.removeCookie("access_token")
         $.removeCookie("my_access")
@@ -125,83 +103,84 @@ $(function () {
 })
 
 
-
-function loadScript(src, callback) {
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = true;
-
-    script.onload = () => {
-        // console.log(`${src} loaded.`);
-        if (callback) callback();
-    };
-
-    script.onerror = () => console.error(`Failed to load ${src}`);
-
-    document.head.appendChild(script);
+const navURL = {
+    "travel": "travel-request.html",
+    "expense": "travel-request.html",
+    "leave": "leave-request.html",
 }
 
+function NotificationModule() {
+    let notif = $("#header #notification")
+    notif.find("#request-list").html(`
+                   <span class="text-center text-textPrimary font-medium py-4">No notification</span>
+        `)
 
-function loadCSS(href) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
+    try {
+        ProgressLoading(true)
+        fetch(`${DomainURL}/notification`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${access_token}`
+            },
+        }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+            .then(data => {
+                if (data.status) {
+                    // console.log(data)
+                    if (data?.notification?.requests) {
+                        notif.find("#request-list").empty()
+                        data?.notification?.requests.forEach(element => {
+                            notif.find("#request-list").append(`
+                                <a href="${navURL[element["module_type"]]}?request_id=${element["request_id"]}" class="w-full bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text hover:text-transparent p-2 hover:shadow-md">
+                                    <h6 class="font-medium px-2">${capitalizeFirstLetter(element["user_name"])}</h6>
+                                    <h6 class="text-textPrimary text-sm w-full py-1 px-4" >${capitalizeFirstLetter(element["message"])}</h6>
+                                </a>
+                                <hr>
+                            `)
+                        });
 
-    // link.onload = () => console.log(`CSS loaded.`);
-    link.onerror = () => console.error(`Failed to load CSS: ${href}`);
-
-    document.head.appendChild(link);
+                        if (data.notification.viewed) {
+                            notif.find("#notification-count").show()
+                            notif.find("#notification-count").text(data.notification.requests.length)
+                            notif.find("i").toggleClass("fa-regular fa-solid")
+                            notif.click(function () { NotificationViewed(data.notification.id, false) })
+                        } else {
+                            notif.find("#notification-count").hide()
+                        }
+                    }
+                } else {
+                    showAlertMessage("warning", "Notification", data.message)
+                }
+                ProgressLoading(false)
+            })
+    } catch (error) {
+        ProgressLoading(false)
+        showAlertMessage("warning", "API error", error)
+    }
 }
 
+function NotificationViewed(ID, status) {
 
-function showAlertMessage(type, title, message, autoClose = true, duration = 5000) {
-    const id = `AlertMessage-${Date.now()}`;
-
-    const config = {
-        success: {
-            icon: "✅",
-            bg: "bg-green-100",
-            border: "border-l-4 border-green-600",
-            text: "text-green-900"
-        },
-        error: {
-            icon: "❌",
-            bg: "bg-red-100",
-            border: "border-l-4 border-red-600",
-            text: "text-red-900"
-        },
-        warning: {
-            icon: "⚠️",
-            bg: "bg-yellow-100",
-            border: "border-l-4 border-yellow-600",
-            text: "text-yellow-900"
-        },
-        info: {
-            icon: "ℹ️",
-            bg: "bg-blue-100",
-            border: "border-l-4 border-blue-600",
-            text: "text-blue-900"
-        }
-    };
-
-    const toast = `
-      <div id="${id}" class="${config[type].bg} ${config[type].border} ${config[type].text} rounded shadow-md px-4 py-3 flex items-start gap-3 animate-fade-in">
-        <div class="text-lg mt-0.5">${config[type].icon}</div>
-        <div class="flex-1">
-          <strong class="font-semibold">${title}</strong>
-          <div class="text-sm mt-1">${message}</div>
-        </div>
-        <button onclick="$('#${id}').remove()" class="text-xl font-bold leading-none hover:text-gray-700">&times;</button>
-      </div>
-    `;
-
-    $('#AlertMessageContainer').append(toast);
-
-    if (autoClose) {
-        setTimeout(() => {
-            $(`#${id}`).fadeOut(700, function () {
-                $(this).remove();
-            });
-        }, duration);
+    try {
+        ProgressLoading(true)
+        fetch(`${DomainURL}/notification/${ID}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${access_token}`
+            },
+            body: JSON.stringify({
+                "viewed": status  // true or false
+            })
+        }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+            .then(data => {
+                if (data.status == 0) {
+                    showAlertMessage("warning", "Notification", data.message)
+                }
+                ProgressLoading(false)
+            })
+    } catch (error) {
+        ProgressLoading(false)
+        showAlertMessage("warning", "API error", error)
     }
 }

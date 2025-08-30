@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Project</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/profileAction.js"></script>
+    <script src="./static/js/confic.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+    <div id="sidebar"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main id="main" class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Project Tasks
+            </h2>
+            <hr>
+            <div id="content" class="w-full h-[90%] bg-white shadow-md rounded-lg overflow-auto">
+                <div id="section-content" class="p-8 w-full min-h-full overflow-y-auto">
+                    <div id="section-project-task-details" class="section grid md:grid-cols-2 h-full relative">
+
+                        <div class="text-sm">
+                            <h2 class="text-lg font-semibold"></h2>
+                            <div onclick="openPopup()" class="cursor-pointer w-fit">
+                                <span id="status">Pending</span>
+                                <span id="state">Pending</span>
+                            </div>
+                            <div class="absolute top-0 left-1/4" onclick="openEdit('project')"><i
+                                    class="fa-regular fa-pen-to-square cursor-pointer"></i></div>
+                            <div class="text-sm h-fit space-y-4 my-4">
+                                <h5 class="font-medium my-2">Worked Hours: <span class="text-textPrimary"
+                                        id="worked_hour">3</span></h5>
+                                <div class="font-medium my-2 flex w-fit gap-4">Progress:
+                                    <div class="relative w-12 h-12 -mt-2">
+                                        <div class="absolute inset-0 rounded-full bg-gray-200"></div>
+
+                                        <div id="progress-left" class="absolute inset-0 rounded-full overflow-hidden">
+                                            <div class="absolute inset-0 origin-center-left transform"
+                                                style="clip: rect(0, 999px, 999px, 24px);"></div>
+                                        </div>
+
+                                        <div id="progress-right" class="absolute inset-0 rounded-full overflow-hidden">
+                                            <div class="absolute inset-0 origin-center-right transform"
+                                                style="clip: rect(0, 24px, 999px, 0);"></div>
+                                        </div>
+
+                                        <div
+                                            class="absolute inset-2 bg-white rounded-full flex items-center justify-center text-center text-gray-800">
+                                            <span id="progress-text" class="text-center w-full">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="">Description</p>
+                            <div id="project-task-files" class="my-4">
+
+                            </div>
+                        </div>
+                        <div id="project-teams" class="p-1 relative w-full">
+                            <h4 class="font-semibold my-2">Work Sheets</h4>
+                            <div id="time_sheet" class="relative h-[420px] overflow-auto">
+                                <table class="w-full border-collapse text-xs mt-2">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-gray-700 text-left">
+                                            <th class="p-2 border-b"></th>
+                                            <th class="p-2 border-b sort-list cursor-pointer" data-key="user_id" data-sort="aes"><i class="fa-solid fa-sort"></i> Employee ID</th>
+                                            <th class="p-2 border-b">Full Name</th>
+                                            <th class="p-2 border-b">Email</th>
+                                            <th class="p-2 border-b">Entery Time</th>
+                                            <th class="p-2 border-b sort-list cursor-pointer" data-key="total_hours" data-sort="aes"><i class="fa-solid fa-sort"></i> Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="flex gap-2 items-center bg-tranparent p-1 text-base w-fit">
+                                <button onclick="previousPage()"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                                <span id="work-sheet-countMessage">5 of 10</span>
+                                <button onclick="nextPage()"><i class="fa-solid fa-circle-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="request-list" class="h-[90%]">
+                <div class="w-full min-h-full bg-white shadow-md rounded-lg overflow-hidden flex">
+                    <!-- Sidebar -->
+                    <div class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
+                        <ul class="space-y-4 text-sm text-gray-700">
+                            <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="project-task">
+                                Project Task
+                            </li>
+                            <li class="menu-item cursor-pointer" data-section="add-new"><i class="fa-solid fa-plus"></i>
+                                Add Project Task</li>
+                        </ul>
+                        <div class="flex gap-2 items-center bg-tranparent p-3 text-base pageBtn"
+                            id="button-project-task">
+                            <button id="project-task-previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                            <span id="project-task-countMessage">5 of 10</span>
+                            <button id="project-task-next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div id="section-content" class="w-full min-h-full">
+                        <div id="section-project-task" class="section">
+
+                        </div>
+                        <div id="section-add-new" class="section">
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="edit-area" class="fixed inset-0 flex-1 justify-items-center mt-24 hidden h-[90%]">
+        <div class="bg-white w-2/3 max-h-full shadow-md rounded-lg overflow-y-auto relative">
+            <i class="absolute top-4 right-4 text-2xl fa-solid fa-xmark icon-remove cursor-pointer"
+                onclick="closeEdit()"></i>
+            <div id="load-area"></div>
+        </div>
+    </div>
+    <div id="Popup-menu" class="fixed inset-0 w-full h-full flex-1 justify-items-center hidden">
+        <div class="mt-28 min-w-96 min-h-56 bg-white rounded-lg shadow-md py-8 px-6 space-y-5">
+            <h5 class="font-medium text-lg">Project Task Status</h5>
+            <div id="project-status" class="w-full z-50"></div>
+
+            <div>
+                <button onclick="updateStatus()"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500 mr-2">Change</button>
+                <button onclick="closePopup()"
+                    class="bg-gray-50 hover:bg-gray-300 font-semibold text-xs py-2 px-8 shadow-sm shadow-third rounded-lg mr-2">Close</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let SelectedID
+        let access
+        let List = $("#request-list")
+        let Content = $("#content")
+        let ProjectTaskDetail
+        $(document).ready(function () {
+            SelectedID = urlParams.get("task_id")
+            access = JSON.parse($.cookie("my_access"))
+            $("#main .menu-item").click(function () {
+                $("#main .menu-item").removeClass("font-bold text-blue-600")
+                $(this).addClass("font-bold text-blue-600")
+
+                let section = $(this).attr("data-section")
+                $("#main .section").hide()
+                $(`#main #section-${section}`).show()
+                $("#main .pageBtn").hide()
+                $(`#main #button-${section}`).show()
+
+            });
+
+            $(`#main #section-content #section-project-task`).load("./componnet/project/project_task_list.html")
+            if("project" in access){
+                $(`#main #section-content #section-add-new`).load("./componnet/project/new_project_task.html")
+            }else{
+                $(`#main #section-content #section-add-new`).hide()
+                $("#main li[data-section=add-new]").hide()
+                $("#main #content div[onclick] i.fa-pen-to-square").hide()
+            }
+            $("#main .section").hide()
+            $(`#main #section-project-task`).show()
+            $("#main .pageBtn").hide()
+            $(`#main #button-project-task`).show()
+
+            if (SelectedID) {
+                Content.show()
+                List.hide()
+                ProjectTaskDetails(SelectedID)
+                $("#main .section").hide()
+                $(`#main #section-project-task-details`).show()
+            } else {
+                List.show()
+                Content.hide()
+            }
+
+        });
+
+        function openEdit(tag) {
+            if("project" in access){
+                $("#edit-area").show()
+                if (tag == "project")
+                    $("#load-area").load("./componnet/project/new_project_task.html")
+
+                $(`#main #section-content #section-add-new`).empty()
+            }
+        }
+        function closeEdit() {
+            $("#edit-area").hide()
+            $("#load-area").empty()
+        }
+        function ProjectTaskDetails(ID) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project/task/${ID}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            ProjectTaskDetail = data.project_task
+                            TaskDataExtraction()
+                        } else {
+                            showAlertMessage("error", "Project Task", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        function TaskDataExtraction() {
+            Content.find("#status").html(StatusColourCode(ProjectTaskDetail.status))
+            Content.find("#state").html(ProjectStatusColourCode(ProjectTaskDetail.state))
+            Content.find("p").html(`<h5>Description</h5> ${ProjectTaskDetail.description || "--"}`)
+            Content.find("h2").text(`${capitalizeFirstLetter(ProjectTaskDetail.name || "--")}`)
+            Content.find("#project-task-files").html(ProjectFiles(ProjectTaskDetail.file))
+            Content.find("#worked_hour").text(ProjectTaskDetail.worked_hour)
+            updateProgressBar(ProjectTaskDetail.progress)
+            TimeSheet = ProjectTaskDetail.time_sheet;
+            SortTimeSheet = ProjectTaskDetail.time_sheet;
+            let nArr = LimitOffset(TimeSheet,6)
+            Ln = TimeSheet?.length
+            let l = 6
+            if(6 > Ln)
+                    l = Ln
+            Content.find("#work-sheet-countMessage").text(`${l} of ${Ln}`)
+            ProjectWorkSheet(nArr);
+        }
+
+        function ProjectFiles(data) {
+            let result = `<h3 class="font-medium">Project Task Attachment</h3>`
+            data.forEach(element => {
+                result += `
+                    <div class="p-3 flex justify-around">
+                        <div>${capitalizeFirstLetter(element.name)}</div>
+                        <div>${new Date(element.updated_at).toLocaleDateString()}</div>
+                        <div onclick="FilePreviewURL('${element.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</div>
+                    </div>`
+            });
+
+            return result
+        }
+
+        function updateProgressBar(value) {
+            const clampedValue = Math.max(0, Math.min(100, value));
+            const LeftInner = Content.find('#progress-left div');
+            const RightInner = Content.find('#progress-right div');
+            const progressText = document.getElementById('progress-text');
+            if (clampedValue <= 50) {
+                // First half (0-50%) - only right half rotates
+                const rotation = (clampedValue / 50) * 180;
+                RightInner.addClass(`rotate-[0deg] bg-gray-200`);
+                LeftInner.addClass(`rotate-[${180 + rotation}deg] bg-blue-500`);
+            } else {
+                // Second half (51-100%) - right half completes, left half rotates
+                RightInner.addClass(`rotate-[180deg] bg-blue-500`);
+                const rotation = ((clampedValue - 50) / 50) * 180;
+                LeftInner.addClass(`rotate-[${rotation}deg] bg-blue-500`);
+            }
+
+            progressText.textContent = `${Math.floor(clampedValue)}%`;
+        }
+
+        let TimeSheet
+        let SortTimeSheet
+        let PageLimit = 6
+        let Ln
+        let Page = 0
+        function previousPage(){
+            if(Page != 0){
+                PageLimit -= 6
+                Page -= 1
+                let nArr = LimitOffset(SortTimeSheet,PageLimit,Page * 6)
+                ProjectWorkSheet(nArr);
+                Content.find("#work-sheet-countMessage").text(`${PageLimit} of ${Ln}`)
+            }
+        }
+        function nextPage(){
+            if(PageLimit < Ln){
+                PageLimit += 6
+                Page += 1
+                let nArr = LimitOffset(SortTimeSheet,PageLimit,Page * 6)
+                ProjectWorkSheet(nArr);
+                let l = PageLimit
+                if(PageLimit > Ln)
+                    l = Ln
+                Content.find("#work-sheet-countMessage").text(`${l} of ${Ln}`)
+            }
+        }
+        
+        $(document).on("click","#content #time_sheet table th",function(){
+            let key = $(this).data("key");
+            let order = $(this).data("sort");
+            if(order == "aes"){
+                $(this).find("i").removeClass("fa-sort fa-sort-down")
+                $(this).find("i").addClass("fa-sort-up")
+                $(this).data("sort","des")
+            }else{
+                $(this).find("i").removeClass("fa-sort fa-sort-up")
+                $(this).find("i").addClass("fa-sort-down")
+                $(this).data("sort","aes")
+            }
+
+            ArraySort(SortTimeSheet,key,order)
+            let nArr = LimitOffset(SortTimeSheet,PageLimit,Page * 6)
+            ProjectWorkSheet(nArr);
+        })
+
+        async function ProjectWorkSheet(data) {
+            // console.log(ArraySort(data,"user_id","des"))
+            
+            let ln = data?.length
+            let result = []
+            for (let i = 0; i < ln; i++) {
+                let element = data[i]
+                // console.log(element, i)
+                let url = `https://ui-avatars.com/api/?name=${element.user?.profile?.first_name || "aes000"}+${element.user?.profile?.last_name}`
+                if (element.user?.profile?.file_path)
+                    url = await FilePreviewURL(element.user?.profile?.profile_image?.file_path, false)
+                result.push(`
+                    <tr id="${element?.user_id}">
+                        <td class="p-2 w-fit h-fit"><img class="w-10 h-10 border-2 border-white rounded-full dark:border-gray-800"
+                                src="${url}" alt=""></td>
+                        <td class="p-2">${element?.user?.user_name}</td>
+                        <td class="p-2">${element?.user?.profile?.first_name} ${element?.user?.profile?.last_name}</td>
+                        <td class="p-2">${element?.user?.email}</td>
+                        <td class="p-2">${new Date(element?.entry_date).toLocaleDateString()}</td>
+                        <td class="p-2">${element?.total_hours}</td>
+                    </tr>
+                `)
+            }
+
+            Content.find("#project-teams #time_sheet tbody").html(result.join(""))
+        }
+
+
+        function openPopup() {
+            if("project" in access){
+                $("#Popup-menu").show()
+                $("#Popup-menu #project-status").html(
+                    `
+                    ${SelectionTag("status", "status", "Task Status", statusNames[ProjectTaskDetail?.status]
+                        , true, Object.values(statusNames).slice(1, 3))}
+                    ${SelectionTag("state", "state", "Task State", projectStatusNames[ProjectTaskDetail?.state]
+                            , true, Object.values(projectStatusNames))}
+                    `)
+            }
+        }
+        function closePopup() {
+            $("#Popup-menu").hide()
+        }
+
+        function updateStatus() {
+            let statusVal = $("#Popup-menu #project-status #status").val()
+            let stateVal = $("#Popup-menu #project-status #state").val()
+            if (stateVal == "--" || statusVal == "--") {
+                showAlertMessage("error", "Project Task", "Select task status or state")
+            } else {
+                let status = Object.keys(statusNames).find(k => statusNames[k] === statusVal)
+                let state = Object.keys(projectStatusNames).find(k => projectStatusNames[k] === stateVal)
+                // console.log(status,state)
+                if (SelectedID) {
+                    try {
+                        ProgressLoading(true)
+                        fetch(`${DomainURL}/project/task/${SelectedID}`, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            body: JSON.stringify({
+                                "status": parseInt(status),
+                                "state": parseInt(state)
+                            })
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    showAlertMessage("success", "Project Task", "Project status updated.")
+                                    closePopup()
+                                    setTimeout(() => { window.location.reload() }, 800)
+                                } else {
+                                    showAlertMessage("error", "Project Task", data.message)
+                                }
+                                ProgressLoading(false)
+                            })
+                    } catch (error) {
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
+                    }
+                } else
+                    showAlertMessage("error", "Project Task", "Error to find project id.")
+            }
+        }
+
+        function ArraySort(arr=[],key,order="aes"){
+            let newArr = arr;
+            let typ = parseInt(arr[0][key])
+            if(typ){
+                if(order === "aes")
+                    newArr.sort((a, b) => a[key] - b[key]);
+                else
+                    newArr.sort((a, b) => b[key] - a[key]);
+            }else{
+                if(order === "aes")
+                    newArr.sort((a, b) => a[key].localeCompare(b[key]));
+                else
+                    newArr.sort((a, b) => b[key].localeCompare(a[key]));
+            }
+            return newArr
+        }
+    </script>
+
+
+</body>
+
+</html>

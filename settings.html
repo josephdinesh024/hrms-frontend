@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Advance settings</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/confic.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        input[type="checkbox"]:checked{
+            accent-color: #59e82d;
+        }
+        .disabled-checkbox{
+            accent-color: #59e82d;
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+    <div id="sidebar"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+               Advance Setting
+            </h2>
+            <hr>
+            <div id="contents" class="w-full min-h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
+                <div class="md:w-28 min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
+                </div>
+                <div class="w-full">
+                    <div class="m-4 p-6 border rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4">Basic</h2>
+                        <form class="basics space-y-3 md:w-2/3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="employee_id" class="font-medium text-sm md:text-base mx-3">Employee ID name: </label>
+                                <input type="text" name="employee_id" id="employee_id" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="auto_approve_leave" class="font-medium text-sm md:text-base mx-3">Auto Leave Approve: </label>
+                                <select name="auto_approve_leave" id="auto_approve_leave" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                                    <option value="false">False</option>
+                                    <option value="true">True</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="max_work_hours" class="font-medium text-sm md:text-base mx-3">Minium Work Hours: </label>
+                                <input type="number" name="max_work_hours" id="max_work_hours" required
+                                    min="7" max="14"
+                                    class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="page_size" class="font-medium text-sm md:text-base mx-3">Page size: </label>
+                                <input type="number" name="page_size" id="page_size" required
+                                    min="1" max="10"
+                                    class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="m-4 p-6 border rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4">Role access variable</h2>
+                        <form class="basics space-y-3 md:w-2/3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="omitted_role" class="font-medium text-sm md:text-base mx-3">Omitted Roles: </label>
+                                <input type="text" name="omitted_role" id="omitted_role" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                                <h6 class="ml-4 text-xs text-textPrimary">use "," to separate roles.</h6>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="omitted_permission" class="font-medium text-sm md:text-base mx-3">Omitted Permission: </label>
+                                <input type="text" name="omitted_permission" id="omitted_permission" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                                <h6 class="ml-4 text-xs text-textPrimary">use "," to separate permission.</h6>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="m-4 p-6 border rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4">Mail page links</h2>
+                        <form class="basics space-y-3 md:w-2/3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="onboard_link" class="font-medium text-sm md:text-base mx-3">Onboard page link: </label>
+                                <input type="text" name="onboard_link" id="onboard_link" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="password_link" class="font-medium text-sm md:text-base mx-3">Password reset page link: </label>
+                                <input type="text" name="password_link" id="password_link" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="appraisal_link" class="font-medium text-sm md:text-base mx-3">Appraisal page link: </label>
+                                <input type="text" name="appraisal_link" id="appraisal_link" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label for="file_link" class="font-medium text-sm md:text-base mx-3">Files preview page link: </label>
+                                <input type="text" name="file_link" id="file_link" required class="border-b-2 pb-1 focus:outline-none focus:border-blue-400 font-medium text-sm md:text-base text-textPrimary">
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="m-4 p-6 border rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4">Status name & colors</h2>
+                        <form class="status space-y-3 md:w-2/3">
+                            <table class="w-full border-collapse text-xs" id="status_names">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-700 text-left">
+                                        <th class="p-2 border-b">Key</th>
+                                        <th class="p-2 border-b">Name</th>
+                                        <th class="p-2 border-b">BG-Colour</th>
+                                        <th class="p-2 border-b">Text-Colour</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-key="0">
+                                        <td class="p-2">0</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="1">
+                                        <td class="p-2">1</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="2">
+                                        <td class="p-2">2</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="3">
+                                        <td class="p-2">3</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="4">
+                                        <td class="p-2">4</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="5">
+                                        <td class="p-2">5</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="6">
+                                        <td class="p-2">6</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="m-4 p-6 border rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4">Project state name & colors</h2>
+                        <form class="status space-y-3 md:w-2/3">
+                            <table class="w-full border-collapse text-xs" id="project_state">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-700 text-left">
+                                        <th class="p-2 border-b">Key</th>
+                                        <th class="p-2 border-b">Name</th>
+                                        <th class="p-2 border-b">BG-Colour</th>
+                                        <th class="p-2 border-b">Text-Colour</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-key="0">
+                                        <td class="p-2">0</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="1">
+                                        <td class="p-2">1</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="2">
+                                        <td class="p-2">2</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="3">
+                                        <td class="p-2">3</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr data-key="4">
+                                        <td class="p-2">4</td>
+                                        <td class="p-2"> 
+                                            <input type="text" name="name" required
+                                            class="px-2 py-1 text-center text-xs bg-[#60A5FA] text-white rounded focus:outline-none cursor-pointer" value="Pending">
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                        <td class="p-2">
+                                            <label  class="rounded-full px-2 bg-[#60A5FA] border border-black cursor-pointer">
+                                                <input type="color" data-target="text" name="text" class="color-picker hidden" value="#60A5FA">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let Settings
+        $(document).ready(function(){
+            initFun()
+        })
+
+        $(document).off("submit","main #contents form.basics")
+        $(document).on("submit","main #contents form.basics",function(e){
+            e.preventDefault()
+            let form = new FormData(this)
+            let data = {}
+            form.forEach((v,k)=>{
+                data[k] = k == "max_work_hours" || "page_size" ? parseInt(v) : v
+            });
+            // console.log(data)
+            SaveSettingForm(data)
+        });
+
+        $(document).on("click change","table tbody tr input.color-picker",function(){
+            let prtLabel = $(this).closest("label")
+            let prtTr = $(this).closest("tr")
+            let val = $(this).val()
+            let target = $(this).data("target")
+            let bg,text
+            if(target == "bg"){
+                bg = val
+                text = prtTr.find("input[name=text]").val()
+            }else{
+                text = val
+                bg = prtTr.find("input[name=bg]").val()
+            }
+
+            prtLabel.prop("class",`rounded-full px-2 bg-[${val}] border border-black cursor-pointer`)
+            prtTr.find("input[name=name]").prop("class",`inline-block px-2 py-1 text-center text-xs bg-[${bg}] text-[${text}] rounded focus:outline-none cursor-pointer`)
+        })
+
+        $(document).off("submit","main #contents form.status")
+        $(document).on("submit","main #contents form.status",function(e){
+            e.preventDefault()
+            let dataTag = $(this).find("table").attr("id")
+            let rows = $(this).find("tbody tr")
+            let formDatas = {}
+            formDatas[dataTag] = {}
+            Object.keys(rows).forEach(key =>{
+                if(parseInt(key) >= 0){
+                    let row = rows[key]
+                    let k = $(row).data("key")
+                    let name = $(row).find("[name=name]").val()
+                    let bg = $(row).find("[name=bg]").val()
+                    let text = $(row).find("[name=text]").val()
+                    let data = {}
+                    data["name"] = name
+                    data["bg"] = bg
+                    data["text"] = text
+                    formDatas[dataTag][k] = data
+                }
+            })
+            // console.log(formDatas)
+            SaveSettingForm(formDatas)
+        });
+
+        function initFun(){
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/setting`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            // console.log(data)
+                            Settings = data?.setting
+                            Object.keys(Settings).forEach(key =>{
+                                $(`form [name=${key}]`).val(Settings[key])
+                            });
+                            ExtractTableValue("status_names",Settings?.status_names)
+                            ExtractTableValue("project_state",Settings?.project_state)
+                        }else{
+                            showAlertMessage("error","Settings",data?.message)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+    
+        function ExtractTableValue(id,data){
+            let tb = $(`main #contents form table#${id} tbody`)
+            tb.empty()
+            Object.keys(data).forEach(key=>{
+                let elm = data[key]
+                tb.append(`
+                    <tr data-key="${key}">
+                       <td class="p-2">${key}</td>
+                       <td class="p-2"> 
+                           <input type="text" name="name" required
+                           class="px-2 py-1 text-center text-xs bg-[${elm?.bg}] text-[${elm?.text}] rounded focus:outline-none cursor-pointer" value="${elm?.name}">
+                       </td>
+                       <td class="p-2">
+                           <label  class="rounded-full px-2 bg-[${elm?.bg}] border border-black cursor-pointer">
+                               <input type="color" data-target="bg" name="bg" class="color-picker hidden" value="${elm?.bg}">
+                           </label>
+                       </td>
+                       <td class="p-2">
+                           <label  class="rounded-full px-2 bg-[${elm?.text}] border border-black cursor-pointer">
+                               <input type="color" data-target="text" name="text" class="color-picker hidden" value="${elm?.text}">
+                           </label>
+                       </td>
+                    </tr>
+                `)
+            })
+        }
+
+        function SaveSettingForm(formDatas){
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/setting/1`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body:JSON.stringify(formDatas),
+                    method: "PUT"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            showAlertMessage("success","Settings","settings updated.")
+                        }else{
+                            showAlertMessage("error","Settings",data?.message)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+    
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,201 @@
+<div class="p-8">
+    <form id="new-task-form">
+        
+    </form>
+</div>
+
+<script>
+    $(function(){
+        $("form#new-task-form").html(`
+            <h2 class="text-2xl font">Create a new project task</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-6 w-64">
+                    ${floatingInputTag("text", "name", "name", "Task Name")}                   
+                    ${SelectionTag("project_id", "project_id", "Task Project", "--", true)}
+                    ${floatingInputTag("text", "description", "description", "Task Descritpion","",false)}
+                </div>
+                <div class="mt-4 min-w-1/2 w-fit" id="project-file">
+                    <h5 class="font-medium">Task Attachments  <i class="fa-solid fa-plus cursor-pointer pl-8" onclick="addNewTaskFileEnterys()"></i></h5>
+                    <div class="grid grid-cols-3 items-end gap-4 task_files" index="1">
+                        <input type="hidden" name="file_id" id="file_id"/>
+                        ${floatingInputTag("text", "name", "name", "file Name","",false)} 
+                        ${floatingFileInputTag('file', 'file', '',"",false)}
+                    </div>
+                </div>
+            </div>
+            <div class="my-4 fle">
+                <button type="submit"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Submit</button>
+            </div>
+        `)
+
+        $(document).on("click","form .icon-remove",function(){$(this).parent().remove()})
+        
+        let ProjectOption = []
+        try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project?page_size=100`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            ProjectOption = data.project.map(p => {return `<option value="${p.id}">${capitalizeFirstLetter(p.name)}</option>`})
+                            $("form#new-task-form select#project_id").append(ProjectOption.join(""))
+                        } else {
+                            showAlertMessage("error", "Employee", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+
+        if(SelectedID && ProjectTaskDetail?.id){
+            $("form#new-task-form #name").val(ProjectTaskDetail.name)
+            $("form#new-task-form h2").text("Edit project task details")
+            $("form#new-task-form #project_id").hide()
+            $("form#new-task-form #project_id").parent().hide()
+            $("form#new-task-form #description").parent().parent().append(`
+                <div class="relative mt-6 floating-label">
+                    <input
+                        type="range"
+                        id="progress"
+                        class="peer w-full border-b-2 border-gray-300 bg-transparent text-sm pt-4 pb-1 focus:outline-none focus:border-blue-500"
+                        name="progress"
+                        min="0" max="100"
+                        value="${ProjectTaskDetail.progress}"
+                    />
+                    <label
+                        for="progress"
+                        class="absolute top-0 left-0 w-full flex justify-between text-gray-500 text-sm"
+                    >
+                        <h6>Task Progress</h6>
+                        <h6 id="progress-value" class="text-black">${ProjectTaskDetail.progress}</h6>
+                    </label>
+                    
+                </div>
+            `)
+            $("form#new-task-form #description").val(ProjectTaskDetail.description)
+            $("form#new-task-form .task_files").remove()
+            if(ProjectTaskDetail?.file?.length){
+                let cont = $("form#new-task-form div#project-file")
+                cont.find("div.task_files").remove()
+                ProjectTaskDetail.file.forEach(element => {
+                    cont.append(`
+                        <div class="grid grid-cols-3 items-end gap-4 task_files" index="1">
+                            <input type="hidden" name="file_id" id="file_id" value="${element.id}"/>
+                            ${floatingInputTag("text", "name", "name", "file Name",element.name,false)} 
+                            ${floatingFileInputTag('file', 'file', '',element?.file_path.split("/").pop(),false)}
+                        </div>
+                    `)
+                });
+            }
+        }
+
+        $(document).on("keyup input change","form#new-task-form #progress",function(){
+            let val = $(this).val()
+            $("form#new-task-form h6#progress-value").text(val)
+        })
+
+        $(document).off("submit","form#new-task-form")
+        $(document).on("submit","form#new-task-form",function(e){
+            e.preventDefault()
+            let formData = new FormData(this)
+            let data = {}
+            data["name"] = formData.get("name")
+            if(SelectedID && SelectedID != "")
+                data["progress"] = parseFloat(formData.get("progress"))
+            else
+                data["project_id"] = parseInt(formData.get("project_id"))
+            data["description"] = formData.get("description")
+            let projectFiles = []
+            let container = $("form#new-task-form .task_files")
+            for(let i=0; i<container.length; i++){
+                let elm = $(container[i])
+                let name = elm.find("[name=name]").val()
+                let file = elm.find("[name=file]")[0].files[0]
+                let forms = new FormData
+                if(name != "" && file?.name != ""){
+                    forms.append("name",name)
+                    forms.append("file",file)
+                    forms.append("file_id",elm.find("[name=file_id]").val())
+                    forms.append("type","project_task")
+                    projectFiles.push(forms)
+                }else
+                    break
+            }
+            if(!data["project_id"] && !(SelectedID != ""))
+                showAlertMessage("error","Project","Project name should not be empty.")
+            else
+                try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project/task${SelectedID ?"/"+SelectedID:""}`, {
+                    method: SelectedID ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body : JSON.stringify(data)
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                               projectFiles.forEach(f => ProjectFileUpload(data.project_task.id,f))
+                               setTimeout(()=>{window.location.reload()},800)
+                        } else {
+                            showAlertMessage("error", "Project Task", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+            // console.log(data,SelectedID)
+        })
+    })
+
+    async function ProjectFileUpload(ID,Form) {
+        let fileID = Form.get("file_id")
+        try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project/task/file/${ID}${fileID ? "/"+fileID : ""}`, {
+                    method: fileID ? "PUT" : "POST",
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body:Form
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status == 0) {
+                            showAlertMessage("error", "Project Task", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+    }
+
+    function addNewTaskFileEnterys(){
+            let ln = $("form#new-task-form .task_files").length + 1
+            $("form #project-file").append(`
+                <div class="grid grid-cols-3 items-end gap-4 task_files" index="${ln}">
+                    <input type="hidden" name="file_id" id="file_id"/>
+                    ${floatingInputTag("text", "name", "name", "file Name")} 
+                    ${floatingFileInputTag('file', 'file', '',"")}
+                    <i class="fa-solid fa-xmark icon-remove cursor-pointer"></i>
+                </div>
+            `)
+        }
+</script>

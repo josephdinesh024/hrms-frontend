@@ -1,15 +1,10 @@
-<div id="filterAction" class="max-w-1/4 min-w-fit bg-gray-50 p-6 border-r grid content-between">
-        <ul class="space-y-4 text-sm text-gray-700">
-            <li class="action-menu cursor-pointer font-bold text-blue-600" data-status="0">Pending
-            </li>
-            <li class="action-menu cursor-pointer" data-status="3">Approved</li>
-            <li class="action-menu cursor-pointer" data-status="4">Rejected</li>
-        </ul>
-        <div class="flex gap-2 items-center bg-tranparent p-3 text-base">
-            <button id="timeoff-previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
-            <span id="timeoff-countMessage">5 of 10</span>
-            <button id="timeoff-next"><i class="fa-solid fa-circle-chevron-right"></i></button>
-        </div>
+<div id="filterAction" class="max-w-1/4 min-w-fit bg-gray-50 p-6 border-r grid content-end">
+    
+    <div class="flex gap-2 items-center bg-tranparent p-3 text-base">
+        <button id="timeoff-previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+        <span id="timeoff-countMessage">5 of 10</span>
+        <button id="timeoff-next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+    </div>
 </div>
 <div id="cardList" class="w-full">
     <table class="w-full border-collapse text-xs">
@@ -19,8 +14,8 @@
                 <th class="p-4 border-b">Duration</th>
                 <th class="p-4 border-b">Date</th>
                 <th class="p-4 border-b">Type</th>
-                <th class="p-4 border-b">Reason</th>
-                <th class="p-4 border-b">Approval</th>
+                <th class="p-4 border-b cursor-pointer" id="leave-Status" data-status="">Status <i
+                        class="fa-solid fa-sort text-gray-600"></i></th>
             </tr>
         </thead>
         <tbody>
@@ -37,10 +32,11 @@
         let TotalCount = 0
         let timeRequest = []
         let UserList = []
-        let Status = 0
+        let Status = "0,3,4" 
         function initFetch() {
             $("#editPanel #editContent").empty()
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/manage/request/module/leave?status=${Status}&page=${page}&page_size=${paseSize}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -48,34 +44,35 @@
                     },
                     method: "GET"
                 })
-                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                .then(data => {
-                    // console.log(data)
-                    if (data.status) {
-                        $("#cardList tbody").empty()
-                        timeRequest = data.request
-                        timeRequest.forEach((element, index) => {
-                            $("#cardList tbody").append(`
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#cardList tbody").empty()
+                            timeRequest = data.request
+                            timeRequest.forEach((element, index) => {
+                                $("#cardList tbody").append(`
                             <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList">
                                 <td class="p-4">${capitalizeFirstLetter(element.module.user.user_name)}</td>
                                 <td class="p-4">${element.module.total_days} ${element.module.leave_unit.includes("day") ? "Days" : element.module.leave_unit == "fn" ? "Half-day (FN)" : "Half-day (AN)"}</td>
                                 <td class="p-4">${leaveDates(element.module.start_date, element.module.end_date)}</td>
                                 <td class="p-4">${capitalizeFirstLetter(element.module.policy_id ? element.module.policy.name : "others")}</td>
-                                <td class="p-4"><i class="fa-regular fa-note-sticky"></i></td>
                                 <td class="p-4">
                                     ${StatusColourCode(element.status)}
                                 </td>
                             </tr>
                         `)
-                        });
-                        TotalCount = data.total_count
-                        var total = (page - 1) * paseSize
-                        $("#timeoff-countMessage").text(`${total + timeRequest.length} of ${TotalCount}`)
-                    }
-                });
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#timeoff-countMessage").text(`${total + timeRequest.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
 
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
         }
 
@@ -94,7 +91,20 @@
                 page += 1
                 initFetch()
             }
-        })
+        });
+
+        $(document).on("click", "th#leave-Status", function () {
+            let status = $(this).data("status")
+            $(this).find("i").removeClass(`
+                text-${Status == "0" ? "yellow" : Status == "3" ? "green" : Status == "4" ? "red" : "gray"}-600
+            `)
+            Status = status == "0" ? "3" : status == "3" ? "4" : status == "4" ? "0,3,4" : "0"
+            $(this).data("status", Status)
+            $(this).find("i").addClass(`
+                text-${Status == "0" ? "yellow" : Status == "3" ? "green" : Status == "4" ? "red" : "gray"}-600
+            `)
+            initFetch()
+        });
 
         $(document).on("click", "#filterAction .action-menu", function () {
             $("#filterAction .action-menu").removeClass("font-bold text-blue-600")

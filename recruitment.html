@@ -23,19 +23,18 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
     <script src="./static/js/profileAction.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
 </head>
 
 <body class="flex bg-background w-screen">
 
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
         <div id="header"></div>
 
-        <main class="p-6 overflow-y-scroll overflow-x-hidden h-[90vh] space-y-2">
+        <main id="main" class="p-6 overflow-y-scroll overflow-x-hidden h-[90vh] space-y-2">
             <h2
                 class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 Employee Recruitment
@@ -49,16 +48,26 @@
             <hr>
             <div id="contents" class="w-full min-h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
                 <div class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
-                    <button id="AddNewForm" onclick="OpenNewEmployeeForm()"
-                        class="font-medium hover:font-bold hover:text-blue-600">Add
+                    
+                    <ul class="space-y-4 text-sm text-gray-700 font-medium">
+                        <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="list">Recruitment List
+                            </li>
+                        <li class="menu-item cursor-pointer" data-section="template">Template</li>
+                        <li class=" cursor-pointer">
+                            <button id="AddNewForm" onclick="OpenNewEmployeeForm()"><i class="fa-solid fa-plus"></i>
+                        Add
                         Employee</button>
+                        </li>
+                    </ul>
                     <div class="flex gap-2 items-center text-md px-2">
                         <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
                         <span id="countMessage">5 of 10</span>
                         <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
                     </div>
                 </div>
-                <div class="w-full">
+                <div id="section-content" class="p-2 w-full">
+                <div id="section-list" class="section">
+                    <div class="w-full">
                     <table class="w-full border-collapse text-xs">
                         <thead>
                             <tr class="bg-gray-100 text-gray-700 text-left">
@@ -75,6 +84,10 @@
                         </tbody>
                     </table>
                 </div>
+                </div>
+                <div id="section-template" class="section">
+                </div>
+            </div>
             </div>
 
             <div id="actionContainer" class="m-6">
@@ -94,8 +107,8 @@
                                 <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="profile">
                                     Profile</li>
                                 <li class="menu-item cursor-pointer" data-section="education">Education</li>
-                                <li class="menu-item cursor-pointer" data-section="bank">Bank</li>
                                 <li class="menu-item cursor-pointer" data-section="certificate">Certificates</li>
+                                <li class="menu-item cursor-pointer" data-section="bank">Bank</li>
                                 <li class="menu-item cursor-pointer" data-section="docs">Docs</li>
                             </ul>
                         </div>
@@ -108,24 +121,25 @@
                                     <i class="fa-regular fa-circle-check text-md"></i>
                                     <span class="text-lg font-semibold mb-6"> Personal Details</span>
                                 </label>
-                                <div class="grid grid-cols-2 gap-6">
-                                    <div class="col-span-2">
-                                        <h4>Full Name</h4>
-                                        <div class="flex justify-between w-3/4 gap-4 mt-3">
-                                            <label class="text-textPrimary border-b-2 w-full">
+                                <div class="grid grid-cols-2 gap-6 mt-3">
+                                        <div class="w-3/4 border-b-2">
+                                            <h4 class="mb-3">First Name</h4>
+                                            <label class="text-textPrimary w-full">
                                                 <input type="checkbox" class="check-field" data-parent="profile"
                                                     data-field="first_name">
                                                 <span id="first_name">First
                                                     Name</span>
                                             </label>
-                                            <label class="text-textPrimary border-b-2 w-full">
+                                        </div>
+                                        <div class="w-3/4 border-b-2">
+                                            <h4 class="mb-3">Last Name</h4>
+                                            <label class="text-textPrimary w-full">
                                                 <input type="checkbox" class="check-field" data-parent="profile"
                                                     data-field="last_name">
                                                 <span id="last_name">Last
                                                     Name</span>
                                             </label>
                                         </div>
-                                    </div>
                                     <div class="border-b-2 w-3/4">
                                         <h4 class="mb-3">Employee ID</h4>
                                         <span id="user_name" class="text-textPrimary">aes000</span>
@@ -339,7 +353,10 @@
                                         </label>
                                     </div>
                                     <div class=" w-3/4">
-                                        <h4 class="mb-3">Passbook Image</h4>
+                                        <label>
+                                            <input type="checkbox" class="check-field" data-parent="bank" data-field="file">
+                                            <span class="mb-3">Paasbook file</span>
+                                        </label>
                                         <div id="file_image" class="text-textPrimary" onclick="">
                                             <img src="" alt="passbook" class="w-20 h-20 cursor-pointer">
                                         </div>
@@ -356,59 +373,47 @@
                                     <span class="text-lg font-semibold mb-6">docss Details</span>
                                 </label>
                                 <div id="inner-container" class="w-full">
-                                    <div class="grid grid-cols-1 gap-6 items-start" id="terms_condition">
-                                        <h2 class="text-lg font-bold">Terms & Conditions</h2>
-                                        <div class="border-b-2 w-1/2">
-                                            <label>
-                                                <input type="checkbox" disabled>
-                                                <span id="name" class="text-textPrimary">Terms Accepted</span>
-                                            </label>
-                                        </div>
-                                        <div class="w-fit border-b-2 mb-4">
-                                            <label>
-                                                <input type="checkbox" class="check-field" data-parent="docs"
-                                                    data-field="terms-condition">
-                                                <span class="mb-3">Terms Doc</span>
-                                            </label>
-                                            <span id="file_image" class="text-textPrimary cursor-pointer">
-                                                <img src="" alt="terms" class="w-20 h-20">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <hr>
-                                    <div class="grid grid-cols-1 gap-6 mt-4 " id="offer_letter">
-                                        <h2 class="text-lg font-bold">Offer Letter</h2>
-                                        <div class="w-fit border-b-2">
-                                            <label>
-                                                <input type="checkbox" class="check-field" data-parent="docs"
-                                                    data-field="offer-letter">
-                                                <span class="mb-3">Offer Doc</span>
-                                            </label>
-                                            <span id="file_image" class="text-textPrimary cursor-pointer">
-                                                <img src="" alt="offer" class="w-20 h-20">
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <table class="w-full border-collapse text-xs">
+                                        <thead>
+                                            <tr class="bg-gray-50 text-gray-700 text-left">
+                                                <th class="p-4 border-b">Checked</th>
+                                                <th class="p-4 border-b">Document Name</th>
+                                                <th class="p-4 border-b">Uplaod</th>
+                                                <th class="p-4 border-b">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Button to Submit -->
-                    <div class="w-full flex justify-end">
-                        <button id="correctionMarked" class="mt-4 px-4 py-2 bg-red-400 text-white rounded">Make
-                            Correction</button>
+                    <div class="w-full flex justify-end gap-6">
+                        <div class="w-full flex justify-end">
+                            <button id="closeVerification" class="mt-4 px-4 py-2 bg-gray-300 rounded">Close</button>
+                        </div>
+                        <button id="next-menu" class="mt-4 px-4 py-2 min-w-20 bg-blue-400 text-white rounded" data-section="profile">
+                            Next
+                        </button>
+                        <div id="action-button" class="hidden">
+                        <button id="correctionMarked" class="mt-4 px-4 py-2 min-w-52 bg-red-400 text-white rounded">
+                            Make Correction
+                        </button>
                         <button id="nextStepVerification"
-                            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hidden">Approve and Onboard
+                            class="mt-4 px-4 py-2 min-w-52 bg-blue-600 text-white rounded hidden">Approve and Onboard
                             employee</button>
+                        </div>
                     </div>
                 </div>
 
                 <div id="final" class="w-1/2 min-w-96 hidden">
-
-                </div>
-                <div class="w-full flex justify-end">
-                    <button id="closeVerification" class="mt-4 px-4 py-2 bg-gray-300 rounded">Close</button>
+                    <div class="w-full flex justify-end">
+                        <button id="closeVerification" class="mt-4 px-4 py-2 bg-gray-300 rounded">Close</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -443,10 +448,35 @@
             </div>
         </div>
 
+        <div id="ReporteeForm"
+            class="fixed inset-0 z-50 w-full h-full bg-black bg-opacity-50 grid content-center justify-center hidden">
+            <div class="w-96 h-max bg-white text-sm p-6 rounded-lg shadow-md space-y-4">
+                <h3 class="font-bold">Employee Report</h3>
+                <form id="reporteeForm">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="border-b-2" id="selection-area">
+                            <label>Selected Reportee</label>
+                        </div>
+                        <div id="search-area">
+                        </div>
+
+                    </div>
+                    <div class="flex justify-end gap-4 pt-12">
+                        <button type="submit"
+                            class="py-2 px-4 font-medium border border-blue-300 rounded-lg">Save</button>
+                        <button type="button" onclick="CancelReporteeForm()"
+                            class="py-2 px-4 font-medium border hover:border-blue-300 rounded-lg">Assign Later</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 
 
     <script>
+        let UserID = 0
+        let selectedID = 0
         setTimeout(() => $(function () {
             $(document).ready(function () {
                 let access = JSON.parse($.cookie("my_access"))
@@ -460,12 +490,13 @@
                 let paseSize = PAGESIZE
                 let TotalCount = 0
                 let selectedEmp
-                let selectedID = urlParams.get("onboard_id")
+                selectedID = urlParams.get("onboard_id")
                 let onboardDetial
                 function initFetch() {
                     selectedEmp = null
                     onboardDetial = null
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/user/onboard?page_size=${paseSize}&page=${page}`, {
                             headers: {
                                 "Content-Type": "application/json",
@@ -477,17 +508,16 @@
                             .then(data => {
                                 // console.log(data)
                                 if (data.status) {
-                                    $("#contents tbody").empty()
+                                    $("#contents #section-list tbody").empty()
                                     data.onboard.forEach((element, index) => {
-                                        $("#contents tbody").append(`
+                                        $("#contents #section-list tbody").append(`
                                 <tr id="${index}" target-id="${element.id}" target-user-id="${element.user_id}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
                                     <td class="p-4">${capitalizeFirstLetter(element.user.user_name)}</td>
                                     <td class="p-4">${element.user.email}</td>
                                     <td class="p-4">
-                                        ${!element.personal_verified ? "Profile verification"
-                                                : element.term_sent && !element.offer_sent ? "Terms & Condition"
-                                                    : element.offer_sent && !element.status ? "Offer Letter"
-                                                        : "Final"}
+                                        ${!element.personal_verified 
+                                            ? element.correction_marked ? "Correction marked" : "Profile verification"
+                                            : element.status ? "Onboarded" : "Final"}
                                     </td>
                                     <td class="p-4">
                                         ${StatusColourCode(element.user.status)}
@@ -504,8 +534,10 @@
                                     var total = (page - 1) * paseSize
                                     $("#countMessage").text(`${total + data.onboard.length} of ${TotalCount}`)
                                 }
+                                ProgressLoading(false)
                             });
                     } catch (error) {
+                        ProgressLoading(false)
                         showAlertMessage("warning", "API error", error)
                     }
                 };
@@ -535,6 +567,19 @@
                     $("#actionContainer").hide()
                 }
 
+                $("#main .menu-item").click(function () {
+                    $("#main .menu-item").removeClass("font-bold text-blue-600")
+                    $(this).addClass("font-bold text-blue-600")
+
+                    let section = $(this).attr("data-section")
+                    $("#main .section").hide()
+                    $(`#main #section-${section}`).show()
+                });
+
+                $("#main .section").hide()
+                $(`#main #section-list`).show()
+                $(`#main #section-template`).load("./componnet/recruitment/template-list.html")
+
                 // Role name extract
                 function roleName(access) {
                     for (let item of access) {
@@ -546,13 +591,14 @@
                     return "--"
                 };
 
-                $(document).on("click", "#contents tbody .selectedList", function () {
+                $(document).on("click", "#contents #section-list tbody .selectedList", function () {
                     let ID = $(this).attr("target-id")
                     window.location.href = `?page=${page}&onboard_id=${ID}`
                 })
 
                 function getOnboardDetials(ID) {
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/user/onboard/${ID}`, {
                             headers: {
                                 "Content-Type": "application/json",
@@ -564,10 +610,14 @@
                             .then(data => {
                                 if (data.status) {
                                     onboardDetial = data.onboard
+                                    UserID = onboardDetial.user_id
+                                    if(onboardDetial.correction_marked && onboardDetial.user.status == 6)
+                                        showAlertMessage("warning","Employee Recruitment","This employee's profile requires correction. Please note that the verification process cannot continue until the employee has updated",false)
                                     if (!onboardDetial.personal_verified) {
                                         $("#actionContainer #personal_verified").show()
-                                        empByID(onboardDetial.user_id)
-                                        docsDataExtraction(onboardDetial, "section-docs", true)
+                                        empByID(UserID)
+                                        // docsDataExtraction(onboardDetial, "section-docs", true)
+                                        MyDocument(UserID)
                                     }
                                     else if (onboardDetial.status) {
                                         $("#actionContainer #final").show()
@@ -578,19 +628,15 @@
                                             <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Terms &
                                                 Condition</h3>
                                             <div class="border-l border-green-600 min-h-8 ml-2 p-4">
-                                                ${onboardDetial.file.map((elm, i) => {
-                                            if (elm.type == "term_condition") {
-                                                return `<span onclick="FilePreviewURL('${elm.file_path}')" class="text-sm text-blue-400 cursor-pointer">Terms doc ${elm.file_path.split("/").pop()}</span>`
-                                            }
-                                        }).join("<br>")}
+                                                ${onboardDetial.terms_doc_id 
+                                                ? `<span onclick="FilePreviewURL('${onboardDetial.terms.file_path}')" class="text-sm text-blue-400 cursor-pointer">Terms doc ${onboardDetial.terms.file_path.split("/").pop()}</span>`
+                                                :""}
                                             </div>
                                             <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Offer Litter</h3>
                                             <div class="border-l border-green-600 min-h-8 ml-2 p-4">
-                                                ${onboardDetial.file.map((elm, i) => {
-                                            if (elm.type.includes("offer")) {
-                                                return `<span onclick="FilePreviewURL('${elm.file_path}')" class="text-sm text-blue-400 cursor-pointer">Offer doc ${elm.file_path.split("/").pop()}</span>`
-                                            }
-                                        }).join("<br>")}
+                                                ${onboardDetial.offer_doc_id
+                                                ?`<span onclick="FilePreviewURL('${onboardDetial.offer.file_path}')" class="text-sm text-blue-400 cursor-pointer">Offer doc ${onboardDetial.offer.file_path.split("/").pop()}</span>`
+                                                :""}
                                             </div>
                                             <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Completed</h3>
                                         `)
@@ -599,14 +645,17 @@
                                 } else {
                                     showAlertMessage("error", "Employee Onboard", data.message)
                                 }
+                                ProgressLoading(false)
                             })
                     } catch (error) {
+                        ProgressLoading(false)
                         showAlertMessage("warning", "API error", error)
                     }
                 }
 
                 function empByID(ID) {
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/user/${ID}`, {
                             headers: {
                                 "Content-Type": "application/json",
@@ -629,11 +678,20 @@
                                     bankDataExtraction(selectedEmp.bank, "section-bank")
                                     certificateDataExtraction(selectedEmp.file, "section-certificate", true)
                                     educationDataExtraction(selectedEmp.education, "section-education", true)
+                                    setTimeout(()=>
+                                    {
+                                        $(".check-field").closest("label").addClass("cursor-pointer")
+                                        if(onboardDetial.correction_marked)
+                                            MarkedCorrections(onboardDetial?.correction_note)
+                                    },600)
+                                    
                                 } else {
                                     showAlertMessage("error", "Employee", error)
                                 }
+                                ProgressLoading(false)
                             })
                     } catch (error) {
+                        ProgressLoading(false)
                         showAlertMessage("warning", "API error", error)
                     }
                 };
@@ -643,16 +701,39 @@
                     $(this).addClass("font-bold text-blue-600")
 
                     let section = $(this).attr("data-section")
+                    SetSection(section)
+                });
+
+                $("#actionContainer button#next-menu").click(function(){
+                    let section = $(this).data("section")
+                    section = section == "profile" ? "education" : section == "education" ? "certificate" : section == "certificate" ? "bank" : "docs"
+                    $("#actionContainer .menu-item").removeClass("font-bold text-blue-600")
+                    $(`#actionContainer li[data-section=${section}]`).addClass("font-bold text-blue-600")
+                    SetSection(section)
+                })
+                function SetSection(section){
                     $("#actionContainer .section").hide()
                     $(`#actionContainer #section-${section}`).show()
-                })
+                    $(`#actionContainer button#next-menu`).data("section",section)
+                    if(section == "docs"){
+                        if(!onboardDetial.correction_marked && onboardDetial.user.status == 5)
+                        $(`#actionContainer div#action-button`).show()
+                        $(`#actionContainer button#next-menu`).hide()
+                    }
+                    else{
+                        $(`#actionContainer button#next-menu`).show()
+                        $(`#actionContainer div#action-button`).hide()
+                    }
+                }
                 $("#actionContainer .section").hide()
                 $(`#actionContainer #section-profile`).show()
 
                 // Close function
                 $(document).on("click", "button#closeVerification", function () {
                     clearSelectedData()
+                    initFetch()
                 });
+                
                 function clearSelectedData() {
                     initFetch()
                     $("#contents").show()
@@ -787,69 +868,17 @@
 
                 // Personal Next btn
                 $(document).on("click", "button#nextStepVerification", function () {
-                    let newDetails = {
-                        "personal_verified": true,
-                        "correction_marked": false,
-                        "correction_note": {},
-                        "status": true,
-                    }
+                    OpenReporteeForm()
+                    // let newDetails = {
+                    //     "personal_verified": true,
+                    //     "correction_marked": false,
+                    //     "correction_note": {},
+                    //     "status": true,
+                    // }
 
-                    UpdateOnboardDetails(selectedID, newDetails)
-                    UpdateEmployeeStatus(onboardDetial.user_id, 1)
+                    // UpdateOnboardDetails(selectedID, newDetails)
+                    // UpdateEmployeeStatus(onboardDetial.user_id, 1)
                 })
-
-
-                function UpdateOnboardDetails(ID, data) {
-                    try {
-                        fetch(`${DomainURL}/user/onboard/${ID}`, {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${access_token}`
-                            },
-                            method: "PUT",
-                            body: JSON.stringify(data)
-                        })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
-                            .then(data => {
-                                if (data.status == 1) {
-                                    showAlertMessage("success", "Employee Onboard", `${data.onboard.user.user_name} onboard status is updated.`)
-                                    clearSelectedData()
-                                } else if (data.status == 2) {
-                                    showAlertMessage("warning", "Employee Onboard", data.message)
-                                } else {
-                                    showAlertMessage("error", "Employee Onboard", data.message)
-                                }
-                            })
-                    } catch (error) {
-                        showAlertMessage("warning", "API error", error)
-                    }
-                };
-
-                function UpdateEmployeeStatus(ID, status) {
-                    try {
-                        fetch(`${DomainURL}/user/status/${ID}`, {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${access_token}`
-                            },
-                            method: "PUT",
-                            body: JSON.stringify({
-                                "status": status
-                            })
-                        })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
-                            .then(data => {
-                                if (data.status) {
-                                    showAlertMessage("success", "Employee", "Employee Status updated")
-                                } else {
-                                    showAlertMessage("Error", "Employee", data.message)
-                                }
-                            })
-                    } catch (error) {
-                        showAlertMessage("warning", "API error", error)
-                    }
-                }
-
                 // FILE UPLOAD SECTION
                 $(document).on("click", "#actionContainer button#saveDoc", async function (e) {
                     let childrens = $("#doc-container").children()
@@ -868,8 +897,11 @@
                     }
                 })
 
+
+
                 async function UploadFiles(ID, fileID, form, index) {
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/user/onboard/file/${ID}${fileID != "0" ? "/" + fileID : ""}`, {
                             headers: {
                                 Authorization: `Bearer ${access_token}`
@@ -885,12 +917,14 @@
                                 } else {
                                     showAlertMessage("error", "Employee profile", data.message)
                                 }
+                                ProgressLoading(false)
                             });
                     } catch (error) {
+                        ProgressLoading(false)
                         showAlertMessage("warning", "API error", error)
                     }
                 };
-
+                
 
             } catch (error) {
                 showAlertMessage("warning", "Page error", `${error} referesh page. try again`)
@@ -898,9 +932,90 @@
         })
             , 500)
 
+         // Marked Correction state
+         function MarkedCorrections(corr){
+            $(".check-field").prop("checked",true)
+            Object.keys(corr).forEach(parent =>{
+                let item = corr[parent]
+                if(["file","education"].includes(parent)){
+                    item.forEach(elm =>{
+                        Object.keys(elm).forEach(field =>{
+                            $(`[data-parent=${parent}][data-field=${field}]`).closest("div").addClass("border-orange-300")
+                            $(`[data-parent=${parent}][data-field=${field}]`).prop("checked",false)
+                        })
+                    })
+                }else{
+                    Object.keys(item).forEach(field =>{
+                        $(`[data-parent=${parent}][data-field=${field}]`).closest("div").addClass("border-orange-300")
+                        $(`[data-parent=${parent}][data-field=${field}]`).prop("checked",false)
+                    })
+                }
+            })
+         }
+
+        function UpdateOnboardDetails(ID, data) {
+                    try {
+                        ProgressLoading(true)
+                        fetch(`${DomainURL}/user/onboard/${ID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "PUT",
+                            body: JSON.stringify(data)
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status == 1) {
+                                    showAlertMessage("success", "Employee Onboard", `${data.onboard.user.user_name} onboard status is updated.`)
+                                    setTimeout(() => window.location.href="?",1300)
+                                } else if (data.status == 2) {
+                                    showAlertMessage("warning", "Employee Onboard", data.message)
+                                } else {
+                                    showAlertMessage("error", "Employee Onboard", data.message)
+                                }
+                                ProgressLoading(false)
+                            })
+                    } catch (error) {
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
+                    }
+                };
+
+                function UpdateEmployeeStatus(ID, status) {
+                    try {
+                        ProgressLoading(true)
+                        fetch(`${DomainURL}/user/status/${ID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "PUT",
+                            body: JSON.stringify({
+                                "status": status
+                            })
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    // showAlertMessage("success", "Employee", "Employee Status updated")
+                                } else {
+                                    showAlertMessage("Error", "Employee", data.message)
+                                }
+                                ProgressLoading(false)
+                            })
+                    } catch (error) {
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
+                    }
+                }
+
+
+        // New Employee
         function OpenNewEmployeeForm() {
             $("#NewEmployeeForm").removeClass("hidden")
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/role?page_size=50`, {
                     method: "GET",
                     headers: {
@@ -916,23 +1031,21 @@
                             `)
                             });
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
-        }
+        }       
         function CancelNewEmployeeForm() {
             $("#NewEmployeeForm").addClass("hidden")
         }
-
         $(document).on("submit", "#NewEmployeeForm form#employeeForm", function (e) {
             e.preventDefault();
             let formData = new FormData(this);
-            console.log("form submited", {
-                "email": formData.get("email"),
-                "role_id": parseInt(formData.get("role"))
-            })
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/user/quick/user`, {
                     method: "POST",
                     headers: {
@@ -948,15 +1061,173 @@
                     .then(data => {
                         if (data.status) {
                             showAlertMessage("success", "User create", "new employee created and employeeId:" + data.user.user_name)
+                            setTimeout(()=>window.location.href = "",700)
                             CancelNewEmployeeForm()
-                            initFetch()
                         } else
                             showAlertMessage("error", "User create", data.message)
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         })
+
+        // Reportee
+        function OpenReporteeForm() {
+            $("#ReporteeForm").removeClass("hidden")
+            $("#ReporteeForm form #search-area").html(`
+                ${floatingInputTag("search", "members", "members", "Employee search (ID or Email)", "", false)}
+                <div class="bg-white w-full rounded-lg shadow-lg mt-1 max-h-40 divide-y-2 text-xs overflow-y-auto"
+                    id="employee_search_list">
+                        
+                </div>
+            `)
+            
+        }
+        function CancelReporteeForm() {
+            let newDetails = {
+                "personal_verified": true,
+                "correction_marked": false,
+                "correction_note": {},
+                "status": true,
+            }
+            UpdateOnboardDetails(selectedID, newDetails)
+            UpdateEmployeeStatus(UserID, 1)
+        }
+
+        $(document).on("keyup change click blur", "#ReporteeForm form #search-area #members", function () {
+            let txt = $(this).val().trim()
+            EmployeeSearch(txt)
+        });
+        $(document).on("click", "#ReporteeForm form #search-area #employee_search_list .selected-list", function () {
+            let ID = $(this).data("id")
+            let name = $(this).data("name")
+            $("#ReporteeForm form #selection-area").html(`
+                <label>Selected Reportee</label>
+                <div class="flex items-center gap-2 w-fit my-2 py-1 px-4 bg-gray-100 text-xs rounded-lg">
+                    <input type="hidden" id="reportee_id" name="reportee_id" value="${ID}"/>
+                    <h5>${capitalizeFirstLetter(name)}</h5>
+                    <button type="button" class="font-medium removeReportee">
+                    <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                    </button>
+                </div>
+            `)
+            EmployeeSearch("")
+        });
+
+        $(document).on("click", "#ReporteeForm form #selection-area .removeReportee", function () {
+            $(this).parent().remove()
+        });
+        
+        async function EmployeeSearch(text) {
+            if (text == "")
+                $("#ReporteeForm form #search-area #employee_search_list").empty()
+            else
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/search/name?module=user&q=${text}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "GET"
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                $("#ReporteeForm form #search-area #employee_search_list").empty()
+                                if (data?.data?.length) {
+                                    data.data.forEach((item, index) => {
+                                        if(UserID != item.id)
+                                        $("#ReporteeForm form #search-area #employee_search_list").append(`
+                                        <div class="p-2 space-x-5 selected-list cursor-pointer" 
+                                            data-id="${item.id}" data-name="${item.user_name}">
+                                            <span>ID: ${capitalizeFirstLetter(item.user_name)}</span>
+                                            <span>Name: ${capitalizeFirstLetter(item.profile.first_name)} ${capitalizeFirstLetter(item.profile.last_name)}</span>
+                                        </div>                                        
+                                    `);
+                                    });
+                                }
+                                else {
+                                    $("#ReporteeForm form #search-area #employee_search_list").append(`
+                                <span>No record </span>
+                                `)
+                                }
+                            }
+                            ProgressLoading(false)
+                        });
+                    // $("#ReporteeForm").addClass("hidden")
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
+        }
+
+
+        $(document).on("submit", "#ReporteeForm form#reporteeForm", function (e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            let reportee_id = parseInt(formData.get("reportee_id"))
+            if(!reportee_id){
+                showAlertMessage("error","Employee Onboard","Reportee id is empty. select to continue.")
+            }else{
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/reportees`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        body: JSON.stringify({
+                                    "user_id": reportee_id,
+                                    "module_id": UserID,
+                                    "module_type": "users"
+                                })
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success", "Employee Onboard", "Reportee assigned successfully")
+                                CancelReporteeForm()
+                            } else
+                                showAlertMessage("error", "User create", data.message)
+                            ProgressLoading(false)
+                        })
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
+            // console.log(reportee_id,UserID)
+            }
+        })
+
+        function MyDocument(ID) {
+        try {
+            ProgressLoading(true)
+            fetch(`${DomainURL}/document/employee/${ID}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${access_token}`
+                },
+                method: "GET",
+            })
+                .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                .then(data => {
+                    if (data.status) {
+                        documentDataExtraction(data, "section-docs", true,false)
+                    } else {
+                        showAlertMessage("warning", "API error", data.message)
+                    }
+                    ProgressLoading(false)
+                })
+        } catch (error) {
+            ProgressLoading(false)
+            showAlertMessage("warning", "API error", error)
+        }
+    }
 
     </script>
 </body>

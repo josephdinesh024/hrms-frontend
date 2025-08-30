@@ -54,6 +54,7 @@
         `)
         function initFun() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/profile`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -72,8 +73,11 @@
                         } else {
                             showAlertMessage("error", "Profile", data.message)
                         }
+                        ProgressLoading(false)
+                        setAgeLimit()
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
 
@@ -84,40 +88,53 @@
             }, 500)
         };
 
-        let MyProfileURL = "./static/image/profile-default.png"
+        function setAgeLimit(){
+            let now = new Date()
+            now.setFullYear(now.getFullYear()-18)
+            $("form#tab-profile input#dob").prop("max",now.toISOString().split("T")[0])
+        }
+
+        $(document).on("keyup","form#tab-profile input[name=phone]",function(){
+            if($(this).val().length > 10){
+                $(this).val($(this).val().slice(0,10))
+            }
+        });
+
+        let MyProfileURL = "./static/image/profile-upload.png"
         let newProfileImg = null
         let newURL
         async function SetProfileImage(params) {
             let image = params
             if (image.id) {
-                MyProfileURL = await FilePreviewURL(image.file_path,false) 
+                MyProfileURL = await FilePreviewURL(image.file_path, false)
                 $(`#tab-profile input#fileID`).val(image.id)
             }
             $(`#tab-profile img#profileImage`).prop("src", `${MyProfileURL}`)
         }
-        
-        $(document).on("change","form#tab-profile #uploadInput",function(){
+
+        $(document).on("change", "form#tab-profile #uploadInput", function () {
             let file = $(this)[0].files[0]
-            if(file.name){
+            if (file.name) {
                 newProfileImg = file
                 newURL = URL.createObjectURL(file)
                 $(`#tab-profile img#profileImage`).prop("src", `${newURL}`)
                 $(`#tab-profile div#removeImage`).removeClass("hidden")
-            }else{
+            } else {
                 showAlertMessage("info", "Employee profile", "Error to extract image.")
             }
         })
 
-        $(document).on("click","div#removeImage i", function(){
+        $(document).on("click", "div#removeImage i", function () {
             $(`#tab-profile img#profileImage`).prop("src", `${MyProfileURL}`)
             newProfileImg = null
             URL.revokeObjectURL(newURL)
             $("form#tab-profile #uploadInput").val("")
             $(this).parent().addClass("hidden")
-        })
+        });
 
         // Form Sumbit
         $(document).ready(function () {
+            setAgeLimit()
             initFun();
             $(document).off("submit", "form#tab-profile");
             $(document).on("submit", "form#tab-profile", function (e) {
@@ -128,6 +145,7 @@
                     data[key] = val;
                 });
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/my/profile`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -144,16 +162,18 @@
                             } else {
                                 showAlertMessage("error", "Employee profile", data.message)
                             }
+                            ProgressLoading(false)
                         })
                 } catch (error) {
+                    ProgressLoading(false)
                     showAlertMessage("warning", "API error", error)
                 }
 
             });
         });
 
-        function UploadProfileImage(){
-            if(newProfileImg){
+        function UploadProfileImage() {
+            if (newProfileImg) {
                 let form = new FormData()
                 let ID = $("#tab-profile input#fileID").val()
                 let fileData = $(`#tab-profile input#uploadInput`)[0].files[0]
@@ -163,14 +183,14 @@
                 form.append("name", nameData + "_profile")
                 form.append("file", fileData)
 
-                uploadFileData(ID, form , "Employee profile updated")
+                uploadFileData(ID, form, "Employee profile updated")
             }
         }
 
         // Toggle function
-        $("div.toggle").mouseenter(function(){
+        $("div.toggle").mouseenter(function () {
             $(this).find("#toggle-message").removeClass("hidden")
-        }).mouseleave(function(){
+        }).mouseleave(function () {
             $(this).find("#toggle-message").addClass("hidden")
         })
 

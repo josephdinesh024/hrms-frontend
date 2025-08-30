@@ -1,0 +1,92 @@
+<!-- <div class="font-semibold text-xl p-6 flex content-between">
+    <p>Projects</p>
+</div> -->
+<div id="documentCardList" class="w-full mb-4">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Document Name</th>
+                <th class="p-4 border-b">Assign To</th>
+                <th class="p-4 border-b">Status</th>
+                <th class="p-4 border-b">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        function initFetch() {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/document?page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#documentCardList tbody").empty()
+                            var Doc = data.document
+                            Doc.forEach((element, index) => {
+                                $("#documentCardList tbody").append(`
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition">
+                                <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
+                                <td class="p-4">${element.role_id ? "Role" : "Employee"}</td>
+                                <td class="p-4">${StatusColourCode(element.status)}</td>
+                                <td class="p-4 w-full flex gap-8">
+                                    <span class="text-blue-400 cursor-pointer" onclick="FileDownload('/document/template/preview/${element?.template?.id}')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Preview</span>
+                                    <span data-id="${element.id}" class="selectedList cursor-pointer"><i class="fa-solid fa-pencil"></i> Edit</span>
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#document-countMessage").text(`${total + Doc.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#document-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#document-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
+
+
+        $(document).on("click", "#documentCardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?document_id=${ID}`
+        });
+
+    })
+</script>

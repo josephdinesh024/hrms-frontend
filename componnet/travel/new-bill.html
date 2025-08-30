@@ -1,0 +1,135 @@
+<div class="flex w-full min-h-full">
+    <div id="expense" class="method w-full transform transition-transform duration-300 ease-in-out">
+        <form id="newExpenseForm">
+            <div class="grid md:grid-cols-2">
+                <div class="relative mt-6 w-64 floating-label">
+                    <label for="category" class="w-full text-sm text-blue-500">
+                        From Place *
+                    </label>
+                    <select
+                        class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                        id="category" name="category">
+                        <option value="ticket">Ticket</option>
+                        <option value="food">Food</option>
+                        <option value="hotel">Hotel</option>
+                    </select>
+                </div>
+                <div class="relative mt-6 floating-label">
+                    <input type="number" id="amount" name="amount" required
+                        class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                    <label for="amount"
+                        class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                        Amount *
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2">
+                <div class="relative mt-6 floating-label">
+                    <input type="text" id="description" name="description" required
+                        class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                    <label for="description"
+                        class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                        Description *
+                    </label>
+                </div>
+                <div class="relative mt-6 w-64 floating-label-file">
+                    <label
+                        class="w-full absolute left-0 pt-4 text-sm text-gray-500 transition-all duration-200 cursor-pointer peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                        Receipt <i class="fa-solid fa-cloud-arrow-up px-1"></i>*
+                        <input type="file" id="receipt" name="receipt" class="peer hidden" />
+                        <h6 id="receipt_filename" class="text-gray-900 text-sm border-b-2 w-full py-2"></h6>
+                    </label>
+                </div>
+            </div>
+
+            <div class="my-4">
+                <button type="submit"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(function () {
+
+        $(document).on("change", "#expense #newExpenseForm input#receipt", function () {
+            let parent = $(this).parent()
+            parent.find("#receipt_filename").text($(this)[0].files[0].name)
+            parent.addClass("text-blue-600")
+        });
+
+        $(document).on("submit", "#expense #newExpenseForm", function (e) {
+            e.preventDefault()
+            let formData = new FormData(this);
+            let data = {}
+            data["category"] = formData.get("category")
+            data["amount"] = parseFloat(formData.get("amount"))
+            data["description"] = formData.get("description")
+            let File = formData.get("receipt")
+
+            // console.log(File.name)
+            if (File.name)
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/travel/expense`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        body: JSON.stringify(data)
+                    }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                showAlertMessage("success", "Expense Request", "new expense request is add.")
+                                $(this)[0].reset()
+                                if (File?.name) {
+                                    UploadAttachment(data.expense.id, File)
+                                }
+                                setTimeout(() => window.location.reload, 600)
+                            } else {
+                                showAlertMessage("error", "Expense Request", "error to make new expense request. " + data.message);
+                            }
+                            ProgressLoading(false)
+                        })
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
+            else
+                showAlertMessage("warning", "Expense Request", "Missing receipt file.")
+
+        });
+
+        async function UploadAttachment(ID, file) {
+            let form = new FormData
+            form.append("file", file)
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/travel/expense/receipt/${ID}`, {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: form
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            // showAlertMessage("success", "Travel Request", ".")
+                        } else {
+                            showAlertMessage("error", "Expense Request", "error to upload expense receipt.");
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+    })
+</script>

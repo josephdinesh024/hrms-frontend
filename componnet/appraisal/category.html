@@ -40,6 +40,7 @@
         let token = params.get("token")
 
         try {
+ProgressLoading(true)
             fetch(`${DomainURL}/appraisal/testform?token=${token}`, {
                 headers: {
                     "Content-Type": "application/json",
@@ -62,6 +63,7 @@
             });
         
         } catch (error) {
+ProgressLoading(false)
             showAlertMessage("warning","API error", error)
         }
         
@@ -119,6 +121,7 @@
             console.log(data)
         
             try {
+ProgressLoading(true)
                 fetch(`${DomainURL}/appraisal?token=${token}`, {
                 headers: {
                     "Content-Type": "application/json",
@@ -137,6 +140,7 @@
                     showAlertMessage("error","Error",data.message)
             });
             } catch (error) {
+ProgressLoading(false)
                 showAlertMessage("warning","API error", error)
             }
             

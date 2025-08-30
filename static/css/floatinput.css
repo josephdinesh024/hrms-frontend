@@ -5,8 +5,13 @@
   font-size: 0.75rem; /* text-sm */
   color: #3b82f6; /* blue-500 */
 }
-.floating-label label {
+.floating-label input:not([type="date"]) ~ label {
   top: 50%;
   transform: translateY(-50%);
+  pointer-events: none;
+}
+.floating-label input[type="date"] ~ label{
+  top: 0;
+  transform: translateY(-5%);
   pointer-events: none;
 }

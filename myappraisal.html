@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Appraisal</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/confic.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+    <div id="sidebar"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                My Appraisal
+            </h2>
+            <hr>
+            <div id="section-content" class="p-8 w-full min-h-full overflow-y-auto relative">
+                <div id="section-appraisal_request" class="section h-full grid md:grid-cols-2 mt-6">
+                    <div>
+                        <span class="text-base font-medium underline underline-offset-4">Employee Feedbak </span>
+                        <span id="status" class="p-4">Pending</span>
+
+                        <div class="space-y-6 mt-5" id="employee-feedback">
+
+                        </div>
+                    </div>
+
+                    <div class="text-sm space-y-2" id="reportee-feedback">
+                        <h3 class="text-lg font-medium underline underline-offset-4">Reportee Feedbak </h3>
+                        <div class="w-full relative mt-6 floating-label">
+                            <input type="text" id="comment" name="comment" required
+                                class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                            <label for="comment"
+                                class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                                Comment<span class="text-red-600">*</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute top-4 right-10 text-sm" id="appraisal-form-date">12/2/2222</div>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+
+        $(document).ready(function () {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/appraisal`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            let appraisal = data.appraisal
+                            $("#appraisal-form-date").text(new Date(appraisal.created_at).toLocaleDateString())
+                            RequestDetails(appraisal.request_id)
+                        } else {
+                            if(data?.message === "Error to fetch data"){
+                                showAlertMessage("info", "Appraisal", "No record found for employee id.",false)
+                                $("#section-content").hide()
+                            }
+                            else
+                                showAlertMessage("error", "Appraisal", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        })
+
+        function RequestDetails(ID) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/manage/request/${ID}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            RequestDetail = data.request
+                            $("#section-content #section-appraisal_request #status").html(StatusColourCode(RequestDetail.status))
+                            dataExtraction()
+                        } else {
+                            showAlertMessage("error", "Appraisal", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        function dataExtraction() {
+            let section = $("#section-content #section-appraisal_request")
+            let module = RequestDetail.module
+            section.find("#employee-feedback").empty()
+
+            module.answer.forEach((element, i) => {
+                section.find("#employee-feedback").append(`
+                    <div class=" questions" id="${element["index"]}">
+                        <h3 class="text-textPrimary">${i + 1}) ${element.question}</h3>
+                        <textarea rows="8" class="w-[90%] bg-transparent border-b-2 focus:outline-none text-sm mt-6">
+                            ${element.answer}
+                        </textarea>
+                    </div>
+                `)
+            })
+            section.find("#employee-feedback").append(`
+                <div class="questions" >
+                    <h3 class="text-textPrimary">Final Feedback</h3>
+                    <p class="w-full border-b-2 text-sm mt-6">
+                        ${module.description || "--"}
+                    </p>
+                </div>
+            `)
+            $("#section-content #section-appraisal_request input#comment").val(RequestDetail.description)
+        }
+
+
+    </script>
+
+</body>
+
+</html>

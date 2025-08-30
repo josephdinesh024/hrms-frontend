@@ -1,0 +1,109 @@
+<div class="font-semibold text-xl p-6 flex content-between">
+    <p>Employee Expense Requests</p>
+</div>
+<div id="expenseCardList" class="w-full mb-4">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Employee ID</th>
+                <th class="p-4 border-b">Email</th>
+                <th class="p-4 border-b">Category</th>
+                <th class="p-4 border-b">Amount</th>
+                <th class="p-4 border-b cursor-pointer" id="expense-Status" data-status="">Status <i
+                        class="fa-solid fa-sort text-gray-600"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE -1
+        let TotalCount = 0
+        let Request = []
+        let UserList = []
+        let Status = "0,3,4"
+        function initFetch() {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/manage/request/module/expense?status=${Status}&page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#expenseCardList tbody").empty()
+                            Request = data.request
+                            Request.forEach((element, index) => {
+                                $("#expenseCardList tbody").append(`
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
+                                <td class="p-4">${capitalizeFirstLetter(element.module.user.user_name)}</td>
+                                <td class="p-4">${element.module.user.email}</td>
+                                <td class="p-4">${capitalizeFirstLetter(element.module.category)}</td>
+                                <td class="p-4">${element.module.amount}</td>
+                                <td class="p-4">
+                                    ${StatusColourCode(element.status)}
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#expense-countMessage").text(`${total + Request.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#expense-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#expense-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "#expenseCardList th#expense-Status", function () {
+            let status = $(this).data("status")
+            $(this).find("i").removeClass(`
+                text-${Status == "0" ? "yellow" : Status == "3" ? "green" : Status == "4" ? "red" : "gray"}-600
+            `)
+            Status = status == "0" ? "3" : status == "3" ? "4" : status == "4" ? "0,3,4" : "0"
+            $(this).data("status", Status)
+            $(this).find("i").addClass(`
+                text-${Status == "0" ? "yellow" : Status == "3" ? "green" : Status == "4" ? "red" : "gray"}-600
+            `)
+            initFetch()
+        });
+
+        $(document).on("click", "#expenseCardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?request_id=${ID}`
+        });
+
+    })
+</script>

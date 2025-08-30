@@ -1,0 +1,111 @@
+<!-- <div class="font-semibold text-xl p-6 flex content-between">
+    <p>Projects</p>
+</div> -->
+<div id="taskCardList" class="w-full mb-4">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Task Name</th>
+                <th class="p-4 border-b">Progress</th>
+                <th class="p-4 border-b">Worked Hours</th>
+                <th class="p-4 border-b">Status</th>
+                <th class="p-4 border-b cursor-pointer" id="project-task-State" data-state="">State <i
+                        class="fa-solid fa-sort text-gray-600"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        let Task = []
+        let UserList = []
+        let State = "0,1,2,3,4"
+        function initFetch() {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project/task?state=${State}&page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#taskCardList tbody").empty()
+                            Task = data.project_task
+                            Task.forEach((element, index) => {
+                                $("#taskCardList tbody").append(`
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList">
+                                <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
+                                <td class="p-4">${element.progress}</td>
+                                <td class="p-4">${element.worked_hour}</td>
+                                <td class="p-4">
+                                    ${StatusColourCode(element.status)}
+                                </td>
+                                <td class="p-4">
+                                    ${ProjectStatusColourCode(element.state)}
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#project-task-countMessage").text(`${total + Task.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#project-task-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#project-task-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "#taskCardList th#project-task-State", function () {
+            let state = $(this).data("state")
+            $(this).find("i").removeClass(`
+                text-${State == "0" ? "gray" : State == "1" ? "yellow" : State == "2" ? "orange" : State == "3" ? "green" : State == "4" ? "red" : "black"}-600
+            `)
+            State = state == "0" ? "1" : state == "1" ? "2" : state == "2" ? "3" : state == "3" ? "4" : state == "4" ? "0,1,2,3,4" : "0"
+            $(this).data("state", State)
+            $(this).find("i").addClass(`
+                text-${State == "0" ? "gray" : State == "1" ? "yellow" : State == "2" ? "orange" : State == "3" ? "green" : State == "4" ? "red" : "black"}-600
+            `)
+            initFetch()
+        });
+
+        $(document).on("click", "#taskCardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?task_id=${ID}`
+        });
+
+    })
+</script>

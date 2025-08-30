@@ -1,0 +1,459 @@
+<style>
+    #toolbar {
+        margin-bottom: 10px;
+    }
+
+    #toolbar button,
+    #toolbar select {
+        margin: 5px;
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+
+    #editor {
+        border: 1px solid #ccc;
+        min-height: 250px;
+        padding: 10px;
+        outline: none;
+        border-radius: 12px;
+    }
+
+    #editor h1 {
+        font-size: 2rem;
+        /* ~36px */
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    #editor h2 {
+        font-size: 1.5rem;
+        /* ~30px */
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    #editor h3 {
+        font-size: 1.5rem;
+        /* ~24px */
+        font-weight: 600;
+        line-height: 1.4;
+        margin-bottom: 0.6rem;
+    }
+
+    #editor h4 {
+        font-size: 1.25rem;
+        /* ~20px */
+        font-weight: 600;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+
+    #editor h5 {
+        font-size: 1.125rem;
+        /* ~18px */
+        font-weight: 500;
+        line-height: 1.5;
+        margin-bottom: 0.4rem;
+    }
+
+    #editor h6 {
+        font-size: 1rem;
+        /* ~16px */
+        font-weight: 500;
+        line-height: 1.5;
+        margin-bottom: 0.3rem;
+    }
+
+    #editor p {
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+    }
+
+    #editor a {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+</style>
+
+<div id="toolbar">
+    <select onchange="applyHeading(this.value)">
+        <option value="">Heading</option>
+        <option value="h1">H1</option>
+        <option value="h2">H2</option>
+        <option value="h3">H3</option>
+        <option value="h4">H4</option>
+        <option value="h5">H5</option>
+        <option value="h6">H6</option>
+    </select>
+
+    <button onclick="changeFontSize('increase')">A+</button>
+    <button onclick="changeFontSize('decrease')">A-</button>
+    <button onclick="toggleBold()">Bold</button>
+
+    <select onchange="changeColor(this.value)">
+        <option value="">Text Color</option>
+        <option value="rgb(0, 0, 0)">Black</option>
+        <option value="rgb(255, 0, 0)">Red</option>
+        <option value="rgb(0, 0, 255)">Blue</option>
+        <option value="rgb(0, 128, 0)">Green</option>
+        <option value="rgb(249, 207, 151)">Highlight Gold</option>
+    </select>
+
+
+    <button onclick="alignText('left')">Left</button>
+    <button onclick="alignText('center')">Center</button>
+    <button onclick="alignText('right')">Right</button>
+
+    <button onclick="insertLink()">Add Link</button>
+    <button onclick="HtmlPreview()">Preview</button>
+    <button onclick="openPopup()">Text Extract</button>
+</div>
+
+<div id="editor" contenteditable="true">Start typing here...</div>
+
+<div id="popupMenu"
+    style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; z-index: 1000; padding: 5px; min-width: 150px;">
+</div>
+
+<div id="Popup-menu" class="fixed inset-0 w-full h-full flex-1 justify-items-center hidden">
+    <div class="mt-28 min-w-96 bg-white rounded-lg shadow-md py-8 px-6 space-y-5">
+        <h5 class="font-medium text-lg">PDF Text Extract</h5>
+        <div id="text-extract" class="w-full"></div>
+        <div>
+        <button onclick="PDFTextExtract()" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500 mr-2">Extract</button>
+                <button onclick="closePopup()" class="bg-gray-50 hover:bg-gray-300 font-semibold text-xs py-2 px-8 shadow-sm shadow-third rounded-lg mr-2">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // $(document).ready(function(){
+    //     $("div#toolbar").prop("style","margin-bottom: 10px;")
+    //     $("div#toolbar button").prop("style","margin: 5px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 8px;")
+    //     $("div#toolbar select").prop("style","margin: 5px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 8px;")
+    //     $("div#editor").prop("style","all : initial;")
+    //     $("div#editor").prop("style","border: 1px solid #ccc; min-height: 250px; padding: 10px; outline: none; border-radius: 12px;")
+    // })
+    function applyHeading(tag) {
+        if (tag)
+            document.execCommand('formatBlock', false, tag);
+        else
+            document.execCommand('formatBlock', false, "div");
+    }
+
+    function changeColor(rgbValue) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) return;
+
+        const range = sel.getRangeAt(0);
+        let parent = range.commonAncestorContainer;
+        if (parent.nodeType === Node.TEXT_NODE) {
+            parent = parent.parentNode;
+        }
+
+        const isFullElementSelected =
+            range.startContainer === range.endContainer &&
+            range.startOffset === 0 &&
+            range.endOffset === range.startContainer.length;
+
+        if (isFullElementSelected && parent.nodeType === 1) {
+            parent.style.color = rgbValue;
+        } else {
+            const span = document.createElement("span");
+            span.style.color = rgbValue;
+
+            try {
+                range.surroundContents(span);
+            } catch {
+                document.execCommand("styleWithCSS", false, true);
+                document.execCommand("foreColor", false, rgbValue);
+            }
+        }
+
+        sel.removeAllRanges(); // optional
+    }
+
+
+    function changeFontSize(direction) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) return;
+
+        const range = sel.getRangeAt(0);
+
+        // Get the common ancestor and try to find an element node
+        let parent = range.commonAncestorContainer;
+        if (parent.nodeType === Node.TEXT_NODE) {
+            parent = parent.parentNode;
+        }
+
+        // Check if the full selection is inside one element (and selection starts/ends cleanly)
+        const isFullElementSelected =
+            range.startContainer === range.endContainer &&
+            range.startOffset === 0 &&
+            range.endOffset === range.startContainer.length;
+
+        // Default base font size
+        let size = 16;
+        const currentSize = window.getComputedStyle(parent).fontSize;
+        if (currentSize) size = parseInt(currentSize) || 16;
+
+        const newSize = direction === 'increase' ? size + 2 : size - 2;
+
+        // If full element is selected, modify its style directly
+        if (isFullElementSelected && parent.nodeType === 1) {
+            parent.style.fontSize = `${newSize}px`;
+        } else {
+            // Else wrap selected text with a new span
+            const span = document.createElement("span");
+            span.style.fontSize = `${newSize}px`;
+
+            try {
+                range.surroundContents(span);
+            } catch {
+                // Fallback for complex selections
+                document.execCommand('styleWithCSS', false, true);
+                document.execCommand('fontSize', false, '4');
+            }
+        }
+
+        sel.removeAllRanges(); // Optional, clears selection
+    }
+
+    function toggleBold() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.isCollapsed) return;
+
+  const range = sel.getRangeAt(0);
+  let parent = range.commonAncestorContainer;
+  if (parent.nodeType === Node.TEXT_NODE) {
+    parent = parent.parentNode;
+  }
+
+  const isFullElementSelected =
+    range.startContainer === range.endContainer &&
+    range.startOffset === 0 &&
+    range.endOffset === range.startContainer.length;
+
+  if (isFullElementSelected && parent.nodeType === 1) {
+    // Toggle bold on the whole element
+    parent.style.fontWeight =
+      parent.style.fontWeight === "bold" || parent.style.fontWeight === "700"
+        ? "normal"
+        : "bold";
+  } else {
+    // Partial selection → wrap in span (or unwrap if already bold)
+    const selectedText = sel.toString();
+    const span = document.createElement("span");
+
+    // Check if selection already has bold style
+    const computedWeight = window.getComputedStyle(parent).fontWeight;
+    if (computedWeight === "bold" || parseInt(computedWeight) >= 600) {
+      // Remove bold by just inserting text
+      range.deleteContents();
+      range.insertNode(document.createTextNode(selectedText));
+    } else {
+      span.style.fontWeight = "bold";
+      try {
+        range.surroundContents(span);
+      } catch {
+        document.execCommand("bold");
+      }
+    }
+  }
+
+  sel.removeAllRanges(); // optional
+}
+
+    function alignText(direction) {
+        document.execCommand(`justify${direction.charAt(0).toUpperCase() + direction.slice(1)}`);
+    }
+
+    function insertLink() {
+        const url = prompt('Enter URL');
+        if (!url) return;
+
+        document.execCommand('createLink', false, url);
+    }
+
+    // Clear placeholder on first focus
+    document.getElementById('editor').addEventListener('focus', function () {
+        if (this.textContent.trim() === 'Start typing here...') {
+            this.innerHTML = '';
+        }
+    });
+    
+    let placeholders = ["{{.EmployeeName}}", "{{.EmployeeId}}", "{{.Email}}", "{{.Phone}}","{{.Address}}","{{.City}}","{{.State}}","{{.DOB}}","{{.Today}}","{{.Country}}"];
+    let currentWord = '';
+    let lastCaretRange = null;
+
+    document.getElementById("editor").addEventListener("keyup", function (e) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+
+        const range = sel.getRangeAt(0);
+        lastCaretRange = range.cloneRange(); // save caret position for later insert
+
+        const textBefore = getTextBeforeCaret();
+        const match = textBefore.match(/\\(\w*)$/);
+
+        if (match) {
+            const keyword = match[1].toLowerCase();
+            currentWord = match[0]; // like "\na"
+            const filtered = placeholders.filter(p => p.toLowerCase().includes(keyword));
+            showPopup(filtered, range);
+        } else {
+            hidePopup();
+        }
+    });
+
+    function getTextBeforeCaret() {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return '';
+        const range = sel.getRangeAt(0);
+        const preRange = range.cloneRange();
+        preRange.selectNodeContents(document.getElementById('editor'));
+        preRange.setEnd(range.endContainer, range.endOffset);
+        return preRange.toString();
+    }
+
+    function showPopup(items, range) {
+        const popup = document.getElementById("popupMenu");
+        popup.innerHTML = '';
+
+        if (items.length === 0) {
+            hidePopup();
+            return;
+        }
+
+        items.forEach(item => {
+            const div = document.createElement("div");
+            div.textContent = item;
+            div.style.padding = "4px";
+            div.style.cursor = "pointer";
+
+            // Use mousedown (before blur) and setTimeout to preserve range
+            div.addEventListener("mousedown", function (e) {
+                e.preventDefault(); // Prevent blur
+                setTimeout(() => insertPlaceholder(item), 0);
+            });
+
+            popup.appendChild(div);
+        });
+
+        const rect = range.getBoundingClientRect();
+        popup.style.top = `${rect.bottom + window.scrollY}px`;
+        popup.style.left = `${rect.left + window.scrollX}px`;
+        popup.style.display = "block";
+    }
+
+    function hidePopup() {
+        const popup = document.getElementById("popupMenu");
+        popup.style.display = "none";
+    }
+
+    function insertPlaceholder(placeholderText) {
+        const sel = window.getSelection();
+        if (!lastCaretRange) return;
+
+        // Clone the range and adjust to delete \word
+        const range = lastCaretRange.cloneRange();
+        const textBefore = getTextBeforeCaret();
+        const match = textBefore.match(/\\(\w*)$/);
+
+        if (!match) return;
+
+        for (let i = 0; i < match[0].length; i++) {
+            try {
+                range.setStart(range.startContainer, range.startOffset - 1);
+            } catch (err) { }
+        }
+
+        range.deleteContents();
+        const node = document.createTextNode(placeholderText);
+        range.insertNode(node);
+
+        // Move cursor after inserted text
+        range.setStartAfter(node);
+        range.setEndAfter(node);
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        hidePopup();
+    }
+
+    function extractHTML() {
+        var html = document.getElementById("editor").innerHTML
+        // console.log(html)
+    }
+
+    function openPopup(){
+        $("#Popup-menu").show()
+        $("#Popup-menu #text-extract").html(floatingFileInputTag("pdf-extract", "pdf-extract", "Upload PDF to extract","", true,accept=[".pdf"]))
+    }
+    function closePopup(){
+        $("#Popup-menu").hide()
+    }
+
+    async function PDFTextExtract() {
+        let htmlText = document.getElementById("editor")
+        let formdata = new FormData()
+        let file = $("#Popup-menu #text-extract input#pdf-extract")[0].files[0]
+        formdata.append("file",file)
+        const newURL = DomainURL + "/document/text-extract";
+        const response = await fetch(newURL, {
+            method: "POST", headers: {
+                Authorization: `Bearer ${access_token}`
+            },
+            body:formdata
+        });
+
+        if (!response.ok) {
+            showAlertMessage("warning", "API error", response.text())
+            return;
+        }
+        const type = response.headers.get("Content-Type")
+        
+        if(type.includes("application/json")){
+            const data = await response.json()
+            if(data.status){
+                htmlText.append(data.text)
+                closePopup()
+            }else{
+                showAlertMessage("error", "File Handle", data?.message)
+            }
+        }
+    }
+    async function HtmlPreview() {
+        let htmlText = document.getElementById("editor").innerHTML
+        const newURL = DomainURL + "/document/template/text/preview";
+        const response = await fetch(newURL, {
+            method: "POST", headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${access_token}`
+            },
+            body:JSON.stringify({
+                "html_text": htmlText.includes("div") ? htmlText : `<div>${htmlText}</div>`
+            })
+        });
+
+        if (!response.ok) {
+            showAlertMessage("warning", "API error", response.text())
+            return;
+        }
+        const type = response.headers.get("Content-Type")
+        
+        if(type.includes("application/json")){
+            const data = await response.json()
+            showAlertMessage("error", "File Handle", data?.message)
+        }else{
+            const blob = await response.blob();
+            const fileURL = URL.createObjectURL(blob);
+
+            window.open(fileURL, '_blank');
+        }
+        // FileDownload(`/document/template/text/preview?html-text="<div>${htmlText}</div>"`)
+    }
+
+</script>

@@ -1,0 +1,184 @@
+<div class="p-8">
+    <form id="new-project-form">
+        
+    </form>
+</div>
+
+<script>
+    $(function(){
+        $("form#new-project-form").html(`
+            <h2 class="text-2xl font">Create a new project</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-6 w-64">
+                    ${floatingInputTag("text", "name", "name", "Project Name")}                   
+                    ${SelectionTag("manager_id", "manager_id", "Project Manager", "--", true)}
+                    ${floatingInputTag("date", "due_date", "due_date", "Project Due Date","",false)} 
+                    ${floatingInputTag("text", "description", "description", "Project Descritpion","",false)}
+                </div>
+                <div class="mt-4 min-w-1/2 w-fit" id="project-file">
+                    <h5 class="font-medium">Project Attachments  <i class="fa-solid fa-plus cursor-pointer pl-8" onclick="addNewFileEnterys()"></i></h5>
+                    <div class="grid grid-cols-3 items-end gap-4 project_files" index="1">
+                        <input type="hidden" name="file_id" id="file_id"/>
+                        ${floatingInputTag("text", "name", "name", "file Name","",false)} 
+                        ${floatingFileInputTag('file', 'file', '',"",false)}
+                    </div>
+                </div>
+            </div>
+            <div class="my-4 flex">
+                <button type="submit"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Submit</button>
+            </div>
+        `)
+
+        setTimeout(()=>SetDateLimit(),500)
+
+        $(document).on("click","form .icon-remove",function(){$(this).parent().remove()})
+        
+        let UserOption = []
+        try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/user?page_size=100`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            UserOption = data.user.map(u => {return `<option value="${u.id}">${capitalizeFirstLetter(u.user_name)}</option>`})
+                            $("form#new-project-form select#manager_id").append(UserOption.join(""))
+                        } else {
+                            showAlertMessage("error", "Employee", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+
+        if(SelectedID && ProjectDetail?.id){
+            $("form#new-project-form #name").val(ProjectDetail.name)
+            $("form#new-project-form h2").text("Edit project details")
+            $("form#new-project-form #due_date").val(ProjectDetail.due_date ? new Date(ProjectDetail.due_date).toISOString().split("T")[0] : 0)
+            $("form#new-project-form #description").val(ProjectDetail.description)
+            $("form#new-project-form .project_files").remove()
+            if(ProjectDetail?.file?.length){
+                let cont = $("form#new-project-form div#project-file")
+                cont.find("div.project_files").remove()
+                ProjectDetail.file.forEach(element => {
+                    cont.append(`
+                        <div class="grid grid-cols-3 items-end gap-4 project_files" index="1">
+                            <input type="hidden" name="file_id" id="file_id" value="${element.id}"/>
+                            ${floatingInputTag("text", "name", "name", "file Name",element.name,false)} 
+                            ${floatingFileInputTag('file', 'file', '',element?.file_path.split("/").pop(),false)}
+                        </div>
+                    `)
+                });
+            }
+            setTimeout(()=>$("form#new-project-form #manager_id").val(ProjectDetail.manager_id),100)
+        }
+
+        $(document).off("submit","form#new-project-form")
+        $(document).on("submit","form#new-project-form",function(e){
+            e.preventDefault()
+            let formData = new FormData(this)
+            let data = {}
+            data["name"] = formData.get("name")
+            data["manager_id"] = parseInt(formData.get("manager_id"))
+            data["due_date"] = formData.get("due_date") != "" ? new Date(formData.get("due_date")).getTime() : 0
+            data["description"] = formData.get("description")
+            let projectFiles = []
+            let container = $("form#new-project-form .project_files")
+            for(let i=0; i<container.length; i++){
+                let elm = $(container[i])
+                let name = elm.find("[name=name]").val()
+                let file = elm.find("[name=file]")[0].files[0]
+                let forms = new FormData
+                if(name != "" && file?.name != ""){
+                    forms.append("name",name)
+                    forms.append("file",file)
+                    forms.append("file_id",elm.find("[name=file_id]").val())
+                    forms.append("type","project")
+                    projectFiles.push(forms)
+                }else
+                    break
+            }
+            if(!data["manager_id"])
+                showAlertMessage("error","Project","Manager name should not be empty.")
+            else
+                try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project${SelectedID ?"/"+SelectedID:""}`, {
+                    method: SelectedID ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body : JSON.stringify(data)
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                               projectFiles.forEach(f => ProjectFileUpload(data.project.id,f))
+                               setTimeout(()=>{window.location.reload()},800)
+                        } else {
+                            showAlertMessage("error", "Project", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+            // console.log(data)
+        })
+    })
+
+    function SetDateLimit() {
+            let now = new Date
+            let today = now.toISOString().split("T")[0];
+            let forms = $("form#new-project-form");
+            forms.find("[name=due_date]").prop("min", today)
+        };
+
+    async function ProjectFileUpload(ID,Form) {
+        let fileID = Form.get("file_id")
+        try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project/file/${ID}${fileID ? "/"+fileID : ""}`, {
+                    method: fileID ? "PUT" : "POST",
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body:Form
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status == 0) {
+                            showAlertMessage("error", "Project", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+    }
+
+    function addNewFileEnterys(){
+            let ln = $("form#new-project-form .project_files").length + 1
+            $("form #project-file").append(`
+                <div class="grid grid-cols-3 items-end gap-4 project_files" index="${ln}">
+                    <input type="hidden" name="file_id" id="file_id"/>
+                    ${floatingInputTag("text", "name", "name", "file Name")} 
+                    ${floatingFileInputTag('file', 'file', '',"")}
+                    <i class="fa-solid fa-xmark icon-remove cursor-pointer"></i>
+                </div>
+            `)
+        }
+</script>

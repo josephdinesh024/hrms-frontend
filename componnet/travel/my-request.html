@@ -1,0 +1,241 @@
+<!-- <div id="filterAction" class="max-w-1/4 min-w-fit bg-gray-50 p-6 border-r grid content-between">
+        <ul class="space-y-4 text-sm text-gray-700">
+            <li class="action-menu cursor-pointer font-bold text-blue-600" data-status="0">Pending
+            </li>
+            <li class="action-menu cursor-pointer" data-status="3">Approved</li>
+            <li class="action-menu cursor-pointer" data-status="4">Rejected</li>
+        </ul>
+</div> -->
+<div id="cardList" class="w-full travel-section">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Travel type</th>
+                <th class="p-4 border-b">Country</th>
+                <th class="p-4 border-b">Date</th>
+                <th class="p-4 border-b">Purpose</th>
+                <th class="p-4 border-b cursor-pointer" id="travel-Status" data-status="">Status <i
+                        class="fa-solid fa-sort text-gray-600"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<div id="request-details" class="travel-section px-8">
+    <h2 class="text-lg font-semibold">Request Details</h2>
+    <div id="status">Pending</div>
+    <div class="grid md:grid-cols-2 mt-6">
+        <div class="text-sm grid md:grid-cols-2 gap-5 h-fit">
+            <div class="border-b-2 w-3/4" id="travel_type">
+                <h4 class="mb-3">Travel Type</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="border-b-2 w-3/4" id="country">
+                <h4 class="mb-3">Country</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="border-b-2 w-3/4" id="start_date">
+                <h4 class="mb-3">Start Date</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="border-b-2 w-3/4" id="end_date">
+                <h4 class="mb-3">End Date</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="border-b-2 w-3/4" id="purpose">
+                <h4 class="mb-3">Travel Purpose</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="border-b-2 w-3/4" id="transport">
+                <h4 class="mb-3">Transpoty</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            
+        </div>
+
+        <div class="text-sm h-fit space-y-4">
+            <h3 class="text-base font-medium underline underline-offset-4">Reportee Comment</h3>
+            <div class="border-b-2 w-64" id="assigned_id">
+                <h4 class="mb-3">Assigned To</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="border-b-2 w-64" id="approved_by">
+                <h4 class="mb-3">Approved By</h4>
+                <span class="text-textPrimary"></span>
+            </div>
+            <div class="w-full relative mt-6 floating-label">
+                <input type="text" id="comment" name="comment" required
+                    class="peer w-64 border-b-2 border-gray-300 bg-transparent text-sm pt-8 focus:py-4 focus:outline-none focus:border-blue-500" />
+                <label for="comment"
+                    class="absolute left-0 text-gray-500 text-sm transition-all duration-200 peer-[:valid]:top-4 peer-[:valid]:text-blue-600">
+                    Comment
+                </label>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="flex justify-end gap-6 mt-6" id="actionBtn">
+        <div></div>
+        <div>
+            <button data-status="3" class="border p-3 text-sm border-green-400 rounded-lg StatusBtn">Approved</button>
+            <button data-status="4" class="border p-3 text-sm border-red-400 rounded-lg StatusBtn">Rejected</button>
+        </div>
+    </div> -->
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE -1
+        let TotalCount = 0
+        let Travel = []
+        let Status = "0,3,4"  // "0,3,4"
+        function initFetch() {
+            $("#editPanel #editContent").empty()
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/travel/request?status=${Status}&page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#cardList tbody").empty()
+                            Travel = data.travel
+                            Travel.forEach((element, index) => {
+                                $("#cardList tbody").append(`
+                            <tr id="${index}" data-id="${element.request_id}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
+                                <td class="p-4">${capitalizeFirstLetter(element.travel_type)}</td>
+                                <td class="p-4">${capitalizeFirstLetter(element.country)}</td>
+                                <td class="p-4">${leaveDates(element.start_date, element.end_date)}</td>
+                                <td class="p-4">${element.purpose}</td>
+                                <td class="p-4">
+                                    ${StatusColourCode(element.status)}
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#travel-countMessage").text(`${total + Travel.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        };
+
+
+        $(".travel-section").hide()
+        if (SelectedID) {
+            RequestDetails(SelectedID)
+            $("#request-details").show()
+        } else {
+            $("#cardList").show()
+        }
+        initFetch()
+
+        $(document).on("click", "button#travel-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#travel-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        });
+
+        $(document).on("click", "th#travel-Status", function () {
+            let status = $(this).data("status")
+            $(this).find("i").removeClass(`
+                text-${Status == "0" ? "yellow" : Status == "3" ? "green" : Status == "4" ? "red" : "gray"}-600
+            `)
+            Status = status == "0" ? "3" : status == "3" ? "4" : status == "4" ? "0,3,4" : "0"
+            $(this).data("status", Status)
+            $(this).find("i").addClass(`
+                text-${Status == "0" ? "yellow" : Status == "3" ? "green" : Status == "4" ? "red" : "gray"}-600
+            `)
+            initFetch()
+        });
+
+        $(document).on("click", "#cardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?request_id=${ID}`
+        });
+
+        let RequestDetail
+        function RequestDetails(ID) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/manage/request/${ID}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            RequestDetail = data.request
+                            $("#section-content #section-request #request-details #status").html(StatusColourCode(RequestDetail.status))
+                            dataExtraction()
+                        } else {
+                            showAlertMessage("error", "Time sheet", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        function dataExtraction() {
+            let section = $("#section-content #section-request #request-details")
+            let module = RequestDetail.module
+
+            section.find("#assigned_id span").text(RequestDetail.assigned.user_name)
+            section.find("[name=comment]").val(RequestDetail.description)
+            if (RequestDetail.approvedby_id)
+                section.find("#approved_by span").text(RequestDetail.assigned.user_name)
+            else
+                section.find("#approved_by").hide()
+
+            section.find("#travel_type span").text(module.travel_type)
+            section.find("#country span").text(module.country)
+            section.find("#start_date span").text(new Date(module.start_date).toLocaleDateString())
+            section.find("#end_date span").text(new Date(module.end_date).toLocaleDateString())
+            section.find("#purpose span").text(module.purpose)
+            section.find("#transport span").text(module.transport)
+
+            if (module.file?.length) {
+                module.file.forEach(element => {
+                    section.find(".grid .grid").append(`
+                        <div class="border-b-2 w-3/4" id="${element.name}">
+                            <h4 class="mb-3">${capitalizeFirstLetter(element.name)}</h4>
+                            <span onclick="FilePreviewURL('${element.file_path  }')" class="text-sm text-blue-400 cursor-pointer">Preview</span>
+                        </div>`)
+                });
+            }
+        }
+
+    })
+</script>

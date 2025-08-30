@@ -11,7 +11,7 @@
     <!-- Custom Tailwind Theme -->
     <script src="./static/js/theme.js"></script>
     <script src="./static/js/profileAction.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -28,9 +28,8 @@
 
 <body class="flex bg-background w-screen">
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
-    <div class="flex-1 w-full">
+    <div class="w-full">
         <!-- Header -->
         <div id="header"></div>
 
@@ -40,8 +39,8 @@
                 Leave Policy
             </h2>
             <hr>
-            <div id="content" class="h-[90%]">
-                <div class="w-full min-h-full bg-white shadow-md rounded-lg overflow-hidden flex">
+            <div id="contents" class="h-[88%]">
+                <div class="w-full h-full bg-white shadow-md rounded-lg overflow-hidden flex">
                     <!-- Sidebar -->
                     <div class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
                         <ul class="space-y-4 text-sm text-gray-700">
@@ -64,10 +63,28 @@
                     <!-- Content -->
                     <div id="section-content" class="w-full min-h-full">
                         <div id="section-policy" class="section">
-
+                            <div class="font-semibold text-xl p-6 flex justify-between">
+                                <p>Leave Policy</p>
+                                <div>
+                                    <button id="AddNewPolicy"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+                                        Policy</button>
+                                </div>
+                            </div>
+                            <div id="loaded-area"></div>
                         </div>
                         <div id="section-special" class="section">
-
+                            <div class="font-semibold text-xl p-6 flex justify-between">
+                                <p>Leave special Policy</p>
+                                <div>
+                                    <button id="AddNewSpecialPolicy"
+                                        class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                                        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
+                                        Special Policy</button>
+                                </div>
+                            </div>
+                            <div id="loaded-area"></div>
                         </div>
 
                     </div>
@@ -77,9 +94,14 @@
     </div>
 
     <script>
-
+        $(`#main #section-content #section-policy #loaded-area`).load("./componnet/timesheet/timePolicy.html")
+        $(`#main #section-content #section-special #loaded-area`).load("./componnet/timesheet/timeSpecial.html")
+        let SelectedPolicyID
+        let SelectedSpecialID
         $(document).ready(function () {
-            SelectedID = urlParams.get("request_id")
+            SelectedPolicyID = urlParams.get("policy_id")
+            SelectedSpecialID = urlParams.get("special_id")
+            
             $("#main .menu-item").click(function () {
                 $("#main .menu-item").removeClass("font-bold text-blue-600")
                 $(this).addClass("font-bold text-blue-600")
@@ -90,17 +112,30 @@
                 $("#main .pageBtn").hide()
                 $(`#main #button-${section}`).show()
 
+                //secion change
+                $(".policy-details").hide()
+                $(".cardLists").show()
+                
             });
 
-            $("#main .section").hide()
-            $(`#main #section-policy`).show()
-            $("#main .pageBtn").hide()
-            $(`#main #button-policy`).show()
-            $(`#main #section-content #section-policy`).load("./componnet/timesheet/timePolicy.html")
-            $(`#main #section-content #section-special`).load("./componnet/timesheet/timeSpecial.html")
-
+            $("#main .section").hide()            
+            if(SelectedPolicyID || SelectedSpecialID){
+                $("#main .pageBtn").hide()
+                if(SelectedPolicyID){
+                    $(`#main #section-policy`).show()
+                }else {
+                    $("#main .menu-item").removeClass("font-bold text-blue-600")
+                    $(`#main [data-section=special]`).addClass("font-bold text-blue-600")
+                    $(`#main #section-special`).show()
+                }
+            }
+            else{
+                $(`#main #section-policy`).show()
+                $("#main .pageBtn").hide()
+                $(`#main #button-policy`).show()
+            }
             
-        });
+        })
 
     </script>
 

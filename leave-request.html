@@ -11,7 +11,7 @@
     <!-- Custom Tailwind Theme -->
     <script src="./static/js/theme.js"></script>
     <script src="./static/js/profileAction.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -28,7 +28,6 @@
 
 <body class="flex bg-background w-screen">
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
@@ -72,8 +71,9 @@
                     <!-- Content -->
                     <div id="section-content" class="p-8 w-full min-h-full">
                         <div id="section-leave_request" class="section">
-                            <h2 class="text-lg font-semibold mb-6">Request Details <span>Pending</span></h2>
-                            <div class="grid md:grid-cols-2">
+                            <h2 class="text-lg font-semibold">Request Details</h2>
+                            <div id="status">Pending</div>
+                            <div class="grid md:grid-cols-2 mt-6">
                                 <div class="text-sm grid md:grid-cols-2 gap-5 h-fit">
                                     <div class="border-b-2 w-3/4" id="assigned_id">
                                         <h4 class="mb-3">Assigned To</h4>
@@ -110,11 +110,13 @@
                                         <h4 id="policy">Policy : <span class="text-textPrimary"></span></h4>
                                         <h4 id="max_leave">Max leave : <span class="text-textPrimary"></span></h4>
                                         <h4 id="leave_taken">Leave taken : <span class="text-textPrimary"></span></h4>
-                                        <h4 id="remainding_leave">Remainding leave : <span class="text-textPrimary"></span></h4>
+                                        <h4 id="remainding_leave">Remainding leave : <span
+                                                class="text-textPrimary"></span></h4>
                                     </div>
                                     <hr>
                                     <h4 class="font-medium text-md">Other Request</h4>
-                                    <div id="already-taken-leave" class="h-[38vh] overflow-y-auto my-2 space-y-2 z-30 mb-4">
+                                    <div id="already-taken-leave"
+                                        class="h-[38vh] overflow-y-auto my-2 space-y-2 z-30 mb-4">
 
                                     </div>
                                     <hr>
@@ -131,8 +133,10 @@
                             <div class="flex justify-end gap-6 mt-6" id="actionBtn">
                                 <div></div>
                                 <div>
-                                    <button data-status="3" class="border p-3 text-sm border-green-400 rounded-lg StatusBtn">Approved</button>
-                                    <button data-status="4" class="border p-3 text-sm border-red-400 rounded-lg StatusBtn">Rejected</button>
+                                    <button data-status="3"
+                                        class="border p-3 text-sm border-green-400 rounded-lg StatusBtn">Approved</button>
+                                    <button data-status="4"
+                                        class="border p-3 text-sm border-red-400 rounded-lg StatusBtn">Rejected</button>
                                 </div>
                             </div>
                         </div>
@@ -226,44 +230,48 @@
                 $("#request-list").load("./componnet/timesheet/timeOff.html")
             }
 
-            $(document).on("click","#main #content #section-content #section-leave_request button.StatusBtn",function(){
+            $(document).on("click", "#main #content #section-content #section-leave_request button.StatusBtn", function () {
                 let status = $(this).data("status")
                 let comment = $("#main #content #section-content #section-leave_request input#comment").val()
-                if(comment == ""){
-                    showAlertMessage("warning","Leave Request", "Fill comment to continue")
+                if (comment == "") {
+                    showAlertMessage("warning", "Leave Request", "Fill comment to continue")
                     $("#main #content #section-content #section-leave_request input#comment").focus()
-                }else{
+                } else {
                     try {
-                    fetch(`${DomainURL}/manage/request/${SelectedID}`, {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${access_token}`
-                        },
-                        method: "PUT",
-                        body: JSON.stringify({
-                            "description": comment,
-                            "status": status
+                        ProgressLoading(true)
+                        fetch(`${DomainURL}/manage/request/${SelectedID}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            method: "PUT",
+                            body: JSON.stringify({
+                                "description": comment,
+                                "status": status
+                            })
                         })
-                    })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        console.log(data)
-                        if (data.status) {
-                            showAlertMessage("success","Leave Request",data.message)
-                            setTimeout(()=>{window.location.href = "leave-request.html"},1000)
-                        } else {
-                            showAlertMessage("error","Leave Request",data.message)
-                        }
-                    });
-                } catch (error) {
-                    showAlertMessage("warning","API error", error)
-                }
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                // console.log(data)
+                                if (data.status) {
+                                    showAlertMessage("success", "Leave Request", data.message)
+                                    setTimeout(() => { window.location.href = "leave-request.html" }, 1000)
+                                } else {
+                                    showAlertMessage("error", "Leave Request", data.message)
+                                }
+                                ProgressLoading(false)
+                            });
+                    } catch (error) {
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
+                    }
                 }
             })
         });
 
         function RequestDetails(ID) {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/manage/request/${ID}`, {
                     method: "GET",
                     headers: {
@@ -278,69 +286,51 @@
                             SelectedUser = RequestDetail.module.user
                             SelectedUser.profile["email"] = SelectedUser.email
                             SelectedUser.profile["user_name"] = SelectedUser.user_name
-                            profileDataExtraction(SelectedUser.profile,"section-profile")
+                            profileDataExtraction(SelectedUser.profile, "section-profile")
+                            $("#main #content #section-content #section-leave_request #status").html(StatusColourCode(RequestDetail.status))
                             dataExtraction()
                         } else {
                             showAlertMessage("error", "Time sheet", data.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         }
 
-        function dataExtraction(){
+        function dataExtraction() {
             let section = $("#main #content #section-content #section-leave_request")
             let module = RequestDetail.module
 
             section.find("#assigned_id span").text(RequestDetail.assigned.user_name)
-            if(RequestDetail.approvedby_id)
+            if (RequestDetail.approvedby_id)
                 section.find("#approved_by span").text(RequestDetail.assigned.user_name)
             else
                 section.find("#approved_by").hide()
 
             section.find("#request_by span").text(SelectedUser.user_name)
-            if(module.policy_id)
+            if (module.policy_id)
                 section.find("#policy_name span").text(module.policy?.name)
             else
                 section.find("#policy_name span").text("others")
-            section.find("#total_days span").text(module.total_days == 0.5 ? `half(${module.leave_unit}) day`: `${module.total_days} ${module.leave_unit}`)
-            section.find("#leave_date span").text(leaveDates(module.start_date,module.end_date))
+            section.find("#total_days span").text(module.total_days == 0.5 ? `half(${module.leave_unit}) day` : `${module.total_days} ${module.leave_unit}`)
+            section.find("#leave_date span").text(leaveDates(module.start_date, module.end_date))
             section.find("#reason span").text(module.description)
 
-            leaveRequest("0,3,4",SelectedUser.id)
-            AlreadyTakenLeave(SelectedUser.id,module.policy_id || 0)
+            leaveRequest("0,3,4", SelectedUser.id)
+            AlreadyTakenLeave(SelectedUser.id, module.policy_id || 0)
             $("#main #content #section-content #section-leave_request input#comment").val(RequestDetail.description)
-            if(RequestDetail.status)
+            if (RequestDetail.status)
                 $("#main #content #section-content #section-leave_request #actionBtn").hide()
             else
                 $("#main #content #section-content #section-leave_request #actionBtn").show()
         }
 
-        function leaveDates(start, end) {
-            let startDate = new Date(start)
-            let endDate = new Date(end)
-            const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-            let dateString = ''
-            if (startDate.getFullYear() === endDate.getFullYear()) {
-                if (startDate.getMonth() === endDate.getMonth()) {
-                    if (startDate.getDate() === endDate.getDate()) {
-                        dateString = `${startDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}`
-                    } else {
-                        dateString = `${startDate.getDate()}-${endDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}`
-                    }
-                } else {
-                    dateString = `${startDate.getDate()}${month[startDate.getMonth()]}-${endDate.getDate()}${month[endDate.getMonth()]} ${startDate.getFullYear()}`
-                }
-            } else {
-                dateString = `${startDate.getDate()}${month[startDate.getMonth()]} ${startDate.getFullYear()}-${endDate.getDate()}${month[endDate.getMonth()]} ${endDate.getFullYear()}`
-            }
-
-            return dateString
-        }
-
         function leaveRequest(status, User_ID) {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/timesheet/leave?status=${status}&user_id=${User_ID}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -348,9 +338,9 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
-                        console.log(data)
+                        // console.log(data)
                         if (data.status) {
                             $("#main #content #section-content #section-leave_request #already-taken-leave").empty()
                             data.leave_request.forEach(element => {
@@ -379,16 +369,19 @@
                             })
                         }
                         else {
-                            showAlertMessage("warning","Leave Request", data.messgae)
+                            showAlertMessage("warning", "Leave Request", data.messgae)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
         }
         // Edit panel 
         async function AlreadyTakenLeave(userID, policyID) {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/timesheet/leave/filter/${userID}/${policyID}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -396,21 +389,24 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
+                        // console.log(data)
                         if (data.status) {
                             $("#main #content #section-content #section-leave_request #policy span").text(data.reason.name || "--")
                             $("#main #content #section-content #section-leave_request #max_leave span").text(data.total_leave)
                             $("#main #content #section-content #section-leave_request #leave_taken span").text(data.leave_taken)
-                            let tl = data.total_leave - data.leave_taken 
-                            $("#main #content #section-content #section-leave_request #remainding_leave span").text(tl< 0 ? 0 :tl)
+                            let tl = data.total_leave - data.leave_taken
+                            $("#main #content #section-content #section-leave_request #remainding_leave span").text(tl < 0 ? 0 : tl)
                         } else {
-                            showAlertMessage("warning","Leave Request", data.message)
+                            showAlertMessage("warning", "Leave Request", data.message)
 
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
 
             }
         }

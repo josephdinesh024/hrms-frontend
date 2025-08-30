@@ -1,0 +1,115 @@
+<div id="filterAction" class="max-w-1/4 min-w-fit bg-gray-50 p-6 border-r grid content-between">
+    <ul class="space-y-4 text-sm text-gray-700">
+        <li class="action-menu cursor-pointer font-bold text-blue-600" data-status="0">Pending
+        </li>
+        <li class="action-menu cursor-pointer" data-status="3">Approved</li>
+        <li class="action-menu cursor-pointer" data-status="4">Rejected</li>
+    </ul>
+    <div class="flex gap-2 items-center bg-tranparent p-3 text-base">
+        <button id="timeoff-previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+        <span id="timeoff-countMessage">5 of 10</span>
+        <button id="timeoff-next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+    </div>
+</div>
+<div id="cardList" class="w-full">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Employee ID</th>
+                <th class="p-4 border-b">Email</th>
+                <th class="p-4 border-b">Place</th>
+                <th class="p-4 border-b">Date</th>
+                <th class="p-4 border-b">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        let Request = []
+        let UserList = []
+        let Status = 0
+        function initFetch() {
+            $("#editPanel #editContent").empty()
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/manage/request/module/travel?status=${Status}&page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#cardList tbody").empty()
+                            Request = data.request
+                            Request.forEach((element, index) => {
+                                $("#cardList tbody").append(`
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
+                                <td class="p-4">${capitalizeFirstLetter(element.module.user.user_name)}</td>
+                                <td class="p-4">${element.module.user.email}</td>
+                                <td class="p-4">${capitalizeFirstLetter(element.module.from_place)} to ${capitalizeFirstLetter(element.module.to_place)}</td>
+                                <td class="p-4">${leaveDates(element.module.start_date, element.module.end_date)}</td>
+                                <td class="p-4">
+                                    ${StatusColourCode(element.status)}
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#timeoff-countMessage").text(`${total + Request.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#timeoff-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#timeoff-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "#filterAction .action-menu", function () {
+            $("#filterAction .action-menu").removeClass("font-bold text-blue-600")
+            $(this).addClass("font-bold text-blue-600")
+            let selectedStatus = $(this).data("status")
+            Status = selectedStatus
+            page = 1
+            initFetch()
+        });
+
+        $(document).on("click", "#cardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?request_id=${ID}`
+        });
+
+    })
+</script>

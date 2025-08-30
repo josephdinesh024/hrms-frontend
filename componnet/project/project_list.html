@@ -1,0 +1,107 @@
+<!-- <div class="font-semibold text-xl p-6 flex content-between">
+    <p>Projects</p>
+</div> -->
+<div id="projectCardList" class="w-full mb-4">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Project Name</th>
+                <th class="p-4 border-b">Progress</th>
+                <th class="p-4 border-b">Worked Hours</th>
+                <th class="p-4 border-b cursor-pointer" id="project-Status" data-status="">Status <i
+                        class="fa-solid fa-sort text-gray-600"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(function () {
+
+        let page = 1
+        let paseSize = PAGESIZE
+        let TotalCount = 0
+        let Project = []
+        let UserList = []
+        let Status = "1,2"
+        function initFetch() {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project?status=${Status}&page=${page}&page_size=${paseSize}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#projectCardList tbody").empty()
+                            Project = data.project
+                            Project.forEach((element, index) => {
+                                $("#projectCardList tbody").append(`
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList">
+                                <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
+                                <td class="p-4">${element.progress}</td>
+                                <td class="p-4">${element.worked_hour}</td>
+                                <td class="p-4">
+                                    ${StatusColourCode(element.status)}
+                                </td>
+                            </tr>
+                        `)
+                            });
+                            TotalCount = data.total_count
+                            var total = (page - 1) * paseSize
+                            $("#project-countMessage").text(`${total + Project.length} of ${TotalCount}`)
+                        }
+                        ProgressLoading(false)
+                    });
+
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        initFetch()
+
+        $(document).on("click", "button#project-previous", function () {
+            if (page != 1) {
+                page -= 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "button#project-next", function () {
+            let check = TotalCount - (paseSize * page)
+            if (check > 0) {
+                page += 1
+                initFetch()
+            }
+        })
+
+        $(document).on("click", "#projectCardList th#project-Status", function () {
+            let status = $(this).data("status")
+            $(this).find("i").removeClass(`
+                text-${Status == "1" ? "green" : Status == "2" ? "red" : "gray"}-600
+            `)
+            Status = status == "1" ? "2" : status == "2" ? "1,2" : "1"
+            $(this).data("status", Status)
+            $(this).find("i").addClass(`
+                text-${Status == "1" ? "green" : Status == "2" ? "red" : "gray"}-600
+            `)
+            initFetch()
+        });
+
+        $(document).on("click", "#projectCardList tbody .selectedList", function () {
+            let ID = $(this).data("id")
+            window.location.href = `?project_id=${ID}`
+        });
+
+    })
+</script>

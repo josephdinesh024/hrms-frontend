@@ -11,7 +11,7 @@
     <!-- Custom Tailwind Theme -->
     <script src="./static/js/theme.js"></script>
     <script src="./static/js/profileAction.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -28,7 +28,6 @@
 
 <body class="flex bg-background w-screen">
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
@@ -57,10 +56,10 @@
 
                         </div> -->
                         <ul class="space-y-4 text-sm text-gray-700">
-                            <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="all">All
+                            <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="all">Attendance
                             </li>
-                            <li class="menu-item cursor-pointer" data-section="timesheet">Time sheet</li>
-                            <li class="menu-item cursor-pointer" data-section="leave">Leave</li>
+                            <!-- <li class="menu-item cursor-pointer" data-section="timesheet">Time sheet</li>
+                            <li class="menu-item cursor-pointer" data-section="leave">Leave</li> -->
                             <li class="menu-item cursor-pointer" data-section="entry">New entry</li>
                         </ul>
                     </div>
@@ -90,8 +89,11 @@
 
     <script>
         // $("#contents").load("./componnet/timesheet/attendance.html")
-
+        let SelectedMenu
+        let MenuAction
         $(document).ready(function () {
+            SelectedMenu = urlParams.get("menu")
+            MenuAction = urlParams.get("menu-action")
         $("#main .menu-item").click(function () {
             $("#main .menu-item").removeClass("font-bold text-blue-600")
             $(this).addClass("font-bold text-blue-600")
@@ -119,15 +121,176 @@
         });
 
         $("#main .section").hide()
-        $(`#main #section-all`).show()
         loading()
         $(`#main #section-content #section-entry div`).load("./componnet/timesheet/timesheet.html")
+
+        if(["entry","all","timesheet","leave"].includes(SelectedMenu)){
+            $(`#main #section-${SelectedMenu}`).show()
+            $("#main .menu-item").removeClass("font-bold text-blue-600")
+            $(`#main [data-section=${SelectedMenu}]`)?.addClass("font-bold text-blue-600")
+            switch(SelectedMenu){
+                case "all":
+                    renderCalendar("")
+                    break
+                case "timesheet":
+                    renderCalendar("timesheet")
+                    break
+                case "leave":
+                    renderCalendar("leave")
+                    break
+                case "entry":
+                    $(`#main #section-content .loaded-data`).hide()
+                    break
+            }
+
+            if(MenuAction)
+                setTimeout(() =>showMethodAction(MenuAction),200)
+        }
+        else
+            $(`#main #section-all`).show()
         
         function loading(section){
             $(`#main #section-content .loaded-data`).load("./componnet/timesheet/attendance.html")
             setTimeout(()=>initAttendFun(),200)
         }
     })
+
+    function showMethodAction(method) {
+            $("#main #section-content #section-entry .method").addClass("hidden translate-x-full")
+            $(`#main #section-content #section-entry #${method}`).removeClass("hidden")
+            setTimeout(() => $(`#main #section-content #section-entry #${method}`).removeClass("translate-x-full"), 30)
+            if (method == "time_sheet") {
+                TimeSheetCal()
+                AssignedProject()
+            }
+            else if(method == "leave_request") {
+                MyPolicys()
+                datePicker("days")
+            }
+        }
+    
+        function TimeSheetCal() {
+            $(document).ready(function () {
+                const tnow = new Date()
+                let dateDetails = { val: "", min: 0, max: 0 }
+                switch (tnow.getDay()) {
+                    case 0:
+                        dateDetails.min = tnow.setDate(tnow.getDate() - 1)
+                        dateDetails.max = tnow.setDate(tnow.getDate());
+                        break;
+                    case 1:
+                        dateDetails.val = tnow.toISOString().split("T")[0];
+                        dateDetails.min = tnow.setDate(tnow.getDate());
+                        dateDetails.max = tnow.setDate(tnow.getDate() + 1);
+                        break;
+                    default:
+                        dateDetails.val = tnow.toISOString().split("T")[0];
+                        dateDetails.min = tnow.setDate(tnow.getDate() - 1);
+                        dateDetails.max = tnow.setDate(tnow.getDate() + 2);
+                        break;
+                }
+
+                $("#main #section-content #section-entry #time_sheet #entry_date").val(dateDetails.val)
+                $("#main #section-content #section-entry #time_sheet #entry_date").prop("min", new Date(dateDetails.min).toISOString().split("T")[0])
+                $("#main #section-content #section-entry #time_sheet #entry_date").prop("max", new Date(dateDetails.max).toISOString().split("T")[0])
+
+            })
+        };
+
+        function AssignedProject(){
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/project/assigned`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            AssignedProjectDetail = data.project
+                            if(AssignedProjectDetail){
+                                $("#main #section-content #section-entry #time_sheet #project_id").html(`
+                                    <option value="">--</option>
+                                `)
+                                AssignedProjectDetail.forEach((element,index) => {
+                                    if(element.status == 1)
+                                    $("#main #section-content #section-entry #time_sheet #project_id").append(`
+                                        <option value="${index}">${capitalizeFirstLetter(element.name)}</option>
+                                    `)
+                                })
+                            }
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        async function MyPolicys(userID) {
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/timesheet/mypolicy`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: "GET"
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            $("#main #section-content #section-entry #leave_request #policy_id").empty()
+                            $("#main #section-content #section-entry #leave_request #policy_id").prepend(`
+                        <option selected value="0">Others</option>
+                    `)
+                            data.policy.forEach(element => {
+                                if (element.active)
+                                    $("#main #section-content #section-entry #leave_request #policy_id").prepend(`
+                        <option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>
+                    `)
+                            })
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+
+        function datePicker(unit) {
+            let now = new Date
+            now.setDate(now.getDate() + 1)
+            const picker = new Litepicker({
+                element: document.getElementById('calendar-inline'),
+                inlineMode: true,
+                singleMode: false,
+                numberOfMonths: 1,
+                minDate:now.toLocaleDateString().split('/').reverse().join("-"),
+                minDays: 1,
+                maxDays: unit == "days" ? null : 1,
+                numberOfColumns: 1,
+                autoApply: true,
+                setup: (picker) => {
+                    picker.on('selected', (start, end) => {
+                        const days = end.diff(start, 'days') + 1;
+                        var d = unit == "days" ? days + "/" + unit : 0.5 + `/day(${unit})`
+                        $("#main #section-content #section-entry #leave_request #total_days").val(d)
+                        $("#main #section-content #section-entry #leave_request #start_date").val(start.dateInstance.toLocaleDateString())
+                        $("#main #section-content #section-entry #leave_request #end_date").val(end.dateInstance.toLocaleDateString())
+
+                    });
+                }
+            });
+        }
+
 
     </script>
 

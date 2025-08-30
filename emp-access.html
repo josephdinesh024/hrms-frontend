@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <!-- Custom Tailwind Theme -->
     <script src="./static/js/theme.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -28,7 +28,6 @@
 <body class="flex bg-background w-screen">
 
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
@@ -41,7 +40,8 @@
             </h2>
             <hr>
             <div class="w-full min-h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
-                <div id="filterAction" class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-end">
+                <div id="filterAction"
+                    class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-end">
                     <div class="flex gap-2 items-center text-md px-2">
                         <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
                         <span id="countMessage">5 of 10</span>
@@ -68,7 +68,8 @@
             </div>
         </main>
 
-        <div id="editPanel" class="fixed inset-0 bg-black bg-opacity-50 flex-1 content-center z-50  employee-container hidden">
+        <div id="editPanel"
+            class="fixed inset-0 bg-black bg-opacity-50 flex-1 content-center z-50  employee-container hidden">
             <div class="max-w-5xl mx-auto mt-10 bg-white p-6 rounded-xl shadow-lg">
                 <div class="w-full flex justify-end "><button id="closeEmployeeDetails"
                         class="font-bold cursor-pointer">X</button></div>
@@ -81,37 +82,38 @@
     </div>
 
     <script>
-    $(function () {
-        $(document).ready(function(){
-            let access = JSON.parse($.cookie("my_access"))
-            if(!("user" in access)){
-                window.location.href = "index.html"
-            }
-        });
+        $(function () {
+            $(document).ready(function () {
+                let access = JSON.parse($.cookie("my_access"))
+                if (!("user" in access)) {
+                    window.location.href = "index.html"
+                }
+            });
 
-        let empAccess = []
-        let page = 1
-        let paseSize = PAGESIZE
-        let TotalCount = 0
+            let empAccess = []
+            let page = 1
+            let paseSize = PAGESIZE
+            let TotalCount = 0
 
-        function initFun() {
-            try {
-                fetch(`${DomainURL}/access?page_size=${paseSize}&page=${page}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    }
-                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        // console.log(data)
-                        if (data.status) {
-                            empAccess = data.user
-                            TotalCount = data.total_count
+            function initFun() {
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/access?page_size=${paseSize}&page=${page}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        }
+                    }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                empAccess = data.user
+                                TotalCount = data.total_count
 
-                            $("#employeeAccessCardList tbody").empty()
-                            empAccess.forEach((element, index) => {
-                                $("#employeeAccessCardList tbody").append(`
+                                $("#employeeAccessCardList tbody").empty()
+                                empAccess.forEach((element, index) => {
+                                    $("#employeeAccessCardList tbody").append(`
                                 <tr id="${index}" class="border-b hover:bg-gray-50 transition cursor-pointer selectedList">
                                     <td class="p-4">${capitalizeFirstLetter(element.user_name)}</td>
                                     <td class="p-4">${capitalizeFirstLetter(element.email)}</td>
@@ -119,85 +121,89 @@
                                     <td class="p-4">${element.reportee[0] ? capitalizeFirstLetter(element.reportee[0].user.user_name) : "--"}</td>
                                 </tr>
                             `)
-                            });
+                                });
 
-                            var total = (page - 1) * paseSize
-                            $("#countMessage").text(`${total + empAccess.length} of ${TotalCount}`)
-                        }
-                    })
-            } catch (error) {
-                showAlertMessage("warning","API error", error)
-            }
-        }
-        initFun();
-
-        $(document).on("click", "button#previous", function () {
-            if (page != 1) {
-                page -= 1
-                initFun()
-            }
-        })
-
-        $(document).on("click", "button#next", function () {
-            let check = TotalCount - (paseSize * page)
-            if (check > 0) {
-                page += 1
-                initFun()
-            }
-        })
-        // Extract access names
-        let prmt = []
-        let role = []
-        let team = []
-        function access(items) {
-            prmt = []
-            role = []
-            team = []
-            items.forEach(element => {
-                if (element.module_type == "permission") {
-                    prmt.push(capitalizeFirstLetter(element.module.name))
+                                var total = (page - 1) * paseSize
+                                $("#countMessage").text(`${total + empAccess.length} of ${TotalCount}`)
+                            }
+                            ProgressLoading(false)
+                        })
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
-                if (element.module_type == "role") {
-                    role.push(capitalizeFirstLetter(element.module.name))
-                }
-                if (element.module_type == "team") {
-                    team.push(capitalizeFirstLetter(element.module.name))
-                }
-            });
+            }
+            initFun();
 
-            let result = `
+            $(document).on("click", "button#previous", function () {
+                if (page != 1) {
+                    page -= 1
+                    initFun()
+                }
+            })
+
+            $(document).on("click", "button#next", function () {
+                let check = TotalCount - (paseSize * page)
+                if (check > 0) {
+                    page += 1
+                    initFun()
+                }
+            })
+            // Extract access names
+            let prmt = []
+            let role = []
+            let team = []
+            function access(items) {
+                prmt = []
+                role = []
+                team = []
+                items.forEach(element => {
+                    if (element.module_type == "permission") {
+                        prmt.push(capitalizeFirstLetter(element.module.name))
+                    }
+                    if (element.module_type == "role") {
+                        role.push(capitalizeFirstLetter(element.module.name))
+                    }
+                    if (element.module_type == "team" && element?.module?.team_type == "user") {
+                        team.push(capitalizeFirstLetter(element.module.name))
+                    }
+                });
+
+                let result = `
                 <td class="p-4">${role.length > 0 ? role.join(', ') : "--"}</td>
                 <td class="p-4">${prmt.length > 0 ? prmt.join(', ') : "--"}</td>
                 <td class="p-4">${team.length > 0 ? team.join(', ') : "--"}</td>
                 `
-            return result
-        };
+                return result
+            };
 
-        $(document).on("click", "#employeeAccessCardList tbody tr.selectedList", function () {
-            $("#editPanel").removeClass("hidden")
-            SelectedEmployeeAccess(empAccess[$(this).attr("id")].id)
-        })
+            $(document).on("click", "#employeeAccessCardList tbody tr.selectedList", function () {
+                $("#editPanel").removeClass("hidden")
+                SelectedEmployeeAccess(empAccess[$(this).attr("id")].id)
+            })
 
-        //Close panel
-        $(document).on("click", "#editPanel #closeEmployeeDetails", function () {
-            $("#editPanel").addClass("hidden")
-        });
+            //Close panel
+            $(document).on("click", "#editPanel #closeEmployeeDetails", function () {
+                $("#editPanel").addClass("hidden")
+            });
 
 
-        let selectedEmp
-        let selectedAccessData = { reportee: [], role: [], permission: [], team: [] }
-        let newAccessData = { reportee: [], role: [], permission: [], team: [] }
-        let deleteAccessData = { reportee: [], role: [], permission: [], team: [] }
-        function SelectedEmployeeAccess(ID) {
-            selectedEmp = empAccess.find(item => item.id == ID)
-            selectedAccessData = { reportee: [], role: [], permission: [], team: [] }
-            newAccessData = { reportee: [], role: [], permission: [], team: [] }
-            deleteAccessData = { reportee: [], role: [], permission: [], team: [] }
-            // console.log(selectedEmp)
-            if (selectedEmp.reportee[0]?.id)
-                selectedAccessData.reportee.push(selectedEmp.reportee[0]?.id)
+            let selectedEmp
+            let selectedAccessData = { reportee: [], role: [], permission: [], team: [] }
+            let newAccessData = { reportee: [], role: [], permission: [], team: [] }
+            let deleteAccessData = { reportee: [], role: [], permission: [], team: [] }
+            function SelectedEmployeeAccess(ID) {
+                selectedEmp = empAccess.find(item => item.id == ID)
+                selectedAccessData = { reportee: [], role: [], permission: [], team: [] }
+                newAccessData = { reportee: [], role: [], permission: [], team: [] }
+                deleteAccessData = { reportee: [], role: [], permission: [], team: [] }
+                // console.log(selectedEmp)
+                if (selectedEmp.reportee[0]?.id){
+                    selectedAccessData.reportee.push(selectedEmp.reportee[0]?.id)
+                    selectedAccessData.reportee.push(selectedEmp.reportee[0]?.user_id)
+                }
 
-            $("#editPanel #editContent").html(`
+                $("#editPanel #editContent").html(`
                 <div class="flex items-center space-x-4 border-b pb-4 mb-6">
                     <img src="https://ui-avatars.com/api/?name=${selectedEmp.profile.first_name}+${selectedEmp.profile.last_name}" alt="Avatar" class="w-16 h-16 rounded-full shadow">
                     <div>
@@ -212,9 +218,9 @@
                             <p>Assigned Reportee</p>
                             <div id="AssignedreporteeList" class="flex gap-3 overflow-auto">
                                 ${selectedEmp.reportee[0]?.id ?
-                    `<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
+                        `<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
                                     <span>${capitalizeFirstLetter(`${selectedEmp.reportee[0]?.user?.user_name || "--"}`)}</span>
-                                    <button id="${selectedEmp.reportee[0]?.id}" data_target="reportee" class="font-medium removeAssignedData">
+                                    <button id="${selectedEmp.reportee[0]?.user_id}" data_target="reportee" class="font-medium removeAssignedData">
                                         <span class="bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
                                     </button>
                                 </div>
@@ -268,104 +274,126 @@
                     <button id="closeEmployeeDetails" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
                 </div>
             `)
-        };
+            };
 
-        function dataExtract(data, type) {
-            let result = []
-            data.forEach(item => {
-                if (item.module_type == type)
-                    result.push(`<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
+            function dataExtract(data, type) {
+                let result = []
+                
+                data.forEach(item => {
+                    if (item.module.team_type === "user" && type === "team"){
+                        result.push(`<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
                                 <span>${capitalizeFirstLetter(`${item.module.name || "--"}`)}</span>
                                 <button id="${item.module_id}" data_target="${type}" class="font-medium removeAssignedData">
                                     <span class="bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
                                 </button>
                             </div>`);
 
-                selectedAccessData[type].push(item.module_id)
+                        selectedAccessData[type].push(item.module_id)
+                    }else if("team" != type && item.module_type == type){
+                        result.push(`<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(`${item.module.name || "--"}`)}</span>
+                                <button id="${item.module_id}" data_target="${type}" class="font-medium removeAssignedData">
+                                    <span class="bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>`);
+
+                        selectedAccessData[type].push(item.module_id)
+                    }
+                });
+                // console.log(selectedAccessData[type])
+                return result.join("")
+            }
+
+            $(document).on("click", "#editPanel #editContent button.removeAssignedData", function () {
+                let ID = parseInt($(this).attr("id"))
+                let dataTarget = $(this).attr("data_target")
+                if(dataTarget == "reportee"){
+                    if (selectedAccessData[dataTarget][1] == ID) {
+                        deleteAccessData[dataTarget].push(selectedAccessData[dataTarget][0])
+                    }
+                    if (newAccessData[dataTarget].includes(ID) && selectedAccessData[dataTarget][1] != ID) {
+                        newAccessData[dataTarget] = newAccessData[dataTarget].filter(id => id != ID)
+                    }
+                }else{
+                    if (selectedAccessData[dataTarget].includes(ID)) {
+                        deleteAccessData[dataTarget].push(ID)
+                    }
+                    if (newAccessData[dataTarget].includes(ID) && !selectedAccessData[dataTarget].includes(ID)) {
+                        newAccessData[dataTarget] = newAccessData[dataTarget].filter(id => id != ID)
+                    }
+                }
+                $(this).parent().remove()
+                // console.log(deleteAccessData)
             });
-            // console.log(selectedAccessData[type])
-            return result.join("")
-        }
 
-        $(document).on("click", "#editPanel #editContent button.removeAssignedData", function () {
-            let ID = parseInt($(this).attr("id"))
-            let dataTarget = $(this).attr("data_target")
-            if (selectedAccessData[dataTarget].includes(ID)) {
-                deleteAccessData[dataTarget].push(ID)
-            }
-            if (newAccessData[dataTarget].includes(ID) && !selectedAccessData[dataTarget].includes(ID)) {
-                newAccessData[dataTarget] = newAccessData[dataTarget].filter(id => id != ID)
-            }
-            $(this).parent().remove()
-            // console.log(deleteAccessData)
-        });
+            $(document).on("click keyup blur", "#editPanel #editContent #newMemberList #newMemberSearch", function () {
+                let val = $(this).val().trim()
+                let moduleType = $("#editPanel #editContent #searchListType").val()
+                if (val != "") {
+                    MemberSearch(val, moduleType)
+                } else {
+                    $("#editPanel #editContent #newMemberList #newMemberSearchResult").empty()
+                }
+            })
 
-        $(document).on("click keyup blur", "#editPanel #editContent #newMemberList #newMemberSearch", function () {
-            let val = $(this).val().trim()
-            let moduleType = $("#editPanel #editContent #searchListType").val()
-            if (val != "") {
-                MemberSearch(val, moduleType)
-            } else {
+            $(document).on("change", "#editPanel #editContent #searchListType", function () {
+                if ($(this).val() == "user")
+                    $("#editPanel #editContent #newMemberList #newMemberSearch").prop("placeholder", "search with id or email")
+                else
+                    $("#editPanel #editContent #newMemberList #newMemberSearch").prop("placeholder", "search with name")
                 $("#editPanel #editContent #newMemberList #newMemberSearchResult").empty()
-            }
-        })
+            })
 
-        $(document).on("change", "#editPanel #editContent #searchListType", function () {
-            if ($(this).val() == "user")
-                $("#editPanel #editContent #newMemberList #newMemberSearch").prop("placeholder", "search with id or email")
-            else
-                $("#editPanel #editContent #newMemberList #newMemberSearch").prop("placeholder", "search with name")
-            $("#editPanel #editContent #newMemberList #newMemberSearchResult").empty()
-        })
-
-        async function MemberSearch(params, type) {
-            try {
-                fetch(`${DomainURL}/search/name?module=${type}&q=${params}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-                    method: "GET"
-                })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        // console.log(data)
-                        if (data.status) {
-                            $("#editPanel #editContent #newMemberList #newMemberSearchResult").empty()
-                            if (data.data.length)
-                                data.data.forEach(item => {
-                                    $("#editPanel #editContent #newMemberList #newMemberSearchResult").append(`
+            async function MemberSearch(params, type) {
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/search/name?module=${type}&q=${params}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "GET"
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                $("#editPanel #editContent #newMemberList #newMemberSearchResult").empty()
+                                if (data.data.length)
+                                    data.data.forEach(item => {
+                                        $("#editPanel #editContent #newMemberList #newMemberSearchResult").append(`
                                         
                                         <div id="${item.id}" class="bg-white hover:bg-slate-50 text-sm cursor-pointer border-b newMemberSelected">
                                             ${type == "user" ? `
                                             <h4 class="px-4 py-1">${item.user_name}</h4>
                                             <h5 class="px-4 py-1 text-xs text-gray-500">${item.access.map(i => { return i.module.name }).join(", ") || "--"}</h5>
                                             `
-                                            : `<h4 class="py-2 px-4">${item.name}</h4>`
-                                        }
+                                                : `<h4 class="py-2 px-4">${item.name}</h4>`
+                                            }
                                         <div>
                                         
                                     `);
-                                });
-                            else
-                                $("#editPanel #editContent #newMemberList #newMemberSearchResult").append(`
+                                    });
+                                else
+                                    $("#editPanel #editContent #newMemberList #newMemberSearchResult").append(`
                                 <span>No record </span>
                                 `)
-                        }
-                    });
-            } catch (error) {
-                showAlertMessage("warning","API error", error)
+                            }
+                            ProgressLoading(false)
+                        });
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
             }
-        }
 
-        $(document).on("click", "#editPanel #editContent #newMemberList #newMemberSearchResult .newMemberSelected", function () {
-            let moduleType = $("#editPanel #editContent #searchListType").val();
-            let ID = parseInt($(this).attr("id"));
-            moduleType = moduleType == "user" ? "reportee" : moduleType
-
-            if (!newAccessData[moduleType].includes(ID) && !selectedAccessData[moduleType].includes(ID)) {
-                if (moduleType == "reportee" && newAccessData.reportee.length < 1 && selectedAccessData.reportee.length < 1) {
-                    $(`#editPanel #editContent #Assigned${moduleType}List`).append(`
+            $(document).on("click", "#editPanel #editContent #newMemberList #newMemberSearchResult .newMemberSelected", function () {
+                let moduleType = $("#editPanel #editContent #searchListType").val();
+                let ID = parseInt($(this).attr("id"));
+                moduleType = moduleType == "user" ? "reportee" : moduleType
+                // console.log(newAccessData,deleteAccessData,selectedAccessData)
+                if (moduleType == "reportee" && !newAccessData[moduleType].length && (deleteAccessData[moduleType].length || !selectedAccessData[moduleType].length) && !newAccessData[moduleType].includes(ID) && selectedAccessData[moduleType][1] != ID) {
+                        $(`#editPanel #editContent #Assigned${moduleType}List`).append(`
                         <div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
                             <span>${capitalizeFirstLetter(`${$(this).find("h4").text() || "--"}`)}</span>
                             <button id="${ID}" data_target="${moduleType}" class="font-medium removeAssignedData">
@@ -373,9 +401,22 @@
                             </button>
                         </div>
                     `)
-                    newAccessData[moduleType].push(ID)
+                        newAccessData[moduleType].push(ID)
                 }
-                if (moduleType != "reportee") {
+                if (moduleType != "reportee" && !newAccessData[moduleType].includes(ID) && !selectedAccessData[moduleType].includes(ID)) {
+                        $(`#editPanel #editContent #Assigned${moduleType}List`).append(`
+                    <div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
+                        <span>${capitalizeFirstLetter(`${$(this).find("h4").text() || "--"}`)}</span>
+                        <button id="${ID}" data_target="${moduleType}" class="font-medium removeAssignedData">
+                            <span class="bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                        </button>
+                    </div>
+                `)
+
+                        newAccessData[moduleType].push(ID)
+                    }
+
+                if (moduleType == "reportee" && selectedAccessData[moduleType][1] == ID && !newAccessData[moduleType].length && deleteAccessData[moduleType].length) {
                     $(`#editPanel #editContent #Assigned${moduleType}List`).append(`
                     <div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
                         <span>${capitalizeFirstLetter(`${$(this).find("h4").text() || "--"}`)}</span>
@@ -385,11 +426,10 @@
                     </div>
                 `)
 
-                    newAccessData[moduleType].push(ID)
+                    deleteAccessData[moduleType] = []
                 }
-            }
-            if (selectedAccessData[moduleType].includes(ID) && deleteAccessData[moduleType].includes(ID)) {
-                $(`#editPanel #editContent #Assigned${moduleType}List`).append(`
+                if (moduleType != "reportee" && selectedAccessData[moduleType].includes(ID) && deleteAccessData[moduleType].includes(ID)) {
+                    $(`#editPanel #editContent #Assigned${moduleType}List`).append(`
                     <div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
                         <span>${capitalizeFirstLetter(`${$(this).find("h4").text() || "--"}`)}</span>
                         <button id="${ID}" data_target="${moduleType}" class="font-medium removeAssignedData">
@@ -398,133 +438,144 @@
                     </div>
                 `)
 
-                deleteAccessData[moduleType] = deleteAccessData[moduleType].filter(item => item != ID)
-            }
-        });
-
-        // Save new access
-        $(document).off("click", "#editPanel #editContent button#saveAccessEdit");
-        $(document).on("click", "#editPanel #editContent button#saveAccessEdit", function () {
-            let Reportee = { new: newAccessData.reportee, delete: deleteAccessData.reportee }
-            delete deleteAccessData["reportee"]
-            delete newAccessData["reportee"]
-            // Delete record api
-            Object.keys(deleteAccessData).forEach(key => {
-                deleteAccessData[key].forEach(Id => {
-                    act = selectedEmp.access.filter(items => (items.module_type == key && items.module_id == Id))[0]
-                    try {
-                        fetch(`${DomainURL}/access/${act.id}`, {
-                            method: "DELETE",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${access_token}`
-                            },
-                        })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                            .then(data => {
-                                if (data.status) {
-                                    showAlertMessage("success","Employee access","Deleted a employee access record")
-                                } else {
-                                    showAlertMessage("warning","Employee access",data.message)
-                                }
-                            })
-                    } catch (error) {
-                        showAlertMessage("warning","API error", error)
-                    }
-                })
-            })
-            // New record api
-            Object.keys(newAccessData).forEach(key => {
-                newAccessData[key].forEach(Id => {
-                    try {
-                        fetch(`${DomainURL}/access`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${access_token}`
-                            },
-                            body: JSON.stringify({
-                                "user_id": selectedEmp.id,
-                                "module_type": key,
-                                "module_id": Id
-                            })
-                        })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                            .then(data => {
-                                if (data.status) {
-                                    showAlertMessage("success","Employee access","Created an new employee access record")
-                                } else {
-                                    showAlertMessage("warning","Employee access",data.message)
-                                }
-                            })
-                    } catch (error) {
-                        showAlertMessage("warning","API error", error)
-                    }
-                })
-            })
-
-            // New Reportee
-            Reportee.new.forEach(id => {
-                try {
-                    fetch(`${DomainURL}/reportees`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${access_token}`
-                        },
-                        body: JSON.stringify({
-                            "user_id": id,
-                            "module_id": selectedEmp.id,
-                            "module_type": "users"
-                        })
-                    })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                        .then(data => {
-                            if (data.status) {
-                                showAlertMessage("success","Employee access","Employee reportee added")
-                            } else
-                                showAlertMessage("warning","Employee access",data.message)
-                        });
-                } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    deleteAccessData[moduleType] = deleteAccessData[moduleType].filter(item => item != ID)
                 }
+            });
 
-            })
-
-            // Delete Reportee
-            if (Reportee.delete.length > 0) {
-                Reportee.selected.forEach(item => {
-                    if (Reportee.delete.includes(item.user_id)) {
+            // Save new access
+            $(document).off("click", "#editPanel #editContent button#saveAccessEdit");
+            $(document).on("click", "#editPanel #editContent button#saveAccessEdit", function () {
+                let Reportee = { new: newAccessData.reportee, delete: deleteAccessData.reportee }
+                delete deleteAccessData["reportee"]
+                delete newAccessData["reportee"]
+                // Delete record api
+                Object.keys(deleteAccessData).forEach(key => {
+                    deleteAccessData[key].forEach(Id => {
+                        act = selectedEmp.access.filter(items => (items.module_type == key && items.module_id == Id))[0]
                         try {
-                            fetch(`${DomainURL}/reportees/${item.id}`, {
+                            ProgressLoading(true)
+                            fetch(`${DomainURL}/access/${act.id}`, {
                                 method: "DELETE",
                                 headers: {
                                     "Content-Type": "application/json",
                                     Authorization: `Bearer ${access_token}`
                                 },
                             })
-                                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                                .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                                 .then(data => {
                                     if (data.status) {
-                                        showAlertMessage("success","Employee access","Employee reportee deleted")
-                                    } else
-                                        showAlertMessage("warning","Employee access",data.message)
+                                        showAlertMessage("success", "Employee access", "Deleted a employee access record")
+                                    } else {
+                                        showAlertMessage("warning", "Employee access", data.message)
+                                    }
+                                    ProgressLoading(false)
                                 })
                         } catch (error) {
-                            showAlertMessage("warning","API error", error)
+                            ProgressLoading(false)
+                            showAlertMessage("warning", "API error", error)
                         }
-
-                    }
+                    })
                 })
-            }
+                // New record api
+                Object.keys(newAccessData).forEach(key => {
+                    newAccessData[key].forEach(Id => {
+                        try {
+                            ProgressLoading(true)
+                            fetch(`${DomainURL}/access`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${access_token}`
+                                },
+                                body: JSON.stringify({
+                                    "user_id": selectedEmp.id,
+                                    "module_type": key,
+                                    "module_id": Id
+                                })
+                            })
+                                .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                                .then(data => {
+                                    if (data.status) {
+                                        showAlertMessage("success", "Employee access", "Created an new employee access record")
+                                    } else {
+                                        showAlertMessage("warning", "Employee access", data.message)
+                                    }
+                                    ProgressLoading(false)
+                                })
+                        } catch (error) {
+                            ProgressLoading(false)
+                            showAlertMessage("warning", "API error", error)
+                        }
+                    })
+                })
 
-            setTimeout(() => { initFun(); }, 500)
-            $("#editPanel").addClass("hidden");
-            // window.location.reload()
+                // New Reportee
+                Reportee.new.forEach(id => {
+                    try {
+                        ProgressLoading(true)
+                        fetch(`${DomainURL}/reportees`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${access_token}`
+                            },
+                            body: JSON.stringify({
+                                "user_id": id,
+                                "module_id": selectedEmp.id,
+                                "module_type": "users"
+                            })
+                        })
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                            .then(data => {
+                                if (data.status) {
+                                    showAlertMessage("success", "Employee access", "Employee reportee added")
+                                } else
+                                    showAlertMessage("warning", "Employee access", data.message)
+                                ProgressLoading(false)
+                            });
+                    } catch (error) {
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
+                    }
+
+                })
+
+                // Delete Reportee
+                if (Reportee.delete.length > 0) {
+                    // console.log(Reportee,selectedEmp.reportee)
+                    Reportee.delete.forEach(ID => {
+                            try {
+                                ProgressLoading(true)
+                                fetch(`${DomainURL}/reportees/${ID}`, {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        Authorization: `Bearer ${access_token}`
+                                    },
+                                })
+                                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                                    .then(data => {
+                                        if (data.status) {
+                                            showAlertMessage("success", "Employee access", "Employee reportee deleted")
+                                        } else
+                                            showAlertMessage("warning", "Employee access", data.message)
+                                        ProgressLoading(false)
+                                    })
+                            } catch (error) {
+                                ProgressLoading(false)
+                                showAlertMessage("warning", "API error", error)
+                            }
+
+                    })
+                }
+
+                setTimeout(() => { initFun(); }, 500)
+                $("#editPanel").addClass("hidden");
+                // window.location.reload()
+            });
+
         });
-
-    });
-</script>
+    </script>
 </body>
 
 </html>

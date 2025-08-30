@@ -1,10 +1,10 @@
 <div id="employeeList" class="employee-container w-full h-[90%] bg-white shadow-md rounded-lg overflow-hidden flex">
     <div id="filterAction" class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-end">
-            <div class="flex gap-2 items-center text-md px-2">
-                <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
-                <span id="countMessage">5 of 10</span>
-                <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
-            </div>
+        <div class="flex gap-2 items-center text-md px-2">
+            <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+            <span id="countMessage">5 of 10</span>
+            <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+        </div>
     </div>
     <hr>
     <div id="employeeCardList" class="w-full">
@@ -44,6 +44,7 @@
             $("#editPanel #editContent").empty()
             closePanel()
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/user?page_size=${paseSize}&page=${page}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -77,9 +78,11 @@
                             var total = (page - 1) * paseSize
                             $("#countMessage").text(`${total + employee.length} of ${TotalCount}`)
                         }
+                        ProgressLoading(false)
                     });
 
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         }

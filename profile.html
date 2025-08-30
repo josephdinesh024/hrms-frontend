@@ -19,14 +19,13 @@
     </style>
     <script src="./static/js/theme.js"> </script>
     <script src="./static/js/profileAction.js"> </script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <!-- FontAwesome for Icons -->
     <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
 
 </head>
 
 <body class="flex bg-background h-screen w-screen">
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
     <div id="sidebar"></div>
 
     <div class="flex-1 w-full">
@@ -202,31 +201,18 @@
                     <div id="section-docs" class="section">
                         <h2 class="text-lg font-semibold mb-6">Document Details</h2>
                         <div id="inner-container" class="w-full space-y-2">
-                            <div class="grid grid-cols-1 gap-6 items-start" id="terms_condition">
-                                <h2 class="text-lg font-bold">Terms & Conditions</h2>
-                                <div class="border-b-2 w-1/2">
-                                    <label>
-                                        <input type="checkbox" disabled>
-                                        <span id="name" class="text-textPrimary">Terms Accepted</span>
-                                    </label>
-                                </div>
-                                <div class="w-fit border-b-2 mb-4">
-                                    <span class="mb-3">Terms Doc</span>
-                                    <span id="file_image" class="text-textPrimary cursor-pointer">
-                                        <img src="" alt="terms" class="w-20 h-20">
-                                    </span>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="grid grid-cols-1 gap-6 mt-4 " id="offer_letter">
-                                <h2 class="text-lg font-bold">Offer Letter</h2>
-                                <div class="w-fit border-b-2">
-                                    <span class="mb-3">Offer Doc</span>
-                                    <span id="file_image" class="text-textPrimary cursor-pointer">
-                                        <img src="" alt="offer" class="w-20 h-20">
-                                    </span>
-                                </div>
-                            </div>
+                            <table class="w-full border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-gray-50 text-gray-700 text-left">
+                                        <th class="p-4 border-b">Document Name</th>
+                                        <th class="p-4 border-b">Uplaod</th>
+                                        <th class="p-4 border-b">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -239,6 +225,7 @@
         let MyProfileData
         function initFun() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/profile`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -257,9 +244,13 @@
                             bankDataExtraction(MyProfileData.bank, "section-bank")
                             certificateDataExtraction(MyProfileData.file, "section-certificate")
                             educationDataExtraction(MyProfileData.education, "section-education")
+                        }else{
+                            showAlertMessage("error","Employee Profile",data.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         }
@@ -271,8 +262,8 @@
                 $(this).addClass("font-bold text-blue-600")
 
                 let section = $(this).attr("data-section")
-                if(section === "docs"){
-                    onboardDocs()
+                if (section === "docs") {
+                    MyDocument()
                 }
                 $("#usermain .section").hide()
                 $(`#usermain #section-${section}`).show()
@@ -281,9 +272,10 @@
             $(`#usermain #section-profile`).show()
         })
 
-        function onboardDocs() {
+        function MyDocument() {
             try {
-                fetch(`${DomainURL}/my/onboard`, {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/my/document`, {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
@@ -293,12 +285,15 @@
                     .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
-                            docsDataExtraction(data.onboard,"section-docs",false)
-                        }else{
-                            showAlertMessage("warning", "API error", data.message)
+                            // console.log(data)
+                            documentDataExtraction(data, "section-docs", false)
+                        } else {
+                            showAlertMessage("warning", "Employee Profile", data.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         }

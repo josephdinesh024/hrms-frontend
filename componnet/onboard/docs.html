@@ -11,9 +11,9 @@
         </button>
         <div id="noteBox" class="mt-2 hidden bg-blue-50 border border-blue-300 text-blue-700 p-3 rounded">
             <ol class="list-decimal ml-5 space-y-1">
-                <li>Download the document using the link</li>
+                <li>Download the document using the download button</li>
                 <li>Print & sign the document</li>
-                <li>Scan and upload the signed copy</li>
+                <li>Upload the signed copy</li>
                 <li>For Terms, also check the acceptance box</li>
             </ol>
         </div>
@@ -23,7 +23,7 @@
     <form class="mb-5 border p-4 rounded-lg shadow-sm bg-gray-50" id="terms-condition">
         <div class="flex justify-between items-center mb-2">
             <span class="font-medium text-gray-700">Terms & Conditions</span>
-            <button onclick="FileDownload('/download/terms')"
+            <button type="button" onclick="FileDownload('/download/terms')"
                 class="text-blue-600 hover:underline text-sm">Download</button>
         </div>
 
@@ -42,7 +42,7 @@
     <form class="mb-5 border p-4 rounded-lg shadow-sm bg-gray-50" id="offer-letter">
         <div class="flex justify-between items-center mb-2">
             <span class="font-medium text-gray-700">Offer Letter</span>
-            <button onclick="FileDownload('/download/offer')"
+            <button type="button" onclick="FileDownload('/download/offer')"
                 class="text-blue-600 hover:underline text-sm">Download</button>
         </div>
 
@@ -66,11 +66,6 @@
 </div>
 
 <script>
-    function toggleNote() {
-        const box = document.getElementById("noteBox");
-        box.classList.toggle("hidden");
-    }
-
     $(function () {
         $(document).ready(function () {
             let termsURL
@@ -78,6 +73,7 @@
             let OnboardData
             function initFun() {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/my/onboard`, {
                         method: "GET",
                         headers: {
@@ -89,15 +85,11 @@
                             if (data.status) {
                                 // console.log(data.onboard)
                                 OnboardData = data.onboard
-                                OnboardData.file.forEach((item) => {
-                                    if (item.type == "term_condition")
-                                        termsURL = item
-                                    else if (item.type?.includes("offer"))
-                                        offerURL = item
-                                });
+                                termsURL = OnboardData.terms
+                                offerURL = OnboardData.offer
                                 $("#terms-condition #inputArea").html(`
                                     <input type="hidden" name="FileID" id="1_FileID" value="${termsURL?.id || 0}">
-                                    ${floatingFileInputTag('terms', 'file', 'Upload terms docs', termsURL?.file_path.split("/").pop(), required = termsURL?.file_path ? false : true)}
+                                    ${floatingFileInputTag('terms', 'file', 'Upload terms docs', termsURL?.file_path.split("/").pop(), required = termsURL?.file_path ? false : true,[".pdf"])}
                                     ${termsURL?.file_path ? `
                                     <span onclick="FilePreviewURL('${termsURL?.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span> <br>` : ""}
                                     <label class="inline-flex items-center mt-2">
@@ -107,35 +99,37 @@
                                 `);
                                 $("#offer-letter #inputArea").html(`
                                     <input type="hidden" name="FileID" id="1_FileID" value="${offerURL?.id || 0}">
-                                    ${floatingFileInputTag('offer', 'file', 'Upload offer docs', offerURL?.file_path.split("/").pop(), offerURL?.file_path ? false : true)}
+                                    ${floatingFileInputTag('offer', 'file', 'Upload offer docs', offerURL?.file_path.split("/").pop(), offerURL?.file_path ? false : true,[".pdf"])}
                                     ${offerURL?.file_path ? `
                                     <span onclick="FilePreviewURL('${offerURL?.file_path}')" class="text-sm text-blue-400 cursor-pointer">Preview</span>` : ""}
                                 `);
                             } else {
                                 showAlertMessage("error", "Onboard", "Error to fetch details. " + data?.message)
                             }
+                            ProgressLoading(false)
                         })
                 } catch (error) {
+                    ProgressLoading(false)
                     showAlertMessage("warning", "API error", error)
                 }
 
-                if(MyOnboardDetails?.correction_marked){
-                    setTimeout(()=>MarkCorrection(),500)
+                if (MyOnboardDetails?.correction_marked) {
+                    setTimeout(() => MarkCorrection(), 500)
                 }
             }
             initFun();
 
             $("#terms-condition #inputArea").html(`
-                <input type="hidden" name="FileID" id="1_FileID" value="0">
-                ${floatingFileInputTag('terms', 'file', 'Upload terms docs', "", true)}
+                <input type="hidden" name="FileID" id="1_FileID">
+                ${floatingFileInputTag('terms', 'file', 'Upload terms docs', "", true,[".pdf"])}
                 <label class="inline-flex items-center mt-2">
                     <input type="checkbox" id="termsAccept"  name="terms_accept" class="mr-2">
                     <span class="text-gray-600">I accept the terms & conditions</span>
                 </label>
             `);
             $("#offer-letter #inputArea").html(`
-                <input type="hidden" name="FileID" id="1_FileID" value="0">
-                ${floatingFileInputTag('offer', 'file', 'Upload offer docs', "", true)}
+                <input type="hidden" name="FileID" id="1_FileID">
+                ${floatingFileInputTag('offer', 'file', 'Upload offer docs', "", true,[".pdf"])}
             `);
 
             $(document).on("click", "#terms-condition button#submitTerms", async function (e) {
@@ -149,17 +143,17 @@
                     let fileData = data.find("input[name=file]")[0].files[0]
                     let termAccept = data.find("input[name=terms_accept]").is(":checked")
                     let nameData = userName
-                    form.append("module_type", "user_onboardings")
-                    form.append("type", "term_condition")
+                    // form.append("module_type", "user_onboardings")
+                    form.append("type", "onboard")
                     form.append("name", nameData + "_terms")
                     form.append("file", fileData)
 
-                    let { flag, resp } = await uploadFileData(ID, form)
+                    let { flag, resp } = await uploadDocumentData(ID, form)
                     if (flag) {
                         $(`#terms-condition #inputArea #FileID`).val(resp.id)
-                        if (resp.module_id == OnboardData.id) {
+                        if (resp.id) {
                             let nwData = {
-                                "term_sent": true,
+                                "terms_doc_id": resp.id,
                                 "term_accepted": termAccept,
                             }
                             UpdateOnboardDetails(OnboardData.id, nwData)
@@ -181,17 +175,17 @@
                     let ID = data.find("input[name=FileID]").val()
                     let fileData = data.find("input[name=file]")[0].files[0]
                     let nameData = userName
-                    form.append("module_type", "user_onboardings")
-                    form.append("type", "offer_letter")
+                    // form.append("module_type", "user_onboardings")
+                    form.append("type", "onboard")
                     form.append("name", nameData + "_offer")
                     form.append("file", fileData)
 
-                    let { flag, resp } = await uploadFileData(ID, form)
+                    let { flag, resp } = await uploadDocumentData(ID, form)
                     if (flag) {
                         $(`#terms-condition #inputArea #FileID`).val(resp.id)
-                        if (resp.module_id == OnboardData.id) {
+                        if (resp.id) {
                             let nwData = {
-                                "offer_sent": true,
+                                "offer_doc_id": resp.id,
                             }
                             UpdateOnboardDetails(OnboardData.id, nwData)
                         } else {
@@ -206,6 +200,7 @@
 
         function UpdateOnboardDetails(ID, data) {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/user/onboard/${ID}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -224,24 +219,60 @@
                         } else {
                             showAlertMessage("error", "Employee Onboard", data.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
+                ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
         };
 
+        async function uploadDocumentData(ID, form, message) {
+            let flag = true
+            let resp = null
+            try {
+                ProgressLoading(true)
+                let response = await fetch(`${DomainURL}/my/document${ID != "0" ? "/" + ID : ""}`, {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    method: ID != "0" ? "PUT" : "POST",
+                    body: form
+                });
+                if (!response.ok) {
+                    showAlertMessage("warning", "API error", `${response.status} ${response.statusText}`)
+                    return { flag: false, resp }
+                }
+                let data = await response.json()
+                if (data.status) {
+                    resp = data.document
+                    showAlertMessage("success", "Employee profile", message || "File document upload successfully")
+                } else {
+                    showAlertMessage("error", "Employee profile", data.message)
+                    flag = false
+                }
+                ProgressLoading(false)
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+                flag = false
+            }
+
+            return { flag, resp }
+        }
+
 
         // Mark Correction  function
-        function MarkCorrection(){
+        function MarkCorrection() {
             let MyDocs = MyOnboardDetails?.correction_note.docs
             // console.log(MyDocs)
             let arr = Object.keys(MyDocs)
-            if(arr.length){
-                arr.forEach(key=>{
-                    if(key == "offer-letter" && MyOnboardDetails.offer_sent){
-                        $(`form#${key}`).addClass("border-red-400")
-                    }else if(MyDocs[key] == false && key != "offer-letter"){
-                        $(`form#${key}`).addClass("border-red-400")
+            if (arr.length) {
+                arr.forEach(key => {
+                    if (key == "offer" && MyOnboardDetails.offer_doc_id) {
+                        $(`input#${key}`).parent().find("div").addClass("border-red-400")
+                    } else if (MyDocs[key] == false && key != "offer") {
+                        $(`input#${key}`).parent().find("div").addClass("border-red-400")
                     }
                 })
             }

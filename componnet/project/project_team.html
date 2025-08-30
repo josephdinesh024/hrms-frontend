@@ -1,0 +1,250 @@
+<div class="p-8">
+    <form id="new-team-form">
+
+    </form>
+</div>
+
+<script>
+    $(function () {
+        $("form#new-team-form").html(`
+            <h2 class="text-2xl font">Create a new project team</h2>
+            <div class="space-y-6 w-64">
+                ${floatingInputTag("text", "name", "name", "Team Name")}                   
+                ${floatingInputTag("text", "descriptio", "description", "Team Descritpion", "", false)}
+            </div>
+            <div class="mt-4 min-w-1/2 w-fit" id="team-member">
+                <h5 class="font-medium">Team Members</h5>
+                <div class="-mt-6" id="new-team-member">
+                    ${floatingInputTag("search", "members", "members", "Member search", "", false)}
+                    <div class="bg-white w-full rounded-lg shadow-lg mt-1 max-h-40 divide-y-2 text-xs overflow-y-auto"
+                        id="employee_search_list">
+                            
+                    </div>
+                </div>
+                <table class="w-full border-collapse text-xs mt-2">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 text-left">
+                            <th class="p-2 border-b">Employee ID</th>
+                            <th class="p-2 border-b">Full Name</th>
+                            <th class="p-2 border-b">Email</th>
+                            <th class="p-2 border-b">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            </div>
+            <div class="my-4 fle">
+                <button type="submit"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Submit</button>
+            </div>
+        `)
+
+        $(document).on("click", "form#new-team-form table .icon-remove-row", function () {
+            $(this).closest('tr').remove();
+            let ID = $(this).data("index")
+
+            if (MembersID.slct.includes(ID))
+                MembersID.delete.push(ID)
+            else
+                MembersID.new = MembersID.new.filter(id => id != ID)
+            // MembersID.delete = MembersID.delete.new.filter(id => id != ID) 
+            $("form#new-team-form #new-team-member input#members").val("")
+            $("form#new-team-form #new-team-member #employee_search_list").empty()
+        })
+
+        $(document).on("keyup change click blur", "form#new-team-form #team-member #members", function () {
+            let txt = $(this).val().trim()
+            EmployeeSearch(txt)
+        });
+
+        let SearchedUser = []
+        let MembersID = { new: [], delete: [], slct: [] }
+        // Selecting
+        $(document).on("click", "form#new-team-form #new-team-member .selected-list", function () {
+            let index = $(this).data("index")
+            let ID = $(this).data("id")
+            let selected = SearchedUser[index]
+            // console.log(index,ID,selected)
+            if (selected?.id == ID) {
+                $("form#new-team-form table tbody").append(`
+                    <tr id="${selected?.id}">
+                            <td class="p-2">${selected?.user_name}</td>
+                            <td class="p-2">${selected?.profile.first_name} ${selected?.profile.last_name}</td>
+                            <td class="p-2">${selected?.email}</td>
+                            <td class="p-2"><i class="fa-solid fa-trash cursor-pointer icon-remove-row" data-index="${selected?.id}"></i></td>
+                        </tr>
+                `)
+                if (MembersID.slct.includes(selected?.id))
+                    MembersID.delete = MembersID.delete.filter(id => id != selected?.id)
+                else
+                    MembersID.new.push(selected?.id)
+            }
+            $(this).toggleClass("bg-blue-300 selected-list cursor-pointer")
+        })
+
+        let TeamData
+        if (SelectedID && ProjectDetail?.team?.id) {
+            TeamData = ProjectDetail.team
+            $("form#new-team-form h2").text("Edit prpject team")
+            $("form#new-team-form #name").val(TeamData.name)
+            $("form#new-team-form #description").val(TeamData.description)
+
+            // Member
+            TeamData?.member.forEach(item => {
+                // console.log(item)
+                $("form#new-team-form table tbody").append(`
+                    <tr id="${item?.user_id}">
+                            <td class="p-2">${item?.user?.user_name}</td>
+                            <td class="p-2">${item?.user?.first_name} ${item?.user?.last_name}</td>
+                            <td class="p-2">${item?.user?.email}</td>
+                            <td class="p-2"><i class="fa-solid fa-trash cursor-pointer icon-remove-row" data-index="${item?.user_id}"></i></td>
+                        </tr>
+                `)
+                MembersID.slct.push(item?.user_id)
+            })
+            // console.log(TeamData)
+        }
+
+        $(document).off("submit", "form#new-team-form")
+        $(document).on("submit", "form#new-team-form", function (e) {
+            e.preventDefault()
+            let formData = new FormData(this)
+            let data = {}
+            data["name"] = formData.get("name")
+            data["description"] = formData.get("description")
+            try {
+                ProgressLoading(true)
+                fetch(`${DomainURL}/team${TeamData?.id ? "/" + TeamData?.id : ""}`, {
+                    method: TeamData?.id ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        if (data.status) {
+                            // if (TeamData?.id == 0)
+                                ProjectTeamUpdate(data.team.id)
+                            if(MembersID.new.length)
+                                MembersID.new.forEach((mmID)=>{ ProjectTeamMemberUpdate(data.team.id,mmID,"new") })
+                            if(MembersID.delete.length)
+                                MembersID.delete.forEach((mmID)=>{ ProjectTeamMemberUpdate(data.team.id,mmID,"delete") })
+                            setTimeout(() => { window.location.reload() }, 800)
+                        } else {
+                            showAlertMessage("error", "Project Team", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+            console.log(data, MembersID)
+        });
+
+
+        async function EmployeeSearch(text) {
+            if (text == "")
+                $("form#new-team-form #team-member #employee_search_list").empty()
+            else
+                try {
+                    ProgressLoading(true)
+                    fetch(`${DomainURL}/search/name?module=user&q=${text}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        method: "GET"
+                    })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            // console.log(data)
+                            if (data.status) {
+                                $("form#new-team-form #team-member #employee_search_list").empty()
+                                if (data?.data?.length) {
+                                    data.data.forEach((item, index) => {
+                                        $("form#new-team-form #team-member #employee_search_list").append(`
+                                        <div class="p-2 space-x-5 ${MembersID.slct.includes(item.id) && !(MembersID.delete.includes(item.id)) || MembersID.new.includes(item.id) ? "bg-blue-300" : "selected-list cursor-pointer"}" 
+                                            data-id="${item.id}" data-index="${index}">
+                                            <span>ID: ${capitalizeFirstLetter(item.user_name)}</span>
+                                            <span>Name: ${capitalizeFirstLetter(item.profile.first_name)} ${capitalizeFirstLetter(item.profile.last_name)}</span>
+                                        </div>                                        
+                                    `);
+                                    });
+                                    SearchedUser = data.data
+                                }
+                                else {
+                                    SearchedUser = []
+                                    $("form#new-team-form #team-member #employee_search_list").append(`
+                                <span>No record </span>
+                                `)
+                                }
+                            }
+                            ProgressLoading(false)
+                        });
+                } catch (error) {
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
+                }
+        }
+
+    });
+
+
+    async function ProjectTeamMemberUpdate(TeamID, MemberID, action) {
+        try {
+            ProgressLoading(true)
+            fetch(`${DomainURL}/team/member${action == "delete" ? "/delete" : ""}`, {
+                method: action == "delete" ? "DELETE" : "POST",
+                headers: {
+                    Authorization: `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    "team_id": TeamID,
+                    "user_id": MemberID
+                })
+            })
+                .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                .then(data => {
+                    if (data.status == 0) {
+                        showAlertMessage("error", "Project Team", data.message)
+                    }
+                    ProgressLoading(false)
+                })
+        } catch (error) {
+            ProgressLoading(false)
+            showAlertMessage("warning", "API error", error)
+        }
+    }
+
+    async function ProjectTeamUpdate(ID) {
+        try {
+            ProgressLoading(true)
+            fetch(`${DomainURL}/project/${SelectedID}`, {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    "team_id": ID
+                })
+            })
+                .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                .then(data => {
+                    if (data.status == 0) {
+                        showAlertMessage("error", "Project Team", data.message)
+                    }
+                    ProgressLoading(false)
+                })
+        } catch (error) {
+            ProgressLoading(false)
+            showAlertMessage("warning", "API error", error)
+        }
+    }
+
+</script>

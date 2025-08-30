@@ -1,0 +1,125 @@
+<div id="templateCardList" class="w-full mb-4">
+    <table class="w-full border-collapse text-xs">
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 text-left">
+                <th class="p-4 border-b">Template Name</th>
+                <th class="p-4 border-b">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="border-b hover:bg-gray-50 transition cursor-pointer">
+                <td class="p-4">Terms and Condition</td>
+                <td class="p-4 w-full flex gap-8">
+                    <span class="text-blue-400 cursor-pointer" onclick="FileDownload('/download/terms')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Preview</span>
+                    <span onclick="openEditTemplate('terms')" class="cursor-pointer"><i class="fa-solid fa-pencil"></i> Edit</span>
+                </td>
+            </tr>
+            <tr class="border-b hover:bg-gray-50 transition cursor-pointer">
+                <td class="p-4">Offer Letter</td>
+                <td class="p-4 w-full flex gap-8">
+                    <span class="text-blue-400 cursor-pointer" onclick="FileDownload('/download/offer')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Preview</span>
+                    <span onclick="openEditTemplate('offer')" class="cursor-pointer"><i class="fa-solid fa-pencil"></i> Edit</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="p-6 hidden" id="edit-template">
+    <div id="newTemplateForm">
+
+    </div>
+    <div id="template-editor" class="text-sm my-3"></div>
+    <div class="my-4 flex gap-6">
+                <button onclick="closeEditTemplate()" class="py-2 px-8 bg-gray-100 hover:bg-gray-300 rounded-lg">Close</button>
+
+                <button type="submit" id="button-edit-save"
+                    class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                                hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Save</button>
+            </div>
+</div>
+
+<script>
+    function openEditTemplate(name){
+        $("#edit-template").show()
+        $("#templateCardList").hide()
+        $("div#newTemplateForm").html(`
+            <h3 class="text-xl font-medium">Edit Recruitment ${capitalizeFirstLetter(name)} template</h3>                
+        `)
+        $("#edit-template button#button-edit-save").attr("onclick",`SaveTemplate('${name}')`)
+        $("div#template-editor").load("./util/util.html")
+        setTimeout(()=>GetOldContent(name),100)
+    };
+    
+    function closeEditTemplate(){
+        $("#edit-template").hide()
+        $("#templateCardList").show()
+    }
+
+    function GetOldContent(name){
+        let editTag = $("#template-editor #editor")
+        try{
+            ProgressLoading(true)
+                fetch(`${DomainURL}/user/onboard/template/${name}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            editTag.html(data?.html_text)
+                        } else {
+                            showAlertMessage("error", "Recruitment Template", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+    }
+
+    function SaveTemplate(name){
+        let editTag = $("#template-editor #editor")
+        let html = editTag.text()
+        if(html == ""){
+            editTag.focus()
+            showAlertMessage("error","Recruitment Template","Template content should not empty.")
+        }else{
+            let data = editTag.html()
+            html = data.includes("div") ? data : `<div>${data}</div>`
+            try{
+            ProgressLoading(true)
+                fetch(`${DomainURL}/user/onboard/template`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
+                        "template_name":name,
+                        "html_text":html
+                    })
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        console.log(data)
+                        if (data.status) {
+                            showAlertMessage("success", "Recruitment Template", data.message)
+                            setTimeout(()=>window.location.href="?",1000)
+                        } else {
+                            showAlertMessage("error", "Recruitment Template", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }
+    }
+</script>

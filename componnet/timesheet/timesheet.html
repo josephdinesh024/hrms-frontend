@@ -9,10 +9,28 @@
 </div>
 <hr>
 <div class="flex w-full">
+    <!-- Time Entery -->
     <div id="time_sheet"
         class="method w-full translate-x-full hidden transform transition-transform duration-300 ease-in-out">
         <h1 class="font-semibold mt-3">Add time entery </h1>
         <form id="newTimeSheetForm">
+            <div class="grid md:grid-cols-2">
+                <div class="mt-5 w-64">
+                    <label class="w-full text-sm text-blue-500">Project</label>
+                    <select class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                        id="project_id" name="project_id" >
+                        <option>--</option>                        
+                    </select>
+                </div>
+                <div class="mt-5 w-64">
+                    <label class="w-full text-sm text-blue-500">Project Task</label>
+                    <select class="w-full border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
+                        id="module_id" name="module_id" >
+                        <option>--</option>                        
+                    </select>
+                </div>
+            </div>
+            
             <div class="grid md:grid-cols-2">
                 <div class="relative mt-6 floating-label">
                     <input type="time" id="start_time" name="start_time" required
@@ -64,7 +82,7 @@
             </div>
         </form>
     </div>
-
+    <!-- Leave Entery -->
     <div id="leave_request"
         class="method flex-1 w-full translate-x-full hidden transform transition-transform duration-300 ease-in-out">
         <h1 class="font-semibold mt-3">Leave Request</h1>
@@ -131,53 +149,11 @@
 
         $(document).on("click", "#main #section-content #section-entry .actionBtn", function () {
             $("#main #section-content #section-entry .actionBtn").removeClass("bg-gradient-to-r text-white")
-            $("#main #section-content #section-entry .actionBtn").addClass("hover:bg-gradient-to-r hover:text-white")
-            $(this).removeClass("hover:bg-gradient-to-r hover:text-white")
             $(this).addClass("bg-gradient-to-r text-white")
             showMethodAction($(this).data("method"))
         });
 
-        function showMethodAction(method) {
-            $("#main #section-content #section-entry .method").addClass("hidden translate-x-full")
-            $(`#main #section-content #section-entry #${method}`).removeClass("hidden")
-            setTimeout(() => $(`#main #section-content #section-entry #${method}`).removeClass("translate-x-full"), 30)
-            if (method == "time_sheet") {
-                TimeSheetCal()
-            }
-            else {
-                MyPolicys()
-                datePicker("days")
-            }
-        }
-
-        function TimeSheetCal() {
-            $(document).ready(function () {
-                const tnow = new Date()
-                let dateDetails = { val: "", min: 0, max: 0 }
-                switch (tnow.getDay()) {
-                    case 0:
-                        dateDetails.min = tnow.setDate(tnow.getDate() - 1)
-                        dateDetails.max = tnow.setDate(tnow.getDate());
-                        break;
-                    case 1:
-                        dateDetails.val = tnow.toISOString().split("T")[0];
-                        dateDetails.min = tnow.setDate(tnow.getDate());
-                        dateDetails.max = tnow.setDate(tnow.getDate() + 1);
-                        break;
-                    default:
-                        dateDetails.val = tnow.toISOString().split("T")[0];
-                        dateDetails.min = tnow.setDate(tnow.getDate() - 1);
-                        dateDetails.max = tnow.setDate(tnow.getDate() + 2);
-                        break;
-                }
-
-                $("#main #section-content #section-entry #time_sheet #entry_date").val(dateDetails.val)
-                $("#main #section-content #section-entry #time_sheet #entry_date").prop("min", new Date(dateDetails.min).toISOString().split("T")[0])
-                $("#main #section-content #section-entry #time_sheet #entry_date").prop("max", new Date(dateDetails.max).toISOString().split("T")[0])
-
-            })
-        };
-
+        
         // New Sheet
         let Start
         let End
@@ -197,6 +173,22 @@
             today = new Date($(this).val()).toISOString().split("T")[0]
             // console.log(today)
             calculateHours()
+        });
+
+        $(document).on("change", "#main #section-content #section-entry #time_sheet #project_id", function () {
+            let index = $(this).val()
+            if(index){
+                let Tasks = AssignedProjectDetail[index].tasks
+                $("#main #section-content #section-entry #time_sheet #module_id").html(`
+                <option value="">--</option>`)
+                Tasks.forEach(element =>{
+                    $("#main #section-content #section-entry #time_sheet #module_id").append(`
+                    <option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>`)
+                })
+            }else{
+                $("#main #section-content #section-entry #time_sheet #module_id").html(`
+                <option value="">--</option>`)
+            }
         });
 
         function calculateHours() {
@@ -227,19 +219,26 @@
                 let formData = new FormData(this);
                 let data = {};
                 let requestId = $(this).attr("index")
-                formData.forEach((val, key) => {
-                    if (key.includes("time"))
-                        data[key] = new Date(`${today}T${val}:00`).getTime()
-                    else if (key == "entry_date")
-                        data[key] = new Date(val).getTime()
-                    else
-                        data[key] = val;
-                });
+                // formData.forEach((val, key) => {
+                //     if (key.includes("time"))
+                //         data[key] = new Date(`${today}T${val}:00`).getTime()
+                //     else if (key == "entry_date")
+                //         data[key] = new Date(val).getTime()
+                //     else
+                //         data[key] = val;
+                // });
+                data["module_id"] = parseInt(formData.get("module_id"))
+                data["start_time"] = new Date(`${today}T${formData.get("start_time")}:00`).getTime()
+                data["end_time"] = new Date(`${today}T${formData.get("end_time")}:00`).getTime()
+                data["entry_date"] = new Date(formData.get("entry_date")).getTime()
+                data["description"] = formData.get("description")
                 data["total_hours"] = Totalhours
                 data["entry_month"] = month[d.getMonth()]
                 data["entry_year"] = `${d.getFullYear()}`
+                data["module_type"] = `project_tasks`
                 // console.log(data)
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/timesheet`, {
                         method: "POST",
                         headers: {
@@ -258,77 +257,26 @@
                                 showAlertMessage("error", "Timesheet", data.message)
                             }
                             $(this)[0].reset()
+                            ProgressLoading(false)
                         });
 
                 } catch (error) {
+                    ProgressLoading(false)
                     showAlertMessage("warning", "API error", error)
                 }
 
             }
         });
-
+    // Project Option  
+        let AssignedProjectDetail
+        
         // Leave Request
-
-        async function MyPolicys(userID) {
-            try {
-                fetch(`${DomainURL}/timesheet/mypolicy`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-                    method: "GET"
-                })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        // console.log(data)
-                        if (data.status) {
-                            $("#main #section-content #section-entry #leave_request #policy_id").empty()
-                            $("#main #section-content #section-entry #leave_request #policy_id").prepend(`
-                        <option selected value="0">Others</option>
-                    `)
-                            data.policy.forEach(element => {
-                                if (element.active)
-                                    $("#main #section-content #section-entry #leave_request #policy_id").prepend(`
-                        <option value="${element.id}">${capitalizeFirstLetter(element.name)}</option>
-                    `)
-                            })
-                        }
-                    })
-            } catch (error) {
-                showAlertMessage("warning", "API error", error)
-            }
-        }
-
-
         $(document).on("change", "#main #section-content #section-entry #leave_request #leave_unit", function () {
             let unit = $(this).val()
             document.getElementById('calendar-inline').innerHTML = ''
             datePicker(unit)
             $("#main #section-content #section-entry #leave_request #leave-dates input").val("")
         })
-
-        function datePicker(unit) {
-            const picker = new Litepicker({
-                element: document.getElementById('calendar-inline'),
-                inlineMode: true,
-                singleMode: false,
-                numberOfMonths: 1,
-                minDays: 1,
-                maxDays: unit == "days" ? null : 1,
-                numberOfColumns: 1,
-                autoApply: true,
-                setup: (picker) => {
-                    picker.on('selected', (start, end) => {
-                        const days = end.diff(start, 'days') + 1;
-                        var d = unit == "days" ? days + "/" + unit : 0.5 + `/day(${unit})`
-                        $("#main #section-content #section-entry #leave_request #total_days").val(d)
-                        $("#main #section-content #section-entry #leave_request #start_date").val(start.dateInstance.toLocaleDateString())
-                        $("#main #section-content #section-entry #leave_request #end_date").val(end.dateInstance.toLocaleDateString())
-
-                    });
-                }
-            });
-        }
 
         $(document).on("submit", "#main #section-content #section-entry #leave_request form", function (e) {
             e.preventDefault();
@@ -339,21 +287,22 @@
             data["policy_id"] = parseInt(formData.find("#policy_id").val()) || null
             data["description"] = formData.find("#description").val()
             data["leave_unit"] = formData.find("#leave_unit").val()
-            
+
             let ttD = parseFloat(formData.find("#total_days").val())
-            let [sd,sm,sy] = formData.find("#start_date").val().split("/")
-            let [ed,em,ey] = formData.find("#end_date").val().split("/")
-            if(!(ttD)){
+            let [sd, sm, sy] = formData.find("#start_date").val().split("/")
+            let [ed, em, ey] = formData.find("#end_date").val().split("/")
+            if (!(ttD)) {
                 flag = false
-                showAlertMessage("warning","Leave Request","Select leave days")
-            }else{
+                showAlertMessage("warning", "Leave Request", "Select leave days")
+            } else {
                 data["total_days"] = ttD
-                data["start_date"] = new Date(sy,sm-1,sd).getTime()
-                data["end_date"] = new Date(ey,em-1,ed).getTime()
+                data["start_date"] = new Date(sy, sm - 1, sd).getTime()
+                data["end_date"] = new Date(ey, em - 1, ed).getTime()
             }
             // console.log(data,ttD)
-            if(flag){
+            if (flag) {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/timesheet/leave`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -362,17 +311,19 @@
                         method: "POST",
                         body: JSON.stringify(data)
                     })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        if (data.status) {
-                            showAlertMessage("success","Leave Request","Leave request made successfully")
-                            setTimeout(() => initAttendFun(), 200)
-                        } else {
-                            showAlertMessage("error","Leave Request",data.message)
-                        }
-                    });
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            if (data.status) {
+                                showAlertMessage("success", "Leave Request", "Leave request made successfully")
+                                setTimeout(() => initAttendFun(), 200)
+                            } else {
+                                showAlertMessage("error", "Leave Request", data.message)
+                            }
+                            ProgressLoading(false)
+                        });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
                 $(this)[0].reset()
             }

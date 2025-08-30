@@ -52,13 +52,14 @@
 
         function initFun() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/access?page_size=${paseSize}&page=${page}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     }
-                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -80,9 +81,11 @@
                             var total = (page - 1) * paseSize
                             $("#countMessage").text(`${total + empAccess.length} of ${TotalCount}`)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
         }
         initFun();
@@ -230,13 +233,23 @@
             let result = []
             data.forEach(item => {
                 if (item.module_type == type)
+                    if(type === "team" && item.module.team_type == "user"){
+                        console.log(item)
                     result.push(`<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
                                 <span>${capitalizeFirstLetter(`${item.module.name || "--"}`)}</span>
                                 <button id="${item.module_id}" data_target="${type}" class="font-medium removeAssignedData">
                                     <span class="bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
                                 </button>
                             </div>`);
-
+                        }
+                    else if(type != "team"){
+                    result.push(`<div class="w-fit my-2 py-2 px-4 bg-gray-100 rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(`${item.module.name || "--"}`)}</span>
+                                <button id="${item.module_id}" data_target="${type}" class="font-medium removeAssignedData">
+                                    <span class="bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>`);
+                        }
                 selectedAccessData[type].push(item.module_id)
             });
             // console.log(selectedAccessData[type])
@@ -276,6 +289,7 @@
 
         async function MemberSearch(params, type) {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/search/name?module=${type}&q=${params}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -283,7 +297,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -308,9 +322,11 @@
                                 <span>No record </span>
                                 `)
                         }
+                        ProgressLoading(false)
                     });
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
         }
 
@@ -369,6 +385,7 @@
                 deleteAccessData[key].forEach(Id => {
                     act = selectedEmp.access.filter(items => (items.module_type == key && items.module_id == Id))[0]
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/access/${act.id}`, {
                             method: "DELETE",
                             headers: {
@@ -376,16 +393,18 @@
                                 Authorization: `Bearer ${access_token}`
                             },
                         })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
-                                    showAlertMessage("success","Employee access","Deleted a employee access record")
+                                    showAlertMessage("success", "Employee access", "Deleted a employee access record")
                                 } else {
-                                    showAlertMessage("warning","Employee access",data.message)
+                                    showAlertMessage("warning", "Employee access", data.message)
                                 }
+                                ProgressLoading(false)
                             })
                     } catch (error) {
-                        showAlertMessage("warning","API error", error)
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
                     }
                 })
             })
@@ -393,6 +412,7 @@
             Object.keys(newAccessData).forEach(key => {
                 newAccessData[key].forEach(Id => {
                     try {
+                        ProgressLoading(true)
                         fetch(`${DomainURL}/access`, {
                             method: "POST",
                             headers: {
@@ -405,16 +425,18 @@
                                 "module_id": Id
                             })
                         })
-                            .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                            .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                             .then(data => {
                                 if (data.status) {
-                                    showAlertMessage("success","Employee access","Created an new employee access record")
+                                    showAlertMessage("success", "Employee access", "Created an new employee access record")
                                 } else {
-                                    showAlertMessage("warning","Employee access",data.message)
+                                    showAlertMessage("warning", "Employee access", data.message)
                                 }
+                                ProgressLoading(false)
                             })
                     } catch (error) {
-                        showAlertMessage("warning","API error", error)
+                        ProgressLoading(false)
+                        showAlertMessage("warning", "API error", error)
                     }
                 })
             })
@@ -422,6 +444,7 @@
             // New Reportee
             Reportee.new.forEach(id => {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/reportees`, {
                         method: "POST",
                         headers: {
@@ -434,15 +457,17 @@
                             "module_type": "users"
                         })
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
-                                showAlertMessage("success","Employee access","Employee reportee added")
+                                showAlertMessage("success", "Employee access", "Employee reportee added")
                             } else
-                                showAlertMessage("warning","Employee access",data.message)
+                                showAlertMessage("warning", "Employee access", data.message)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
 
             })
@@ -452,6 +477,7 @@
                 Reportee.selected.forEach(item => {
                     if (Reportee.delete.includes(item.user_id)) {
                         try {
+                            ProgressLoading(true)
                             fetch(`${DomainURL}/reportees/${item.id}`, {
                                 method: "DELETE",
                                 headers: {
@@ -459,15 +485,17 @@
                                     Authorization: `Bearer ${access_token}`
                                 },
                             })
-                                .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                                .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                                 .then(data => {
                                     if (data.status) {
-                                        showAlertMessage("success","Employee access","Employee reportee deleted")
+                                        showAlertMessage("success", "Employee access", "Employee reportee deleted")
                                     } else
-                                        showAlertMessage("warning","Employee access",data.message)
+                                        showAlertMessage("warning", "Employee access", data.message)
+                                    ProgressLoading(false)
                                 })
                         } catch (error) {
-                            showAlertMessage("warning","API error", error)
+                            ProgressLoading(false)
+                            showAlertMessage("warning", "API error", error)
                         }
 
                     }

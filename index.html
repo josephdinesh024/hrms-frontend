@@ -11,7 +11,7 @@
     <!-- Custom Tailwind Theme -->
     <script src="./static/js/theme.js"></script>
     <script src="./static/js/profileAction.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
@@ -29,7 +29,6 @@
 <body class="flex bg-background w-screen">
 
     <div id="sidebar"></div>
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div class="flex-1 w-full">
         <!-- Header -->
@@ -48,13 +47,13 @@
     <script>
 
         $("#contents").load("./componnet/employee/employee.html")
-        $(document).ready(function(){
-            let access = JSON.parse($.cookie("my_access"))
-            console.log(access)
-            if(!("user" in access)){
-                window.location.href = "timesheet.html"
-            }
-        })
+        // $(document).ready(function(){
+        //     let access = JSON.parse($.cookie("my_access"))
+        //     // console.log(access)
+        //     if(!("user" in access)){
+        //         window.location.href = "timesheet.html"
+        //     }
+        // })
         
     </script>
 

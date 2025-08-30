@@ -22,17 +22,16 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
-    <script src="./static/js/global.js"></script>
+    <script src="./static/js/confic.js"></script>
 </head>
 
 <body class="flex bg-background w-screen">
-    <div id="AlertMessageContainer" class="fixed top-4 right-4 space-y-4 z-50 max-w-sm"></div>
 
     <div id="sidebar-empty">
         <aside
             class="min-w-16 bg-gradient-to-b from-primary to-blue-800 h-screen flex flex-col items-center py-4 relative transition-all ease-in-out">
             <div class="px-4 pt-2 min-w-16 w-full">
-                <img src="./static/image/alcor_logo.png" class="bg-cover w-12"/>
+                <img onclick="HomePage()" src="./static/image/alcor_logo.png" class="bg-cover w-12 cursor-pointer"/>
             </div>
         </aside>
     </div>
@@ -61,10 +60,10 @@
     </div>
     <div id="ConfirmForm"
         class="fixed inset-0 z-50 w-full h-full bg-black bg-opacity-50 grid content-center justify-center hidden">
-        <div class="w-max h-40 bg-white text-sm p-6 rounded-lg shadow-md">
-            <h3 class="font-bold">Confirm to submit</h3>
-            <h4 class="font-medium text-textPrimary">You can make change after submittion</h4>
-            <div class="flex justify-end gap-4 mt-6">
+        <div class="w-max h-40 bg-white text-base p-6 rounded-lg shadow-md">
+            <h3 class="font-bold text-lg">Confirm to submit</h3>
+            <h4 class="font-medium text-textPrimary my-2">Ensure details are correct before submission.</h4>
+            <div class="flex justify-end gap-4 mt-6 text-xs">
                 <button onclick="SubmitConfirmForm()"
                     class="py-3 px-6 font-medium border border-blue-300 rounded-lg">Yes</button>
                 <button onclick="CancelConfirmForm()"
@@ -73,12 +72,13 @@
         </div>
     </div>
 
-    
+
     <script>
-        $("#targetContent").load("./componnet/onboard/profile.html")
+        $(document).ready(function(){
+            $("#targetContent").load("./componnet/onboard/profile.html")
         $(document).on("click", "button.tab-link", function () {
             let selected = $(this).attr("data-target")
-            $("#targetContent").html(``)
+            $("#targetContent").empty()
             $("#targetContent").load("./componnet/onboard/" + selected + ".html")
 
             $("button.tab-link").each(function () {
@@ -96,7 +96,7 @@
         function ButtonDisable(init) {
             const MyStatus = $.cookie("my_status")
             $(document).ready(function () {
-                if (!(["0","6"].includes(MyStatus))) {
+                if (!(["0", "6"].includes(MyStatus))) {
                     $("#targetContent button").each(function () {
                         $(this).prop("disabled", true)
                         $(this).addClass("cursor-not-allowed")
@@ -104,26 +104,27 @@
                 };
             });
 
-            if (init){
-                showAlertMessage("info","Profile Status","Your current profile status is "+ statusNames[MyStatus])
+            if (init) {
+                showAlertMessage("info", "Profile Status", "Your current profile status is " + statusNames[MyStatus])
             }
         }
 
         setTimeout(() => { ButtonDisable(true) }, 500);
+        })
 
         // Education
         let divID = 2
         function addEducation() {
             const container = document.getElementById('education-container');
             const div = document.createElement('div');
-            div.className = "border rounded-lg p-4 w-full relative";
+            div.className = "border rounded-lg p-4 w-full relative education-details";
             div.innerHTML = `
                 <div class="absolute right-4">
                     <i class="fa-solid fa-trash cursor-pointer deleted-add-section" data-section="education"></i>
                 </div>
                 <input type="hidden" name="EducationID" id="${divID}_EducationID" value="0" />
-                ${floatingInputTag("text",divID+"_degree","degree","Degree")}
-                ${floatingInputTag("text",divID+"_institution","institution","Institution")}                
+                ${floatingInputTag("text", divID + "_degree", "degree", "Degree")}
+                ${floatingInputTag("text", divID + "_institution", "institution", "Institution")}                
                 <div class="flex items-center gap-2 mb-3">
                     <div class="grid grid-cols-2 gap-6">
                         <select class="mt-5 border-b-2 border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500" required
@@ -131,15 +132,18 @@
                             <option selected value="mark">Mark</option>
                             <option value="grade">Grade</option>
                         </select>
-                        ${floatingInputTag("text",divID+"_percentage","percentage","Percentage")}
+                        ${floatingInputTag("text", divID + "_percentage", "percentage", "Percentage")}
                     </div>
                     <div class="grid grid-cols-2 gap-6 mt-4">
-                        ${SelectionTag(divID+"_start_year","start_year","Start year","--",true,years)}
-                        ${SelectionTag(divID+"_end_year","end_year","End year",currentYear,true,years)}
+                        ${SelectionTag(divID + "_start_year", "start_year", "Start year", "--", true, years)}
+                        ${SelectionTag(divID + "_end_year", "end_year", "End year", currentYear, true, years)}
                         <span id="${divID}_yearErrorMessage" class="text-xs text-red-400"></span>
                     </div>
                 </div>
-                ${floatingFileInputTag(`${divID}_file`, 'file', 'Upload Marksheet')}
+                <div class="md:w-72 flex gap-6">
+                ${floatingFileInputTag(`${divID}_file`, 'file', 'Upload Marksheet',"",true,[".pdf"])}
+                ${MoreInfo("left","Upload Mark sheet or TC.")}
+                </div>
                 
       `;
             container.appendChild(div);
@@ -151,7 +155,7 @@
 
         let years = []
         let currentYear = new Date().getFullYear();
-        for(let i = currentYear; i >=1990; i--){
+        for (let i = currentYear; i >= 1990; i--) {
             years.push(`${i}`)
         }
 
@@ -160,14 +164,14 @@
         function addCertificate() {
             const container = document.getElementById('certificate-container');
             const div = document.createElement('div');
-            div.className = 'border rounded-lg p-3 relative';
+            div.className = 'border rounded-lg p-3 relative certificate-details';
             div.innerHTML = `
                 <div class="absolute right-4">
                     <i class="fa-solid fa-trash cursor-pointer deleted-add-section" data-section="certificate"></i>
                 </div>
                 <input type="hidden" name="FileID" id="${fileDivID}_FileID" value="0">
-                ${floatingInputTag("text",fileDivID+"_name","name","Certificate Name")}
-                ${floatingFileInputTag(fileDivID+'_file', 'file', 'Upload Certificate')}
+                ${floatingInputTag("text", fileDivID + "_name", "name", "Certificate Name")}
+                ${floatingFileInputTag(fileDivID + '_file', 'file', 'Upload Certificate',"",true,[".pdf"])}
       `;
             container.appendChild(div);
             $(document).ready(function () {
@@ -180,12 +184,12 @@
         //     $(".input").each(function () { $(this).addClass("border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400") })
         // });
 
-        $(document).on("click","i.deleted-add-section",function(){
+        $(document).on("click", "i.deleted-add-section", function () {
             let parent = $(this).parent().parent();
             let section = $(this).data("section")
-            if(section === "education"){
+            if (section === "education") {
                 divID -= 1
-            }else if(section === "certificate"){
+            } else if (section === "certificate") {
                 fileDivID -= 1
             }
             parent.remove()
@@ -201,30 +205,36 @@
         let MyOnboardDetails
         function initFun() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/onboard`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
                     },
-                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
-                            console.log(data.onboard)
+                            // console.log(data.onboard)
                             MyOnboardDetails = data.onboard
+                            if(MyOnboardDetails.correction_marked && MyOnboardDetails.user.status == 6)
+                                showAlertMessage("warning","Employee Recruitment","Your details have been flagged for correction. Please update the necessary information to proceed with the verification process.",true,6000,"end")
                         } else {
-                            showAlertMessage("error","Onboard","Error to fetch details. " +data?.message)
+                            showAlertMessage("error", "Onboard", "Error to fetch details. " + data?.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
         }
-        $(document).ready(function(){
-            setTimeout(()=>initFun(),500)
+        $(document).ready(function () {
+            setTimeout(() => initFun(), 500)
         })
         function SubmitConfirmForm() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/my/status`, {
                     method: "PUT",
                     headers: {
@@ -234,22 +244,29 @@
                     body: JSON.stringify({
                         "status": 5
                     })
-                }).then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                }).then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
-                            showAlertMessage("success","Form submition","your profile form details submited successfully, wait for approvels")
-                            setTimeout(() =>window.location.reload(),1000)
-                            
+                            showAlertMessage("success", "Form submition", "your profile form details submited successfully, wait for approvels")
+                            setTimeout(() => window.location.reload(), 1000)
+
                         } else {
-                            showAlertMessage("error","Form submition","Error to submit form " +data?.message)
+                            showAlertMessage("error", "Form submition", "Error to submit form " + data?.message)
                         }
+                        ProgressLoading(false)
                     })
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
             $("#ConfirmForm").addClass("hidden")
         }
-    
+
+        function toggleNote() {
+            const box = document.getElementById("noteBox");
+            box.classList.toggle("hidden");
+        }
+
     </script>
 
 </body>

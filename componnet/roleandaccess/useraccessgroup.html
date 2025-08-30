@@ -1,20 +1,16 @@
-<div id="filterAction" class="flex justify-between mb-2 px-4 items-center">
-    <div class="flex items-center gap-3">
-        <h3 class="font-medium" id="totalCount">Access Group</h3>
-        <div class="flex gap-2 items-center text-md px-2">
-            <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
-            <span id="countMessage">5 of 10</span>
-            <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
-        </div>
-    </div>
-    <div>
-        <button id="AddNewForm" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
-        hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500">Add
-            Group</button>
+<div id="filterAction" class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
+    <button id="AddNewForm" onclick="OpenNewEmployeeForm()"
+        class="text-sm font-medium hover:font-bold hover:text-blue-600">
+        <i class="fa-solid fa-plus"></i> Add Usergroup
+    </button>
+    <div class="flex gap-2 items-center text-md px-2">
+        <button id="previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+        <span id="countMessage">5 of 10</span>
+        <button id="next"><i class="fa-solid fa-circle-chevron-right"></i></button>
     </div>
 </div>
 <hr>
-<div id="accessGroupCardList">
+<div id="accessGroupCardList" class="w-full">
     <table class="w-full border-collapse text-xs">
         <thead>
             <tr class="bg-gray-100 text-gray-700 text-left">
@@ -40,8 +36,9 @@
         let page = 1
         let paseSize = PAGESIZE
         let TotalCount = 0
-        function initFun() {
+        function initFetch() {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/team/usergroup?page=${page}&page_size=${paseSize}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -49,14 +46,14 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             $("#accessGroupCardList tbody").empty()
                             groupDatas = data.team
                             groupDatas.forEach((item, index) => {
                                 $("#accessGroupCardList tbody").append(`
-                            <tr id="${index}" class="border-b hover:bg-slate-50 transition SelectedList">
+                            <tr id="${index}" class="border-b hover:bg-slate-50 transition cursor-pointer SelectedList">
                                 <td class="p-4">${capitalizeFirstLetter(item.name)}</td>
                                 <td class="p-4 max-w-48 whitespace-normal break-words">${teamMember(item.member)}</td>
                                 <td class="p-4 max-w-48 whitespace-normal break-words">${teamMemberList.length}</td>
@@ -69,12 +66,15 @@
                             var total = (page - 1) * paseSize
                             $("#countMessage").text(`${total + groupDatas.length} of ${TotalCount}`)
                         }
+                        ProgressLoading(false)
                     });
 
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/permission`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -82,17 +82,20 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             permissionDatas = data.permissions
                         }
+                        ProgressLoading(false)
                     });
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
 
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/role`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -100,23 +103,25 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         if (data.status) {
                             roleDatas = data.roles
                         }
+                        ProgressLoading(false)
                     });
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
 
 
         }
-        initFun()
+        initFetch()
         $(document).on("click", "button#previous", function () {
             if (page != 1) {
                 page -= 1
-                init()
+                initFetch()
             }
         })
 
@@ -124,7 +129,7 @@
             let check = TotalCount - (paseSize * page)
             if (check > 0) {
                 page += 1
-                init()
+                initFetch()
             }
         })
         //Extract members
@@ -177,42 +182,44 @@
 
                     <div class="flex items-center max-w-full mt-3 px-6 text-base text-textPrimary font-bold w-full py-2">
                         <h4 class="w-2/6" >Permissions : </h4>
-                        <div id="permission" class="grid grid-flow-col max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
+                        <div id="permission" class="grid grid-flow-col min-w-28 max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
                             ${"permission" in selectedData ? selectedData.permission.map(item => {
-                PermissionDetails.selectedData.push(item.id)
-                return `
-                                        <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
-                                            <h5>${capitalizeFirstLetter(item.name)}</h5>
-                                            <button id="${item.id}" class="font-medium removePermission">
-                                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                                            </button>
-                                        </div>
+                                PermissionDetails.selectedData.push(item.id)
+                                return `
+                                    <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
+                                        <h5>${capitalizeFirstLetter(item.name)}</h5>
+                                        <button id="${item.id}" class="font-medium removePermission">
+                                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                        </button>
+                                    </div>
                                     `
-            }).join("") : ""}                            
+                            }).join("") : ""}                            
                         </div>
                     </div>
 
                     <div class="flex items-center max-w-full mt-3 px-6 text-base text-textPrimary font-bold w-full py-2">
                         <h4 class="w-2/6" >Members : </h4>
-                        <div id="member" class="grid grid-flow-col max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
+                        <div id="member" class="grid grid-flow-col min-w-28 max-w-4/6 overflow-x-auto gap-2 border-b-2 p-1">
                             ${"member" in selectedData ? selectedData.member.map(item => {
-                MemberDetails.selectedData.push(item.user_id)
-                return `
-                                        <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
-                                            <h5>${capitalizeFirstLetter(item.user.user_name)}</h5>
-                                            <button id="${item.user_id}" class="font-medium removeMember">
-                                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                                            </button>
-                                        </div>
-                                    `
-            }).join("") : ""}                            
+                                MemberDetails.selectedData.push(item.user_id)
+                                return `
+                                    <div class="flex items-center gap-2 w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg">
+                                        <h5>${capitalizeFirstLetter(item.user.user_name)}</h5>
+                                        <button id="${item.user_id}" class="font-medium removeMember">
+                                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                        </button>
+                                    </div>
+                                `
+                        }   ).join("") : ""}                            
                         </div>
                     </div>
                     <div class="flex max-w-full mt-3 px-6 text-base text-textPrimary font-bold py-2">
                         <h4 class="w-1/4" >Members : </h4>
-                        <div id="newMemberList" class="max-w-3/4 gap-2 text-sm">
-                            <input type="search" id="newMemberSearch" class="border-b-2 p-1 focus:outline-none focus:border-blue-400" placeholder="search with id or email" />
-                            <div id="newMemberSearchResult" class="max-h-32 shadow-lg overflow-auto">
+                        <div id="newMemberList" class="gap-2 text-xs -mt-8 font-normal w-[60%]">
+                            ${floatingInputTag("search", "newMemberSearch", "members", "Member search (ID or Email)", "", false)}
+                            <div class="bg-white w-full rounded-lg shadow-lg mt-1 max-h-40 divide-y-2 text-xs overflow-y-auto"
+                                id="newMemberSearchResult">
+                                    
                             </div>
                         </div>
                     </div>
@@ -220,33 +227,37 @@
                     <hr>
                     <div id="groupPermissionDerivation" class="mt-3 px-6 text-sm text-textPrimary font-bold w-full py-2">
                         <h3 class="mb-4">Permission Derivation</h3>
-                        <label class="text-black font-medium">Other permission : 
-                            <select id="otherPermission" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                        <label class="text-black font-medium">From Permission : 
+                            <select id="otherPermission" class="p-1 border-b-2 min-w-20 focus:outline-none focus:border-blue-400">
+                                <option value="">--</option>
                                 ${permissionDatas.map(item => {
-                return `
+                                    return `
                                         <option value="${item.id}">${item.name}</option>
                                         `
-            }).join("")}
+                                }).join("")}
                             </select>
                         </label>
                         <br>
-                        <label class="text-black font-medium">Other role : 
-                            <select id="otherRole" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                        <label class="text-black font-medium">From Roles : 
+                            <select id="otherRole" class="p-1 border-b-2 min-w-20 focus:outline-none focus:border-blue-400">
+                                <option value="">--</option>
                                 ${roleDatas.map(item => {
-                return `
+                                    return `
                                         <option value="${item.id}">${item.name}</option>
                                         `
-            }).join("")}
+                                }).join("")}
                             </select>
                         </label>
                         <br>
-                        <label class="text-black font-medium">Other group : 
-                            <select id="otherGroup" class="p-1 border-b-2 focus:outline-none focus:border-blue-400">
+                        <label class="text-black font-medium">From Group : 
+                            <select id="otherGroup" class="p-1 border-b-2 min-w-20 focus:outline-none focus:border-blue-400">
+                                <option value="">--</option>
                                 ${groupDatas.map(item => {
-                return `
+                                    if(selectedData.id != item.id)
+                                    return `
                                         <option value="${item.id}">${item.name}</option>
                                         `
-            }).join("")}
+                                }).join("")}
                             </select>
                         </label>
                     </div>
@@ -263,8 +274,9 @@
             `);
 
             $("#fixedEditPanel #functionBtn").html(`
-                <button id="saveGroupEdit" class="bg-green-500 text-white px-4 py-2 rounded mr-2">Save</button>
-                <button onclick="closeFixedEditPanel()" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+                <button id="saveGroupEdit" class="py-2 px-8 shadow-sm shadow-third rounded-lg font-semibold text-third text-xs 
+                            hover:bg-gradient-to-r from-primary from-5% to-blue-800 hover:text-white transition-all duration-500 mr-2">Save</button>
+                <button onclick="closeFixedEditPanel()" class="bg-gray-50 hover:bg-gray-300 font-semibold text-xs py-2 px-8 shadow-sm shadow-third rounded-lg mr-2">Cancel</button>
             `)
 
             if ("permission" in selectedData)
@@ -302,6 +314,7 @@
         }
         async function MemberSearch(params) {
             try {
+                ProgressLoading(true)
                 fetch(`${DomainURL}/search/name?module=user&q=${params}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -309,7 +322,7 @@
                     },
                     method: "GET"
                 })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                     .then(data => {
                         // console.log(data)
                         if (data.status) {
@@ -317,7 +330,11 @@
                             if (data.data.length)
                                 data.data.forEach(item => {
                                     $("#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult").append(`
-                                        <h4 class="p-1 bg-white hover:bg-slate-50 text-sm cursor-pointer border-b newMemberSelected" id="${item.id}">${item.user_name}</h4>
+                                        <div class="p-2 space-x-5 ${MemberDetails.selectedData.includes(item.id) && !(MemberDetails.deleteData.includes(item.id)) || MemberDetails.newData.includes(item.id) ? "bg-blue-300 text-white" : "newMemberSelected cursor-pointer"}" 
+                                            data-id="${item.id}" data-name="${item.user_name}">
+                                            <span>ID: ${capitalizeFirstLetter(item.user_name)}</span>
+                                            <span>Name: ${capitalizeFirstLetter(item.profile.first_name)} ${capitalizeFirstLetter(item.profile.last_name)}</span>
+                                        </div>
                                     `);
                                 });
                             else
@@ -325,11 +342,14 @@
                                 <span>No record </span>
                                 `)
                         }
+                        ProgressLoading(false)
                     });
             } catch (error) {
-                showAlertMessage("warning","API error", error)
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
             }
         }
+        
         $(document).on("keyup", "#fixedEditPanel #editContent #permissionName #permission_name", function () {
             let text = $(this).val()
             $("#fixedEditPanel #editContent #permissionName #pname").text(capitalizeFirstLetter(text))
@@ -352,8 +372,9 @@
         })
 
         $(document).on("click", "#fixedEditPanel #editContent #permissionName #newMemberList #newMemberSearchResult .newMemberSelected", function () {
-            let memberID = parseInt($(this).attr("id"));
-            let memberName = $(this).text().trim().toLocaleLowerCase()
+            let memberID = parseInt($(this).data("id"));
+            let memberName = $(this).data("name")
+            $(this).toggleClass("bg-blue-300 text-white newMemberSelected cursor-pointer")
             // console.log("member",memberID,memberName)
             if (!MemberDetails.selectedData.includes(memberID) && !MemberDetails.newData.includes(memberID)) {
                 MemberDetails.newData.push(memberID)
@@ -416,139 +437,144 @@
 
         // Group Selected
         $(document).on("change", "#fixedEditPanel #groupPermissionDerivation select#otherGroup", function () {
-            let RoleID = parseInt($(this).val())
-            let roleItem = groupDatas.find(val => val.id == RoleID);
-            roleItem.permission.forEach(item => {
-                if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
-                    PermissionDetails.newData.push(item.id)
-                    $("#fixedEditPanel #editContent #permission").append(`
-                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                            <span>${capitalizeFirstLetter(item.name)}</span>
-                            <button id="${item.id}" class="font-medium removePermission">
-                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                            </button>
-                        </div>
-                    `)
-                    ModulePermission(item.permission)
-                }
-                if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
-                    $("#fixedEditPanel #editContent #permission").append(`
-                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                            <span>${capitalizeFirstLetter(item.name)}</span>
-                            <button id="${item.id}" class="font-medium removePermission">
-                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                            </button>
-                        </div>
-                    `)
-                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
-                    ModulePermission(item.permission)
-                }
-            });
-
+            let GroupID = parseInt($(this).val())
+            if(GroupID){
+                let roleItem = groupDatas.find(val => val.id == GroupID);
+                roleItem.permission.forEach(item => {
+                    if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
+                        PermissionDetails.newData.push(item.id)
+                        $("#fixedEditPanel #editContent #permission").append(`
+                            <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(item.name)}</span>
+                                <button id="${item.id}" class="font-medium removePermission">
+                                <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>
+                        `)
+                        ModulePermission(item.permission)
+                    }
+                    if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
+                        $("#fixedEditPanel #editContent #permission").append(`
+                            <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(item.name)}</span>
+                                <button id="${item.id}" class="font-medium removePermission">
+                                <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>
+                        `)
+                        PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
+                        ModulePermission(item.permission)
+                    }
+                });
+            }
         });
 
 
         // Role Selected
         $(document).on("change", "#fixedEditPanel #groupPermissionDerivation select#otherRole", function () {
             let RoleID = parseInt($(this).val())
-            let roleItem = roleDatas.find(val => val.id == RoleID);
-            roleItem.permission.forEach(item => {
-                if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
-                    PermissionDetails.newData.push(item.id)
-                    $("#fixedEditPanel #editContent #permission").append(`
-                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                            <span>${capitalizeFirstLetter(item.name)}</span>
-                            <button id="${item.id}" class="font-medium removePermission">
-                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                            </button>
-                        </div>
-                    `)
-                    ModulePermission(item.permission)
-                }
-                if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
-                    $("#fixedEditPanel #editContent #permission").append(`
-                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                            <span>${capitalizeFirstLetter(item.name)}</span>
-                            <button id="${item.id}" class="font-medium removePermission">
-                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                            </button>
-                        </div>
-                    `)
-                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
-                    ModulePermission(item.permission)
-                }
-            });
-
+            if(RoleID){
+                let roleItem = roleDatas.find(val => val.id == RoleID);
+                roleItem.permission.forEach(item => {
+                    if (!PermissionDetails.selectedData.includes(item.id) && !PermissionDetails.newData.includes(item.id)) {
+                        PermissionDetails.newData.push(item.id)
+                        $("#fixedEditPanel #editContent #permission").append(`
+                            <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(item.name)}</span>
+                                <button id="${item.id}" class="font-medium removePermission">
+                                <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>
+                        `)
+                        ModulePermission(item.permission)
+                    }
+                    if (PermissionDetails.selectedData.includes(item.id) && PermissionDetails.deleteData.includes(item.id)) {
+                        $("#fixedEditPanel #editContent #permission").append(`
+                            <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                                <span>${capitalizeFirstLetter(item.name)}</span>
+                                <button id="${item.id}" class="font-medium removePermission">
+                                <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                                </button>
+                            </div>
+                        `)
+                        PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != item.id)
+                        ModulePermission(item.permission)
+                    }
+                });
+            }
         });
 
         // PermissionSelected
         $(document).on("change", "#fixedEditPanel #groupPermissionDerivation select#otherPermission", function () {
             let ID = parseInt($(this).val())
-            let item = permissionDatas.find(val => val.id == ID);
-            if (!PermissionDetails.selectedData.includes(ID) && !PermissionDetails.newData.includes(ID)) {
-                PermissionDetails.newData.push(ID)
-                $("#fixedEditPanel #editContent #permission").append(`
-                    <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                        <span>${capitalizeFirstLetter(item.name)}</span>
-                        <button id="${item.id}" class="font-medium removePermission">
-                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                        </button>
-                    </div>
-                `)
-                ModulePermission(item.permission)
+            if(ID){
+                let item = permissionDatas.find(val => val.id == ID);
+                if (!PermissionDetails.selectedData.includes(ID) && !PermissionDetails.newData.includes(ID)) {
+                    PermissionDetails.newData.push(ID)
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    ModulePermission(item.permission)
+                }
+                if (PermissionDetails.selectedData.includes(ID) && PermissionDetails.deleteData.includes(ID)) {
+                    $("#fixedEditPanel #editContent #permission").append(`
+                        <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
+                            <span>${capitalizeFirstLetter(item.name)}</span>
+                            <button id="${item.id}" class="font-medium removePermission">
+                            <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
+                            </button>
+                        </div>
+                    `)
+                    PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != ID)
+                    ModulePermission(item.permission)
+                }
             }
-            if (PermissionDetails.selectedData.includes(ID) && PermissionDetails.deleteData.includes(ID)) {
-                $("#fixedEditPanel #editContent #permission").append(`
-                    <div class="w-fit py-1 px-4 bg-gray-50 text-xs rounded-lg space-x-2">
-                        <span>${capitalizeFirstLetter(item.name)}</span>
-                        <button id="${item.id}" class="font-medium removePermission">
-                        <span class="text-xs bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent"> X </span>
-                        </button>
-                    </div>
-                `)
-                PermissionDetails.deleteData = PermissionDetails.deleteData.filter(val => val != ID)
-                ModulePermission(item.permission)
-            }
-
         });
 
 
         $(document).on("click", "#fixedEditPanel #functionBtn button#saveGroupEdit", function () {
             let name = $("#fixedEditPanel #editContent #permissionName #permission_name").val().toLocaleLowerCase();
             // let level = $("#editPanel #level").val() || 10
-            console.log(name)
+            // console.log(name)
             if (name == "" || (PermissionDetails.selectedData.length == PermissionDetails.deleteData.length && PermissionDetails.newData.length == 0)) {
                 $("#fixedEditPanel #editContent #permissionName #errorMessage").text("name or module empty")
             }
             else {
                 try {
-                    
-                    fetch(`${DomainURL}/team${selectedData.id ? "/" + selectedData.id : ""}`, {
-                    method: selectedData.id ? "PUT" : "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access_token}`
-                    },
-                    body: JSON.stringify({
-                        name,
-                        "team_type": "user"
-                    })
-                })
-                    .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
-                    .then(data => {
-                        if (data.status) {
-                            teamDataUpdates(data.team.id)
-                            showAlertMessage("success","Group access",selectedData.id ? "Group access updated" : "Created successfully")
-                        } else {
-                            closeFixedEditPanel()
-                            showAlertMessage("error","Group access",data.message)
-                        }
+                    ProgressLoading(true)
 
+                    fetch(`${DomainURL}/team${selectedData.id ? "/" + selectedData.id : ""}`, {
+                        method: selectedData.id ? "PUT" : "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`
+                        },
+                        body: JSON.stringify({
+                            name,
+                            "team_type": "user"
+                        })
                     })
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                        .then(data => {
+                            if (data.status) {
+                                teamDataUpdates(data.team.id)
+                                showAlertMessage("success", "Group access", selectedData.id ? "Group access updated" : "Created successfully")
+                            } else {
+                                closeFixedEditPanel()
+                                showAlertMessage("error", "Group access", data.message)
+                            }
+                            ProgressLoading(false)
+                        })
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
-                
+
             }
         });
 
@@ -557,6 +583,7 @@
             //New Permission
             PermissionDetails.newData.forEach(id => {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/team/permission`, {
                         method: "POST",
                         headers: {
@@ -568,20 +595,23 @@
                             "permission_id": id
                         })
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
-                                showAlertMessage("success","Group access","Team permission updated")
+                                showAlertMessage("success", "Group access", "Team permission updated")
                             } else
-                                showAlertMessage("error","Group access",data.message)
+                                showAlertMessage("error", "Group access", data.message)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
             })
             // New Member
             MemberDetails.newData.forEach(id => {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/team/member`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -593,21 +623,24 @@
                             "user_id": id
                         })
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
-                                showAlertMessage("success","Group access","Team member updated")
+                                showAlertMessage("success", "Group access", "Team member updated")
                             } else
-                               showAlertMessage("error","Group access",data.message)
+                                showAlertMessage("error", "Group access", data.message)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
             })
 
             // Delete Member
             MemberDetails.deleteData.forEach(id => {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/team/member/delete`, {
                         method: "DELETE",
                         headers: {
@@ -619,21 +652,24 @@
                             "user_id": id
                         })
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
-                                showAlertMessage("success","Group access","Team member deleted")
+                                showAlertMessage("success", "Group access", "Team member deleted")
                             } else
-                                showAlertMessage("error","Group access",data.message)
+                                showAlertMessage("error", "Group access", data.message)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
             })
 
             // Delete Permission
             PermissionDetails.deleteData.forEach(id => {
                 try {
+                    ProgressLoading(true)
                     fetch(`${DomainURL}/team/permission/${ID}?permission-id=${id}`, {
                         method: "DELETE",
                         headers: {
@@ -641,19 +677,21 @@
                             Authorization: `Bearer ${access_token}`
                         },
                     })
-                        .then(res => res.ok ? res.json() : showAlertMessage("warning","API error", `${res.status} ${res.statusText}`))
+                        .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
                         .then(data => {
                             if (data.status) {
-                                showAlertMessage("success","Group access","Team permission deleted")
+                                showAlertMessage("success", "Group access", "Team permission deleted")
                             } else
-                                showAlertMessage("error","Group access",data.message)
+                                showAlertMessage("error", "Group access", data.message)
+                            ProgressLoading(false)
                         });
                 } catch (error) {
-                    showAlertMessage("warning","API error", error)
+                    ProgressLoading(false)
+                    showAlertMessage("warning", "API error", error)
                 }
             })
 
-            setTimeout(() => { initFun() }, 1000)
+            setTimeout(() => { initFetch() }, 1000)
             closeFixedEditPanel()
         }
 

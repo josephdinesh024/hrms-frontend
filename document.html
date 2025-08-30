@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Document</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Custom Tailwind Theme -->
+    <script src="./static/js/theme.js"></script>
+    <script src="./static/js/profileAction.js"></script>
+    <script src="./static/js/confic.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    <!-- FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/5d4c9f5ac8.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+</head>
+
+<body class="flex bg-background w-screen">
+    <div id="sidebar"></div>
+
+    <div class="flex-1 w-full">
+        <!-- Header -->
+        <div id="header"></div>
+
+        <main id="main" class="p-6 overflow-y-scroll h-[90vh] space-y-2">
+            <h2
+                class="text-2xl font-semibold m-4 w-fit bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Document
+            </h2>
+
+            <div id="document-list" class="h-[90%]">
+                <div class="w-full min-h-full bg-white shadow-md rounded-lg overflow-hidden flex">
+                    <!-- Sidebar -->
+                    <div class="max-w-1/4 min-w-fit min-h-full bg-gray-50 p-6 border-r flex flex-col justify-between">
+                        <ul class="space-y-4 text-sm text-gray-700">
+                            <li class="menu-item cursor-pointer font-bold text-blue-600" data-section="document">Document
+                            </li>
+                            <li class="menu-item cursor-pointer" data-section="add-new"><i class="fa-solid fa-plus"></i>
+                                Add Document</li>
+                        </ul>
+                        <div class="flex gap-2 items-center bg-tranparent p-3 text-base pageBtn" id="button-document">
+                            <button id="document-previous"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                            <span id="document-countMessage">0 of 0</span>
+                            <button id="document-next"><i class="fa-solid fa-circle-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div id="section-content" class="w-full min-h-full">
+                        <div id="section-document" class="section">
+
+                        </div>
+                        <div id="section-add-new" class="section">
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="edit-area" class="fixed inset-0 flex-1 justify-items-center mt-24 hidden h-[90%]">
+        <div class="bg-white w-[80%] max-h-full shadow-md rounded-lg overflow-y-auto relative">
+            <i class="absolute top-4 right-4 text-2xl fa-solid fa-xmark icon-remove cursor-pointer" onclick="closeEdit()"></i>
+            <div id="load-area"></div>
+        </div>
+    </div>
+    <script>
+        let SelectedID
+        $(document).ready(function () {
+            SelectedID = urlParams.get("document_id")
+            $("#main .menu-item").click(function () {
+                $("#main .menu-item").removeClass("font-bold text-blue-600")
+                $(this).addClass("font-bold text-blue-600")
+
+                let section = $(this).attr("data-section")
+                $("#main .section").hide()
+                $(`#main #section-${section}`).show()
+                $("#main .pageBtn").hide()
+                $(`#main #button-${section}`).show()
+                SelectedID =""
+                DocumentInit()
+            });
+
+            $(`#main #section-content #section-document`).load("./componnet/document/document_list.html")
+            $(`#main #section-content #section-add-new`).load("./componnet/document/new_document.html")
+            $("#main .section").hide()
+            $(`#main #section-document`).show()
+            $("#main .pageBtn").hide()
+            $(`#main #button-document`).show()
+
+            if(SelectedID){
+                $(`#main #section-document`).hide()
+                $("#main .menu-item").removeClass("font-bold text-blue-600")
+                $(`#main #section-add-new`).show()
+                $(`#main #button-document`).hide()
+                // DocumentInit()
+            }
+          
+        });
+
+        function openEdit(){
+                $("#edit-area").show()
+                    $("#load-area").load("./componnet/document/new_document.html")
+
+                $(`#main #section-content #section-add-new`).empty()
+            }
+            function closeEdit(){
+                $("#edit-area").hide()
+                $("#load-area").empty()
+            }
+
+        function DocumentInit(){
+        if(SelectedID){
+            try{
+            ProgressLoading(true)
+                fetch(`${DomainURL}/document/${SelectedID}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${access_token}`
+                    },
+                })
+                    .then(res => res.ok ? res.json() : showAlertMessage("warning", "API error", `${res.status} ${res.statusText}`))
+                    .then(data => {
+                        // console.log(data)
+                        if (data.status) {
+                            Doc = data.document
+                            Object.keys(Doc).forEach(key =>{
+                                if(!["role_id","user_id"].includes(key))
+                                    $(`form#newDocumentForm [name=${key}]`).val(Doc[key])
+                            })
+                            if(!Doc["role_id"]){
+                                $(`form#newDocumentForm [name=user_id]`).val(Doc["user_id"])
+                                $(`form#newDocumentForm [name=user_id]`).closest("div").show()
+                                $(`form#newDocumentForm [name=role_id]`).closest("div").hide()
+                                $(`form#newDocumentForm [name=assign]`).val("employee")
+                            }else{
+                                $(`form#newDocumentForm [name=role_id]`).val(Doc["role_id"])
+                            }
+                            if(Doc["file_upload"])
+                                $(`form#newDocumentForm [name=file_upload]`).prop("checked",true
+                            )
+                            $("form#newDocumentForm [name=status]").closest("div").show()
+                            $("form#newDocumentForm [name=status]").val(Doc["status"])
+                            $(".floating-label input").each(function () {
+                                toggleLabel($(this));
+                            });
+                        } else {
+                            showAlertMessage("error", "Document document", data.message)
+                        }
+                        ProgressLoading(false)
+                    })
+            } catch (error) {
+                ProgressLoading(false)
+                showAlertMessage("warning", "API error", error)
+            }
+        }else{
+            $("form#newDocumentForm [name=status]").closest("div").hide()
+            $("#newDocumentForm h3").text("Document Open Form")
+            $("#newDocumentForm")[0].reset()
+        }
+    }
+
+    </script>
+
+
+</body>
+
+</html>

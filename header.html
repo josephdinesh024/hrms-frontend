@@ -9,15 +9,20 @@
     </div> -->
 
     <div class="flex items-center space-x-4" >
-        <!-- <button class="text-sm text-gray-600">Active <i class="fas fa-chevron-down"></i></button>
-        <button class="bg-pink-500 text-white px-4 py-2 rounded-lg">New Project</button> -->
-        <div class="flex items-center cursor-pointer" id="profilelogo">
+        <div class="flex items-center cursor-pointer relative parentList" id="notification" data-list="request">
+            <i class="fa-regular fa-bell text-xl w-8"></i>
+            <div class="bg-secondary min-w-56 max-w-80 w-fit max-h-72 h-fit absolute top-16 right-4 shadow-lg rounded-lg flex flex-col text-sm lists" id="request-list">
+                
+            </div>
+            <div class="absolute top-0 right-2 bg-red-600 text-white text-xs rounded-full px-1" id="notification-count">0</div>
+        </div>
+
+        <div class="flex items-center cursor-pointer parentList" id="profilelogo" data-list="profile">
             <i class="fa-solid fa-circle-user text-3xl w-10 cursor-pointer" ></i>
-            <div id="popuprofile" class="hidden bg-secondary min-h-20 h-fit absolute top-20 right-4 shadow-lg rounded-lg pt-4 flex flex-col gap-4 text-sm">
-                <div>
-                    <a href="profile.html" class="w-full bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text hover:text-transparent px-4 pb-4 hover:shadow-md">My profile</a>
-                </div>
-                <button id="logoutbutton" class="w-full bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text hover:text-transparent px-4 pb-4 hover:shadow-md">
+            <div id="profile-list" class="bg-secondary w-32 min-h-20 h-fit absolute top-20 right-4 shadow-lg rounded-lg pt-4 flex flex-col text-sm lists">
+                
+                <a href="profile.html" class="w-full bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text hover:text-transparent p-4 text-center hover:shadow-md">My profile</a>
+                <button id="logoutbutton" class="w-full bg-gradient-to-r from-primary via-purple-600 to-blue-800 bg-clip-text hover:text-transparent p-4 hover:shadow-md">
                     Logout
                 </button>
             </div>
@@ -25,3 +30,22 @@
     </div>
 </header>
 
+<script>
+    $(function(){
+        $(document).ready(function(){
+            $(document).on("click","#header .parentList",function(){
+                let lists = $(this).data("list")
+                let visble = $(`#header #${lists}-list`).is(":visible")
+                $("#header .lists").hide()
+                visble ? $(`#header #${lists}-list`).hide() : $(`#header #${lists}-list`).show()
+
+                if(lists == "request"){
+                    $(this).find("i").removeClass("fa-solid")
+                    $(this).find("i").addClass("fa-regular")
+                }
+            });
+
+            $("#header .lists").hide()
+        })
+    })
+</script>

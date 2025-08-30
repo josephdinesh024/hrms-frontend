@@ -1,11 +1,11 @@
 <aside
-    class="min-w-16 w-56 bg-gradient-to-b from-primary to-blue-800 h-screen py-4 relative transition-all ease-in-out">
+    class="min-w-16 w-48 bg-gradient-to-b from-primary to-blue-800 h-screen py-4 relative transition-all ease-in-out">
 
     <div class="space-y-6 w-full text-white text-md">
         <div class="pl-5 pt-2 min-w-16 w-full mb-20">
-            <img src="./static/image/alcor_logo.png" class="bg-cover w-12"/>
+            <img onclick="HomePage()" src="./static/image/alcor_logo.png" class="bg-cover w-12 cursor-pointer"/>
         </div>
-        
+        <!-- User -->
         <div class="section" id="section-user">
             <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="user">
                 <div>
@@ -23,7 +23,7 @@
                             class="fas fa-universal-access w-6"></i> Access</a></li>
             </ul>
         </div>
-
+<!-- Time sheet -->
         <div class="section" id="section-timesheet">
             <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="timesheet">
                 <div>
@@ -33,17 +33,49 @@
                 <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
             </div>
             <ul id="submenu-timesheet" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
-                <li class="" data-key="timesheet"><a href="timesheet.html" class="employee"><i
-                            class="fa-solid fa-calendar-check w-6"></i> Timesheet</a></li>
+                <li class="" data-key=""><a href="timesheet.html" class="employee"><i
+                            class="fa-solid fa-chart-column w-6"></i> Timesheet</a></li>
                 <li class="sub-item" data-key="timesheet"><a href="emp-timesheet.html" class="employee"><i
                             class="fa-solid fa-calendar-check w-6"></i> Employee</a></li>
                 <li class="sub-item" data-key="request"><a href="leave-request.html" class="employee"><i
-                            class="fa-solid fa-calendar-check w-6"></i> Leave Request</a></li>
+                            class="fa-regular fa-message w-6"></i> Leave Request</a></li>
                 <li class="sub-item" data-key="timeoffpolicy"><a href="time-policy.html" class="employee"><i
                             class="fa-solid fa-calendar-week w-6"></i> Policy</a></li>
             </ul>
         </div>
-
+<!-- Project -->
+        <div class="section" id="section-project">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="project">
+                <div>
+                    <i class="fa-solid fa-briefcase w-6"></i>
+                    <span class="section-name pl-2">Project</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
+            </div>
+            <ul id="submenu-project" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="" data-key=""><a href="project.html" class="project"><i
+                            class="fa-solid fa-diagram-project w-6"></i> Project</a></li>
+                <li class="" data-key=""><a href="project-task.html" class="project"><i
+                            class="fa-solid fa-network-wired w-6"></i> Project Task</a></li>
+            </ul>
+        </div>
+<!-- Documnet -->
+        <div class="section" id="section-document">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="document">
+                <div>
+                    <i class="fa-regular fa-folder-open w-6"></i>
+                    <span class="section-name pl-2">Document</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
+            </div>
+            <ul id="submenu-document" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="" data-key=""><a href="document.html" class="project"><i
+                            class="fa-regular fa-file w-6"></i> Document</a></li>
+                <li class="" data-key=""><a href="document-template.html" class="project"><i
+                            class="fa-solid fa-align-center w-6"></i> Template</a></li>
+            </ul>
+        </div>
+        <!-- Appraisal -->
         <div class="section" id="section-appraisal">
             <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="appraisal">
                 <div>
@@ -53,28 +85,62 @@
                 <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
             </div>
             <ul id="submenu-appraisal" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
-                <li class="" data-key="appraisal"><a href="appraisal.html" class="employee"><i
+                <li class="" data-key=""><a href="myappraisal.html" class="appraisal"><i
+                            class="fa-solid fa-bars-progress w-6"></i> My Appraisal</a></li>
+                <li class="sub-item" data-key="request"><a href="appraisal.html" class="appraisal"><i
                             class="fa-solid fa-chart-simple w-6"></i> Appraisal</a></li>
-                <li class="sub-item" data-key="appraisalform"><a href="#" class="employee"><i
+                <li class="sub-item" data-key="appraisalform"><a href="appraisal-form.html" class="appraisalform"><i
                             class="fa-regular fa-file w-6"></i> Appraisal Form</a></li>
             </ul>
         </div>
+        <!-- Travel -->
+        <div class="section" id="section-travel">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="travel">
+                <div>
+                    <i class="fa-regular fa-map w-6"></i>
+                    <span class="section-name pl-2">Travel</span>
+                </div>
+                <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
+            </div>
+            <ul id="submenu-travel" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
+                <li class="" data-key=""><a href="travel.html" >
+                    <i class="fa-regular fa-compass w-6"></i> Travel</a></li>
+                <li class="" data-key=""><a href="expense.html" >
+                    <i class="fa-solid fa-receipt w-6"></i> Expense</a></li>
+                <li class="sub-item" data-key="request"><a href="travel-request.html" ><i
+                            class="fa-regular fa-message w-6"></i> Travel Request</a></li>
+            </ul>
+        </div>
 
+        <!-- Chat -->
+        <div class="section" id="section-chat">
+            <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="chat">
+                <div>
+                    <a href="message.html">
+                    <i class="fa-regular fa-message w-6"></i>
+                    <span class="section-name pl-2">Chat</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Roles -->
         <div class="section" id="section-roleaccess">
             <div class="flex justify-between items-center px-3 cursor-pointer font-semibold" data-toggle="roleaccess">
                 <div>
                     <i class="fas fa-cog w-6"></i>
-                    <span class="section-name pl-2">Role Access</span>
+                    <span class="section-name pl-2">Settings</span>
                 </div>
                 <i id="sectionIcon" class="fa-solid fa-chevron-left section-name"></i>
             </div>
             <ul id="submenu-roleaccess" class="submenu pl-8 py-3 mt-2 mr-0.5 space-y-2 text-gray-600 bg-white">
-                <li class="sub-item" data-key="appraisal"><a href="role-access.html" class="employee"><i
+                <li class="sub-item" data-key="role"><a href="role-access.html" class="setting"><i
                             class="fas fa-user w-6"></i> Role</a></li>
-                <li class="sub-item" data-key="appraisalform"><a href="#" class="employee"><i
+                <li class="sub-item" data-key="team"><a href="group-access.html" class="setting"><i
                             class="fa-solid fa-universal-access w-6"></i> Term Access</a></li>
-                <li class="sub-item" data-key="appraisalform"><a href="#" class="employee"><i
+                <li class="sub-item" data-key="permission"><a href="permission-access.html" class="setting"><i
                             class="fa-solid fa-sliders w-6"></i> Permission</a></li>
+                <li class="sub-item" data-key="setting"><a href="settings.html" class="setting"><i
+                            class="fa-solid fa-wrench w-6"></i> Advance</a></li>
             </ul>
         </div>
 
@@ -88,34 +154,54 @@
     // Sidebar open/close
     $('#toggleSidebar').click(function () {
         $(this).toggleClass('rotate-180');
+        if($("aside").hasClass("w-20")){
+            $.cookie("side-toggled",true)
+        }else{
+            $.cookie("side-toggled",false)
+        }
         $(".submenu").hide()
         $(".fa-chevron-left ").removeClass("-rotate-90")
         $(".section-name").toggleClass("hidden")
-        $("aside").toggleClass("w-56 w-20")
-        $(".section").find("div").toggleClass("justify-between justify-center")
+        $("aside").toggleClass("w-48 w-20")
+        $("aside .section").find("div").toggleClass("justify-between justify-center")
     });
 
     function toggles() {
         $("#toggleSidebar").toggleClass('rotate-180');
         $(".section-name").toggleClass("hidden")
-        $("aside").toggleClass("w-56 w-20")
-        $(".section").find("div").toggleClass("justify-between justify-center")
+        $("aside").toggleClass("w-48 w-20")
+        $("aside .section").find("div").toggleClass("justify-between justify-center")
     }
+    let SideBar = $.cookie("side-toggled") || ""
+    if(SideBar == "false" || SideBar == "")
+        toggles()
 
-    toggles()
+    let URL = window.location.href.split("/").pop().split("?")[0]
 
     $(document).ready(function () {
         // Section toggle
         $('[data-toggle]').on('click', function () {
+            let timein = 0
             if ($("aside").hasClass("w-20")) {
                 toggles()
+                timein = 250
             }
             const key = $(this).data('toggle');
-            $("#submenu-" + key).slideToggle();
-            $(this).find("i#sectionIcon").toggleClass("-rotate-90")
+            setTimeout(()=>{
+                $("#submenu-" + key).slideToggle();
+                $(this).find("i#sectionIcon").toggleClass("-rotate-90")
+            },timein);
         });
 
         const permissions = JSON.parse($.cookie("my_access"))
+        // Verify URL access
+        let a_parentLI = $(`a[href="${URL}"]`).parent()
+        let dataKey = a_parentLI.data("key")
+        if(dataKey && dataKey != "" && (!permissions[dataKey] || !permissions[dataKey].includes('read'))){
+            showAlertMessage("warning", "Employee Access", "Permission denied to access /"+URL)
+            setTimeout(()=>{window.location.href = "timesheet.html"},200)
+        }
+        // Remove nav menu
         $('.sub-item').each(function () {
             const key = $(this).data('key');
             if (!permissions[key] || !permissions[key].includes('read')) {
@@ -130,6 +216,14 @@
         let role = $("#section-roleaccess #submenu-user li:visible")
         if(users.length == 0)
             $("#section-roleaccess").hide()
+
+        // let appraisal = $("#section-appraisal li:visible")
+        // if(users.length == 0)
+        //     $("#section-appraisal").hide()
+
+        let document = $("#section-document #submenu-user li:visible")
+        if(users.length == 0)
+            $("#section-document").hide()
         
         $(".submenu").hide()
         
