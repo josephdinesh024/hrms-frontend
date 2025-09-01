@@ -45,7 +45,7 @@
                             Project = data.project
                             Project.forEach((element, index) => {
                                 $("#projectCardList tbody").append(`
-                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList">
+                            <tr id="${index}" data-id="${element.id}" class="border-b hover:bg-gray-50 transition selectedList cursor-pointer">
                                 <td class="p-4">${capitalizeFirstLetter(element.name)}</td>
                                 <td class="p-4">${element.progress}</td>
                                 <td class="p-4">${element.worked_hour}</td>

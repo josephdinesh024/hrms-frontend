@@ -162,12 +162,13 @@
             ws = new WebSocket(`${URLs}/ws/${access_token}`);
             ws.onmessage = (e) => {
                 let msg = JSON.parse(e.data);
+                let chList = $(`.chat-item[data-id=${msg.sender_id}]`);
+                chList.find("p").text(msg?.content.substring(0, 20));
                 if (msg.sender_id == currentChat && currentUser != currentChat) {
                     SectionMessage(msg.content,msg.created_at,"left","gray",true)
                     MakeReadedMessages(currentChat)
                 } else if(currentUser != currentChat) {
                     // $(`.chat-item[data-id=${msg.sender_id}]`).append(`<span class="ml-2 text-xs bg-red-500 text-white px-1 rounded">new</span>`);
-                    let chList = $(`.chat-item[data-id=${msg.sender_id}]`);
                     let count = parseInt(chList.find("span.absolute").text()) || 0
                     chList.find("span.absolute").text(count + 1)
                     chList.find("span.absolute").removeClass("hidden")
@@ -203,6 +204,8 @@
                 content: msg
             }));
             SectionMessage(msg,new Date(),"right","green",true)
+            let chList = $(`.chat-item[data-id=${currentChat}]`);
+            chList.find("p").text(msg?.substring(0, 20))
             $("#msg-input").val("");
         });
 

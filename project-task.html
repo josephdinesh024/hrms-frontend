@@ -165,13 +165,13 @@
         </div>
     </div>
     <script>
-        let SelectedID
+        let SelectedTaskID
         let access
         let List = $("#request-list")
         let Content = $("#content")
         let ProjectTaskDetail
         $(document).ready(function () {
-            SelectedID = urlParams.get("task_id")
+            SelectedTaskID = urlParams.get("task_id")
             access = JSON.parse($.cookie("my_access"))
             $("#main .menu-item").click(function () {
                 $("#main .menu-item").removeClass("font-bold text-blue-600")
@@ -198,10 +198,10 @@
             $("#main .pageBtn").hide()
             $(`#main #button-project-task`).show()
 
-            if (SelectedID) {
+            if (SelectedTaskID) {
                 Content.show()
                 List.hide()
-                ProjectTaskDetails(SelectedID)
+                ProjectTaskDetails(SelectedTaskID)
                 $("#main .section").hide()
                 $(`#main #section-project-task-details`).show()
             } else {
@@ -402,10 +402,10 @@
                 let status = Object.keys(statusNames).find(k => statusNames[k] === statusVal)
                 let state = Object.keys(projectStatusNames).find(k => projectStatusNames[k] === stateVal)
                 // console.log(status,state)
-                if (SelectedID) {
+                if (SelectedTaskID) {
                     try {
                         ProgressLoading(true)
-                        fetch(`${DomainURL}/project/task/${SelectedID}`, {
+                        fetch(`${DomainURL}/project/task/${SelectedTaskID}`, {
                             method: "PUT",
                             headers: {
                                 "Content-Type": "application/json",

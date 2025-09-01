@@ -114,7 +114,7 @@
                                                 class="text-textPrimary"></span></h4>
                                     </div>
                                     <hr>
-                                    <h4 class="font-medium text-md">Other Request</h4>
+                                    <h4 class="font-medium text-md">Month leave Requests</h4>
                                     <div id="already-taken-leave"
                                         class="h-[38vh] overflow-y-auto my-2 space-y-2 z-30 mb-4">
 
@@ -343,18 +343,6 @@
                         // console.log(data)
                         if (data.status) {
                             $("#main #content #section-content #section-leave_request #already-taken-leave").empty()
-                            data.leave_request.forEach(element => {
-                                $("#main #content #section-content #section-leave_request #already-taken-leave").append(`
-                                    <div class="grid grid-cols-2 gap-2 w-2/3 bg-white rounded-lg border p-3 text-xs">
-                                        <h3>${leaveDates(element.start_date, element.end_date)}</h3>
-                                        <h3>${element.total_days} ${element.leave_unit}</h3>
-                                        <h3>${capitalizeFirstLetter(element.policy_id ? element.policy.name : "others")}</h3>
-                                        <h3>
-                                            ${StatusColourCode(element.status)}
-                                        </h3>
-                                    </div>
-                                `)
-                            })
                             data.leave_request.forEach(element => {
                                 $("#main #content #section-content #section-leave_request #already-taken-leave").append(`
                                     <div class="grid grid-cols-2 gap-2 w-2/3 bg-white rounded-lg border p-3 text-xs">

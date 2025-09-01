@@ -82,7 +82,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <h5 class="font-semibold">Tasks</h5>
+                            <div class="font-semibold relative">Tasks
+                                <div class="absolute top-0 left-28" onclick="openEdit('tasks')"><i class="fa-regular fa-plus cursor-pointer"></i></div>
+                            </div>
                             <div class="max-h-64 overflow-y-auto flex flex-col gap-2" id="project_tasks">
 
                             </div>
@@ -151,6 +153,7 @@
         let List = $("#request-list")
         let Content = $("#content")
         let ProjectDetail
+        let SelectedTaskID,ProjectTaskDetail = null
         $(document).ready(function () {
             SelectedID = urlParams.get("project_id")
             access = JSON.parse($.cookie("my_access"))
@@ -173,6 +176,7 @@
                 $(`#main #section-content #section-add-new`).hide()
                 $("#main li[data-section=add-new]").hide()
                 $("#main #content div[onclick] i.fa-pen-to-square").hide()
+                $("#main #content div[onclick] i.fa-plus").hide()
             }
             $("#main .section").hide()
             $(`#main #section-project`).show()
@@ -200,6 +204,14 @@
                     $("#load-area").load("./componnet/project/new_project.html")
                 else if (tag == "team")
                     $("#load-area").load("./componnet/project/project_team.html")
+                else if (tag == "tasks"){
+                    
+                    $("#load-area").load("./componnet/project/new_project_task.html")
+                    setTimeout(()=>{
+                        $("#load-area form#new-task-form select#project_id").val(SelectedID)
+                        $("#load-area form#new-task-form select#project_id").prop("disabled",true)
+                    },1000)
+                }
 
                 $(`#main #section-content #section-add-new`).empty()
             }
@@ -358,7 +370,7 @@
                         <h5 class="my-2">Worked Hours: <span class="text-textPrimary"
                                 id="worked_hour">${element.worked_hour}</span></h5>
                         <div class="absolute right-4 top-4">
-                            ${ProjectStatusColourCode(element.status)}
+                            ${ProjectStatusColourCode(element.state)}
                             <a href="project-task.html?task_id=${element.id}" class="px-2"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full dark:bg-gray-700">

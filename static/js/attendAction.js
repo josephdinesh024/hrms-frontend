@@ -168,13 +168,13 @@ function renderCalendar(calType = "") {
 let URLs = window.location.href.split("/").pop()
 function showModal(date, Data) {
     const dataList = Data;
-    $("#modalDate").text(`Date: ${date}`);
     let html = "";
     let entrys = { time: false, leave: false }
     let now = new Date()
     let dnow = now.getDate()
     let etDate = new Date(date)
     let detDate = etDate.getDate()
+    let status = false
     if(dnow == detDate || dnow -1 == detDate || dnow +1 == detDate && etDate.getDay())
         entrys.time = true
     if(detDate > dnow && etDate.getDay())
@@ -217,8 +217,10 @@ function showModal(date, Data) {
             <h3 class="font-bold text-gray-700 mt-4 mb-2">Travel Request</h3>
             <div class="text-sm space-y-1 text-gray-700 px-2">
                 <div><strong>Leave Dates:</strong> ${leaveDates(entry.module.start_date, entry.module.end_date)} </div>
+                <div><strong>Travel Type:</strong>
+                     ${entry.module?.travel_type} </div>
                 <div><strong>Travel Place:</strong>
-                     ${entry.module.from_place + " - " + entry?.module?.to_place} </div>
+                     ${entry.module?.country} </div>
                 <div><strong>Travel By:</strong> ${capitalizeFirstLetter(entry.module.transport || "--")} </div>
                 <div><strong>Purpose:</strong> ${capitalizeFirstLetter(entry.module.purpose || "--")} </div>
                 <div><strong>Assigned Reportee:</strong> ${capitalizeFirstLetter(entry.assigned.user_name)} </div>
@@ -229,6 +231,7 @@ function showModal(date, Data) {
         `
         entrys.leave = false
         entrys.time = false
+        status = entry?.status
     } else if (entry.table_name == "leave_requests") {
             html += `<div>
             <h3 class="font-bold text-gray-700 mt-4 mb-2">Leave Request</h3>
@@ -246,6 +249,7 @@ function showModal(date, Data) {
         `
         entrys.leave = false
         entrys.time = false
+        status = entry?.status
     }
     });
 
@@ -272,7 +276,11 @@ function showModal(date, Data) {
             </a>`
         }
     }
-
+    $("#modalStates").empty();
+    $("#modalStates").append(`<span class="text-sm text-textPrimary">Date: ${date}</span>`);
+    if(status){
+        $("#modalStates").append(StatusColourCode(status));
+    }
     $("#modalDescrition").html(html);
 
     const modal = document.getElementById('attendanceModal');

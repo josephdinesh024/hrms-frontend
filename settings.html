@@ -397,7 +397,7 @@
             let form = new FormData(this)
             let data = {}
             form.forEach((v,k)=>{
-                data[k] = k == "max_work_hours" || "page_size" ? parseInt(v) : v
+                data[k] = ["max_work_hours", "page_size"].includes(k) ? parseInt(v) : v
             });
             // console.log(data)
             SaveSettingForm(data)

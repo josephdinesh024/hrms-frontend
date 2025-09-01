@@ -116,7 +116,7 @@
                         <!-- Content -->
                         <div id="content" class="w-3/4 p-8">
                             <div id="section-profile" class="section">
-                                <label>
+                                <label class="cursor-pointer">
                                     <input type="checkbox" class="check-parent-field hidden" data-field="profile">
                                     <i class="fa-regular fa-circle-check text-md"></i>
                                     <span class="text-lg font-semibold mb-6"> Personal Details</span>
@@ -217,7 +217,7 @@
 
                             <!-- EDUCATION  details -->
                             <div id="section-education" class="section">
-                                <label>
+                                <label class="cursor-pointer">
                                     <input type="checkbox" class="check-parent-field hidden" data-parent="education"
                                         data-field="education">
                                     <i class="fa-regular fa-circle-check text-md"></i>
@@ -277,7 +277,7 @@
 
                             <!-- CERTIFICATE  details -->
                             <div id="section-certificate" class="section">
-                                <label>
+                                <label class="cursor-pointer">
                                     <input type="checkbox" class="check-parent-field hidden" data-parent="certificate"
                                         data-field="certificate">
                                     <i class="fa-regular fa-circle-check text-md"></i>
@@ -305,7 +305,7 @@
 
                             <!-- BANK details -->
                             <div id="section-bank" class="section">
-                                <label>
+                                <label class="cursor-pointer">
                                     <input type="checkbox" class="check-parent-field hidden" data-parent="bank"
                                         data-field="bank">
                                     <i class="fa-regular fa-circle-check text-md"></i>
@@ -366,7 +366,7 @@
 
                             <!-- DOCUMENTS  -->
                             <div id="section-docs" class="section">
-                                <label>
+                                <label class="cursor-pointer">
                                     <input type="checkbox" class="check-parent-field hidden" data-parent="docs"
                                         data-field="docs">
                                     <i class="fa-regular fa-circle-check text-md"></i>
@@ -404,8 +404,7 @@
                             Make Correction
                         </button>
                         <button id="nextStepVerification"
-                            class="mt-4 px-4 py-2 min-w-52 bg-blue-600 text-white rounded hidden">Approve and Onboard
-                            employee</button>
+                            class="mt-4 px-4 py-2 min-w-52 bg-blue-600 text-white rounded hidden">Approve</button>
                         </div>
                     </div>
                 </div>
@@ -621,24 +620,26 @@
                                     }
                                     else if (onboardDetial.status) {
                                         $("#actionContainer #final").show()
-                                        $("#actionContainer #final").append(`
-                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-md text-green-600"></i> Personal
-                                                Detail</h3>
-                                            <div class="border-l border-green-600 min-h-8 ml-2"></div>
-                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Terms &
-                                                Condition</h3>
-                                            <div class="border-l border-green-600 min-h-8 ml-2 p-4">
-                                                ${onboardDetial.terms_doc_id 
-                                                ? `<span onclick="FilePreviewURL('${onboardDetial.terms.file_path}')" class="text-sm text-blue-400 cursor-pointer">Terms doc ${onboardDetial.terms.file_path.split("/").pop()}</span>`
-                                                :""}
+                                        $("#actionContainer #final").prepend(`
+                                            <div>
+                                                <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-md text-green-600"></i> Personal
+                                                    Detail</h3>
+                                                <div class="border-l border-green-600 min-h-8 ml-2"></div>
+                                                <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Terms &
+                                                    Condition</h3>
+                                                <div class="border-l border-green-600 min-h-8 ml-2 p-4">
+                                                    ${onboardDetial.terms_doc_id 
+                                                    ? `<span onclick="FilePreviewURL('${onboardDetial.terms.file_path}')" class="text-sm text-blue-400 cursor-pointer">Terms doc ${onboardDetial.terms.file_path.split("/").pop()}</span>`
+                                                    :""}
+                                                </div>
+                                                <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Offer Litter</h3>
+                                                <div class="border-l border-green-600 min-h-8 ml-2 p-4">
+                                                    ${onboardDetial.offer_doc_id
+                                                    ?`<span onclick="FilePreviewURL('${onboardDetial.offer.file_path}')" class="text-sm text-blue-400 cursor-pointer">Offer doc ${onboardDetial.offer.file_path.split("/").pop()}</span>`
+                                                    :""}
+                                                </div>
+                                                <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Completed</h3>
                                             </div>
-                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Offer Litter</h3>
-                                            <div class="border-l border-green-600 min-h-8 ml-2 p-4">
-                                                ${onboardDetial.offer_doc_id
-                                                ?`<span onclick="FilePreviewURL('${onboardDetial.offer.file_path}')" class="text-sm text-blue-400 cursor-pointer">Offer doc ${onboardDetial.offer.file_path.split("/").pop()}</span>`
-                                                :""}
-                                            </div>
-                                            <h3 class="text-lg font-semibold"><i class="fa-regular fa-circle-check text-green-600"></i> Completed</h3>
                                         `)
                                     }
 
@@ -716,7 +717,7 @@
                     $(`#actionContainer #section-${section}`).show()
                     $(`#actionContainer button#next-menu`).data("section",section)
                     if(section == "docs"){
-                        if(!onboardDetial.correction_marked && onboardDetial.user.status == 5)
+                        if(onboardDetial.user.status == 5)
                         $(`#actionContainer div#action-button`).show()
                         $(`#actionContainer button#next-menu`).hide()
                     }
@@ -730,15 +731,8 @@
 
                 // Close function
                 $(document).on("click", "button#closeVerification", function () {
-                    clearSelectedData()
-                    initFetch()
+                    window.location.href = "?"
                 });
-                
-                function clearSelectedData() {
-                    initFetch()
-                    $("#contents").show()
-                    $("#actionContainer").hide()
-                }
 
                 // Check condition
                 $(document).on("change", "input.check-field", function () {

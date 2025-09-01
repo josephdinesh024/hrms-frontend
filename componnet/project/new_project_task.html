@@ -58,7 +58,7 @@
                 showAlertMessage("warning", "API error", error)
             }
 
-        if(SelectedID && ProjectTaskDetail?.id){
+        if(SelectedTaskID && ProjectTaskDetail?.id){
             $("form#new-task-form #name").val(ProjectTaskDetail.name)
             $("form#new-task-form h2").text("Edit project task details")
             $("form#new-task-form #project_id").hide()
@@ -111,10 +111,10 @@
             let formData = new FormData(this)
             let data = {}
             data["name"] = formData.get("name")
-            if(SelectedID && SelectedID != "")
+            if(SelectedTaskID && SelectedTaskID != "")
                 data["progress"] = parseFloat(formData.get("progress"))
             else
-                data["project_id"] = parseInt(formData.get("project_id"))
+                data["project_id"] = parseInt(formData.get("project_id")) || parseInt($("form#new-task-form select#project_id").val())
             data["description"] = formData.get("description")
             let projectFiles = []
             let container = $("form#new-task-form .task_files")
@@ -132,13 +132,14 @@
                 }else
                     break
             }
-            if(!data["project_id"] && !(SelectedID != ""))
+            if(!data["project_id"] && !(SelectedTaskID != ""))
                 showAlertMessage("error","Project","Project name should not be empty.")
             else
                 try {
+                    console.log(data)
                 ProgressLoading(true)
-                fetch(`${DomainURL}/project/task${SelectedID ?"/"+SelectedID:""}`, {
-                    method: SelectedID ? "PUT" : "POST",
+                fetch(`${DomainURL}/project/task${SelectedTaskID ?"/"+SelectedTaskID:""}`, {
+                    method: SelectedTaskID ? "PUT" : "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${access_token}`
@@ -151,6 +152,7 @@
                                projectFiles.forEach(f => ProjectFileUpload(data.project_task.id,f))
                                setTimeout(()=>{window.location.reload()},800)
                         } else {
+                            // console.log(data)
                             showAlertMessage("error", "Project Task", data.message)
                         }
                         ProgressLoading(false)
@@ -159,7 +161,7 @@
                 ProgressLoading(false)
                 showAlertMessage("warning", "API error", error)
             }
-            // console.log(data,SelectedID)
+            // console.log(data,SelectedTaskID)
         })
     })
 
