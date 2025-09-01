@@ -136,7 +136,7 @@
                 showAlertMessage("error","Project","Project name should not be empty.")
             else
                 try {
-                    console.log(data)
+                    // console.log(data)
                 ProgressLoading(true)
                 fetch(`${DomainURL}/project/task${SelectedTaskID ?"/"+SelectedTaskID:""}`, {
                     method: SelectedTaskID ? "PUT" : "POST",
