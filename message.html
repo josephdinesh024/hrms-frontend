@@ -93,7 +93,7 @@
                 success: function (res) {
                     $("#chat-list").empty();
                     // console.log(res)
-                    res.chats.forEach(chat => {
+                    res?.chats?.forEach(chat => {
                         $("#chat-list").append(`
                             <div class="p-2 border-b cursor-pointer chat-item w-full flex justify-between relative" data-id="${chat.user_id}" data-name="${chat?.user_name}">
                                     <span>${chat?.user_name}</span>
@@ -213,7 +213,8 @@
         });
 
         $(document).ready(function () {
-            URLs = DomainURL.replace("https","ws")
+            // URLs = DomainURL.replace("http","ws") // http - ws and https - wss
+            URLs = DomainURL.replace("https","wss") // http - ws and https - wss
             currentUser = parseInt($.cookie("id"))
             loadChatList();
             connectWS();
